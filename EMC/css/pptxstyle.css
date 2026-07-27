@@ -1,0 +1,218 @@
+/* ══ Shell principal ══ */
+.pptx-shell {
+    background: #1e1e22;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--emc-shadow-lg);
+    border: 1px solid #111;
+    max-height: 50%;
+}
+
+/* ══ Toolbar ══ */
+.pptx-toolbar {
+    background: #16161a;
+    padding: 10px 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #2e2e36;
+    flex-wrap: wrap;
+}
+
+.pptx-title-area { display:flex; align-items:center; gap:10px; min-width:0; }
+.pptx-fname { color:rgba(255,255,255,.85); font-size:.85rem; font-weight:600; }
+.pptx-fmeta { font-size:.72rem; color:rgba(255,255,255,.3); font-family:'JetBrains Mono',monospace; margin-top:1px; }
+.pptx-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; flex-wrap:wrap; }
+
+.tb-btn {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.1);
+    color: rgba(255,255,255,.7);
+    border-radius: 7px; padding: 7px 14px;
+    font-size: .78rem; font-weight: 600;
+    cursor: pointer; display: inline-flex;
+    align-items: center; gap: 6px;
+    transition: all .2s; text-decoration: none;
+    font-family: 'Sora', sans-serif; white-space: nowrap;
+}
+.tb-btn:hover { background:rgba(255,255,255,.14); color:#fff; }
+
+.tb-btn-ppt {
+    background: #C0392B;
+    color: #fff !important;
+    border-color: transparent;
+}
+.tb-btn-ppt:hover { background:#a93226; transform:translateY(-1px); box-shadow:0 4px 14px rgba(192,57,43,.4); }
+
+@keyframes pulse-red {
+    0%,100% { box-shadow:0 0 0 0 rgba(192,57,43,.5); }
+    50%      { box-shadow:0 0 0 8px rgba(192,57,43,0); }
+}
+.pulsing { animation:pulse-red 2s ease infinite; }
+
+/* ══ Aviso de calidad ══ */
+.quality-bar {
+    background: rgba(0,198,174,.06);
+    border-bottom: 1px solid rgba(0,198,174,.15);
+    padding: 7px 1.25rem;
+    font-size: .73rem;
+    color: rgba(0,198,174,.8);
+    display: flex; align-items: center; gap: 8px;
+}
+
+/* ══ Área de slides: pptx-preview inyecta aquí ══ */
+.pptx-stage {
+    background: #2a2a30;
+    /* min-height: 74vh; */
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.75rem 1rem 2rem;
+    gap: 1.5rem;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Contenedor donde pptx-preview renderiza cada slide */
+#pptxWrapper {
+    width: 100%;
+    max-width: 960px;
+}
+
+/* pptx-preview genera divs por slide — los estilizamos */
+#pptxWrapper > div {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 32px rgba(0,0,0,.45);
+    margin-bottom: 1.25rem;
+    background: #fff;
+}
+
+#pptxWrapper > div:last-child { margin-bottom: 0; }
+
+/* Loading */
+.pptx-loading {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 55vh; gap: 1.25rem;
+    color: rgba(255,255,255,.5);
+}
+.spinner {
+    width: 46px; height: 46px;
+    border: 3px solid rgba(255,255,255,.1);
+    border-top-color: var(--emc-accent);
+    border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.pptx-loading p { font-size:.9rem; }
+.pptx-loading .sub { font-size:.73rem; color:rgba(255,255,255,.25); }
+
+/* Error */
+.pptx-error {
+    text-align: center; padding: 3rem 2rem;
+    color: rgba(255,255,255,.55);
+}
+.pptx-error .ei { font-size:3rem; margin-bottom:1rem; display:block; opacity:.35; }
+.pptx-error h3 { font-size:1.05rem; color:rgba(255,255,255,.8); margin-bottom:.5rem; }
+.pptx-error p  { font-size:.83rem; line-height:1.65; max-width:380px; margin:0 auto 1.25rem; }
+
+/* ══ Navegación de slides ══ */
+.pptx-nav {
+    position: sticky; bottom: 1rem;
+    display: none; align-items: center; gap: .75rem;
+    background: rgba(22,22,26,.93);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 100px; padding: 8px 18px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 24px rgba(0,0,0,.4);
+    z-index: 10;
+}
+.pptx-nav.show { display: flex; }
+.pptx-nav button {
+    background: none; border: none;
+    color: rgba(255,255,255,.7); font-size: 1rem;
+    cursor: pointer; padding: 4px 8px;
+    border-radius: 6px; transition: all .15s;
+}
+.pptx-nav button:hover:not(:disabled) { background:rgba(255,255,255,.1); color:#fff; }
+.pptx-nav button:disabled { opacity:.2; cursor:default; }
+.nav-info {
+    color: rgba(255,255,255,.6); font-size: .78rem;
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 64px; text-align: center;
+}
+
+/* ══ Modo presentación (1 slide a la vez, pantalla completa) ══ */
+
+body.present-mode { 
+    overflow: hidden; 
+    background-color: #000;
+}
+
+body.present-mode .pptx-stage {
+    position: fixed; inset: 0; z-index: 9000;
+    background: #000; padding: 0;
+    justify-content: center; overflow: hidden;
+    gap: 0;
+}
+
+body.present-mode #pptxWrapper {
+    max-width: 100vw;
+    width: 100%; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* Ocultar todos los slides menos el activo en modo presentación */
+body.present-mode #pptxWrapper > div {
+    display: none !important;
+    margin: 0;
+    border-radius: 0;
+}
+body.present-mode #pptxWrapper > div.slide-active {
+    display: block !important;
+    width: min(100vw, calc(100vh * 16/9)) !important;
+    max-height: 100vh;
+    box-shadow: none;
+}
+
+body.present-mode .pptx-nav {
+    position: fixed; bottom: 1.5rem;
+    left: 50%; transform: translateX(-50%);
+    z-index: 9010;
+}
+
+#btnExitPresent {
+    display: none; position: fixed;
+    top: 1rem; right: 1rem; z-index: 9020;
+    background: rgba(0,0,0,.8) !important;
+    border-color: rgba(255,255,255,.2) !important;
+    color: #fff !important;
+}
+body.present-mode #btnExitPresent { display: inline-flex; }
+
+/* ══ Badge ══ */
+.anim-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(0,198,174,.12); border: 1px solid rgba(0,198,174,.25);
+    color: var(--emc-accent); padding: 2px 9px;
+    border-radius: 100px; font-size: .7rem; font-weight: 600;
+}
+
+/* ══ Toast ══ */
+#pptToast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+    background: #1A3E6F; color: #fff;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px; padding: 13px 18px;
+    font-size: .82rem; font-family: 'Sora', sans-serif;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    z-index: 9999; display: flex; align-items: center;
+    gap: 12px; max-width: 460px; width: 90%;
+    animation: slideUp .3s ease;
+}
+@keyframes slideUp {
+    from { opacity:0; transform:translateX(-50%) translateY(14px); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0); }
+}

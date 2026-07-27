@@ -1,0 +1,328 @@
+.page {
+    background: white;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 30px 35px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/*
+HEADER
+*/
+.header {
+    text-align: center;
+    margin-bottom: 14px;
+}
+
+.header .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+.logo-box {
+    border: 2px solid #000;
+    padding: 3px 8px;
+    font-weight: bold;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.company-name {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.planta {
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.titulo {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+/*
+Datos de formulario
+*/
+
+.campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 20px;
+    border-top: 1px solid #000;
+    padding-top: 8px;
+}
+
+.campo-grupo {
+    margin-bottom: 5px;
+}
+
+.campo-grupo label {
+    font-weight: bold;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.campo-grupo input[type="text"],
+.campo-grupo input[type="date"],
+.campo-grupo input[type="number"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    font-size: 11px;
+    padding: 1px 2px;
+    background: transparent;
+}
+
+.fila-inline {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.fila-inline label {
+    white-space: nowrap;
+}
+
+.fila-inline input {
+    flex: 1;
+}
+
+/*
+Seccion de tabla de comentario
+*/
+
+.seccion-tabla {
+    margin-top: 14px;
+    border-top: 1px solid #000;
+    padding-top: 8px;
+}
+
+.instruccion {
+    text-align: center;
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.leyenda {
+    display: flex;
+    gap: 30px;
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.calendario {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.calendario th, .calendario td {
+    border: 1px solid #000;
+    text-align: center;
+    padding: 0;
+    width: calc(100% / 16);
+}
+
+.calendario th {
+    font-weight: bold;
+    font-size: 10px;
+    padding: 3px 0;
+}
+
+.calendario td{
+    height: 28px;
+}
+
+.calendario td .num {
+    display: block;
+    font-size: 9px;
+    border-bottom: 1px solid #000;
+    padding: 1px 0;
+}
+
+.calendario td select {
+    width: 100%;
+    border: none;
+    background:  transparent;
+    font-size: center;
+    text-align: center;
+    outline: none;
+    cursor: pointer;
+    height: 16px;
+}
+
+/*
+Observaciones
+*/
+.obs-section {
+    margin-top: 12px;
+}
+
+.obs-section label {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.obs-section input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    font-size: 11px;
+    margin-top: 6px;
+    padding: 2px;
+    background: transparent;
+}
+
+.reposicion-section {
+    margin-top: 12px;
+}
+
+.reposicion-section label {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.reposicion-section input[type="text"] {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    font-size: 11px;
+    margin-top: 6px;
+    padding: 2px;
+    background: transparent;
+}
+
+/*
+Datos de saldo
+*/
+
+.saldo-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14px;
+    gap: 20px;
+}
+
+.saldo-item {
+    flex: 1;
+}
+
+.saldo-item label {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.saldo-item input {
+    border: none;
+    border-bottom: 1px solid #000;
+    outline: none;
+    font-size: 11px;
+    width: 100%;
+    background: transparent;
+}
+
+/*
+Firmas
+*/
+.firmas {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 20px;
+}
+
+.firma-item {
+    flex: 1;
+    text-align: center;
+}
+
+.firma-line {
+    border-top: 1px solid #000;
+    padding-top: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/*
+footer
+*/
+.footer {
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid #000;
+    padding-top: 6px;
+}
+
+.footer .slogan{
+    font-weight: bold;
+    font-size: 11px;
+    font-style: italic;
+}
+
+.footer .ref {
+    font-size: 9px;
+    text-align: right;
+}
+
+/*
+Botones
+*/
+.botones {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 0 8px;
+}
+
+.btn-guardar{
+    background: #1565C0;
+    color:white;
+}
+
+.btn-limpiar{
+    background: #757575;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+.mensaje {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.mensaje.ok {
+    color: green;
+}
+
+.mensaje.err {
+    color: red;
+}

@@ -1,0 +1,76 @@
+/* Estilos para eventos importantes a resaltar */
+.driver-popover.popover-importante {
+  background-color: #ffebee !important;
+  border: 2px solid #d32f2f !important;
+  animation: pulse 2s infinite !important;
+}
+
+.driver-popover.popover-importante .driver-popover-title {
+  color: #d32f2f !important;
+  font-weight: bold;
+}
+
+.driver-popover.popover-importante .driver-popover-footer .driver-popover-btn {
+  background-color: #d32f2f !important;
+  color: #fff !important;
+}
+
+@keyframes pulse {
+  0% { 
+    box-shadow: 0 0 0 0 rgba(211,47,47, 0.9); 
+    transform: scale(1); 
+  }
+  50% { 
+    box-shadow: 0 0 25px 15px rgba(211,47,47, 0.4); 
+    transform: scale(1.05); 
+  }
+  100% { 
+    box-shadow: 0 0 0 0 rgba(211,47,47, 0); 
+    transform: scale(1); 
+  }
+}
+
+/* Fondo y estilo del popover */
+.driver-popover {
+  background-color: #fff8e1 !important;
+  color: #333 !important;
+  border-radius: 8px !important;
+  border: 2px solid #ff9800 !important;
+}
+
+/* Título */
+.driver-popover-title {
+  color: #ff9800 !important;
+  font-weight: bold;
+}
+
+/* Botones (Siguiente, Atrás, Finalizar) */
+.driver-popover-footer .driver-popover-btn {
+  background-color: #ff9800 !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+  border: none !important;
+  padding: 6px 12px;
+  font-weight: bold;
+}
+
+/* Botón de cerrar */
+.driver-popover-close-btn {
+  color: #d32f2f !important;
+}
+
+/* Bloquear interacción en formularios durante el tour */
+/* Bloquear inputs, selects y textareas */
+.driver-active .campos input,
+.driver-active .campos select,
+.driver-active .campos textarea {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Bloquear botones dentro de .campos */
+.driver-active .campos button,
+.driver-active .campos [type="button"],
+.driver-active .campos [type="submit"] {
+  pointer-events: none !important;
+}

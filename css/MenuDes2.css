@@ -1,0 +1,22 @@
+/* Submenús dentro de dropdown */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -0.25rem;
+  min-width: 220px;
+}
+
+.dropdown-submenu .dropdown-submenu > .dropdown-menu {
+  left: 100%;
+  top: 0;
+  
+}
+
+.dropdown-menu {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  border-radius: 6px;
+}

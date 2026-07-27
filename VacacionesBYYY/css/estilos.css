@@ -1,0 +1,67 @@
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.8); 
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.upload-zone {
+    border: 2px dashed #0d6efd;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    background: #f8f9ff;
+    transition: background .2s;
+    cursor: pointer;
+}
+
+.archivo-seleccionado {
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.card-estado {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    font-size: 0.9rem;
+    z-index: 100;
+}
+
+
+.form-con-archivo {
+    border: 2px solid #0d6efd;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+
+.upload-zone:hover {
+    background: #e8e8e8;
+}
+
+.badge-estado{
+    font-size: .2rem;
+}
+
+.upload-alert {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 300px;
+    font-size: 0.9rem;
+    padding: 10px 35px 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.upload-alert .btn-close {
+    position: absolute;
+    top: -5px;
+    right: -3px;
+}

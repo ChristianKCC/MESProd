@@ -1,0 +1,30 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Firma con Topaz T-S460-HSB-R</title>
+  <style>
+    #signatureCanvas { border:1px solid #444; width:500px; height:100px; }
+    .actions { margin-top:8px; display:flex; gap:8px; }
+    textarea { width:500px; height:90px; margin-top:8px; }
+  </style>
+  <script src="https://www.sigplusweb.com/SigWebTablet.js"></script>
+</head>
+<body>
+  <h1>Captura de firma (Topaz)</h1>
+
+  <canvas id="signatureCanvas" width="500" height="100"></canvas>
+
+  <div class="actions">
+    <button id="btnSign">Firmar</button>
+    <button id="btnClear">Limpiar</button>
+    <button id="btnDone">Listo</button>
+  </div>
+
+  <input type="hidden" id="bioSigData" />
+  <textarea id="sigStringData" placeholder="SigString (biométrico)"></textarea>
+  <textarea id="sigImageData" placeholder="Imagen Base64"></textarea>
+
+  <script src="firma.js"></script>
+</html>

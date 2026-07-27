@@ -1,0 +1,591 @@
+<?php
+require('../../fpdf/fpdf.php');
+require_once("../../conexion.php");
+
+if (!isset($_GET['folio'])) {
+    die("Folio no válido");
+}
+
+$folio = base64_decode($_GET['folio']);
+$autorizo = 0;
+$verifico = 0;
+$firmoRI = 0;
+$autorizoemp = '';
+$nombreSupervisor = '';
+// $empnoemp = '';
+// $nombreEmpleado = '';
+// $nombreRIND =  '';
+
+// Conexión
+$ClassConexion = new ClassConexion();
+$conn = $ClassConexion->conexion("TLX002MXDB");
+
+// 1. Encabezado
+// Vc_ibm firma de trabajador que solicita vacaciones
+// Vc_autoriza Responsable de area
+$queryEnc = "SELECT
+                Vc_id,
+                Vc_ibm,
+                Vc_autorizado,
+                Vc_autoriza,
+                Vc_terminado,
+                Vc_tipo,
+                Vc_revisado,
+                Vc_firmaRI,
+                sup.Nombre AS NombreSupervisor,
+                emp.Nombre AS NombreEmpleado
+             FROM [TLX002MXDB].[dbo].[tblMXPRVacacionesEnc]
+             INNER JOIN TLX032MXDB.dbo.tblEmpleados AS sup ON sup.NoEmp = tblMXPRVacacionesEnc.Vc_autoriza
+             INNER JOIN TLX032MXDB.dbo.tblEmpleados AS emp ON emp.NoEmp = tblMXPRVacacionesEnc.Vc_ibm
+             WHERE Vc_id = ?";
+$resEnc = sqlsrv_query($conn, $queryEnc, [$folio]);
+$enc = sqlsrv_fetch_array($resEnc, SQLSRV_FETCH_ASSOC);
+if ($enc) {
+    $autorizo = $enc['Vc_autorizado'];
+    $autorizoemp = $enc['Vc_autoriza'];
+    $nombreSupervisor = $enc['NombreSupervisor'];
+
+    $verifico = $enc['Vc_revisado'];
+    $firmoRI = $enc['Vc_firmaRI'];
+
+    $empnoemp = $enc['Vc_ibm'];
+    $nombreEmpleado = $enc['NombreEmpleado'];
+
+    $nombreRIND = 'Ponce Gutierrez Eduardo';
+}
+
+// 2. SubEnc (detalles)
+$querySub = "SELECT * FROM tblMXPRVacacionesSubEnc WHERE Vcs_vc_id = ?";
+$resSub = sqlsrv_query($conn, $querySub, [$folio]);
+$sub = sqlsrv_fetch_array($resSub, SQLSRV_FETCH_ASSOC);
+
+// 3. Calendario
+// $queryCal = "SELECT Cav_dia, Cav_tipoDia FROM tblMXPRCalendarioVacaciones WHERE Cav_folio = ?";
+// $resCal = sqlsrv_query($conn, $queryCal, [$folio]);
+// $dias_cal = [];
+// while ($rowCal = sqlsrv_fetch_array($resCal, SQLSRV_FETCH_ASSOC)) {
+//     $dias_cal[$rowCal['Cav_dia']] = $rowCal['Cav_tipoDia'];
+// }
+
+$queryCal = "SELECT Cav_fecha, Cav_tipoDia
+             FROM tblMXPRCalendarioVacaciones
+             WHERE Cav_folio = ?";
+$resCal = sqlsrv_query($conn, $queryCal, [$folio]);
+
+$diasSeleccionados = [];
+while ($rowCal = sqlsrv_fetch_array($resCal, SQLSRV_FETCH_ASSOC)) {
+    $fechaStr = $rowCal['Cav_fecha']->format("Y-m-d");
+    $diasSeleccionados[$fechaStr] = $rowCal['Cav_tipoDia']; // V, D, F, R
+}
+
+
+// Obtencion de valores
+$nombre = $sub['Vcs_nombre'];
+$puesto = $sub['Vcs_puesto'];
+$fecha_ingreso = $sub['Vcs_fingreso']->format("Y-m-d");
+$solicitud_por = $sub['Vcs_solVacBy'] . " días";
+$vacaciones_por = $sub['Vcs_de']->format("Y-m-d");
+$vacaciones_hasta = $sub['Vcs_hasta']->format("Y-m-d");
+$dias_antiguedad = $sub['Vcs_diasByAntiguedad'];
+$dias_solicitados = $sub['Vcs_diasVacSol'];
+$total_dias = $sub['Vcs_totalDias'];
+$tarjeta = $sub['Vcs_noTarjeta'];
+$departamento = $sub['Vcs_depto'];
+$antiguedad_de = $sub['Vcs_antiguedad'];
+$vacaciones_anio_de = 26;
+$prima_vacacional = $sub['Vcs_priVacEq'];
+$dias_reposicion = $sub['Vcs_diasRF'];
+$dias_descanso = $sub['Vcs_diasD'];
+$dias_habiles_partir = $sub['Vcs_diasHabAp']->format("Y-m-d");
+$periodo_de = $sub['Vcs_periodo'];
+$vacaciones_anio_de = 26;
+$periodo_solicitado = $sub['Vcs_periodo'];
+$imp1 = $sub['Vcs_impOne'] ?? 0;
+$imp2 = $sub['Vcs_impTwo'] ?? 0;
+$imp3 = $sub['Vcs_impThree'] ?? 0;
+$imp4 = $sub['Vcs_impFour'] ?? 0;
+$imp5 = $sub['Vcs_impFive'] ?? 0;
+$observacion = $sub['Vcs_Observacion'];
+$fechas_reposicion = $sub['Vcs_fechasRF'] ?? '';
+$saldo_periodo = $sub['Vcs_saldoPeriodo'] ?? 0;
+$dias_habiles_saldo = $sub['Vcs_diasHabiles'] ?? 0;
+$tipoSolicitud = $enc['Vc_tipo'] ?? 'No hay tipo registrado';
+
+$fechaInicioMes = new DateTime($vacaciones_por);
+$anio = $fechaInicioMes->format('Y');
+$mes  = $fechaInicioMes->format('m');
+
+// Detectar meses involucrados según el rango de vacaciones
+$fechaInicio = new DateTime($vacaciones_por);
+$fechaFin    = new DateTime($vacaciones_hasta);
+
+$mesesInvolucrados = [];
+$cursor = clone $fechaInicio;
+while ($cursor <= $fechaFin) {
+    $mesesInvolucrados[] = [
+        'anio' => $cursor->format('Y'),
+        'mes'  => $cursor->format('m')
+    ];
+    $cursor->modify('first day of next month');
+}
+
+
+// CLASE FPDF SIN HEADER / FOOTER AUTOMATICO
+
+class PDF extends FPDF {
+    function Header() {}
+    function Footer() {}
+}
+
+// INICIALIZAR PDF
+$pdf = new PDF('P', 'mm', 'Letter');
+$pdf -> AddPage();
+$pdf -> SetMargins(14, 10, 14);
+$pdf -> SetAutoPageBreak(false);
+$pdf -> SetLineWidth(0.3);
+
+$pw = 182; // ancho util
+$lx = 14; // margen izquierdo
+
+// Encabezado
+$pdf -> SetFont('Arial', 'B', 13);
+$pdf -> SetXY($lx + 16, 10);
+
+$pdf -> Image('../../img/logo.jpg', 60, 7, 100);
+$pdf -> Ln(4);
+
+$pdf -> SetFont('Arial', 'B', 7);
+$pdf -> SetX($lx + 16);
+$pdf -> Cell($pw - 16, 4, 'PLANTA PROSEDE', 0, 1, 'C');
+
+$pdf -> SetFont('Arial', 'B', 11);
+$pdf -> SetX($lx);
+$pdf -> Cell($pw + 10, 5, 'SOLICITUD DE VACACIONES', 0, 1, 'C');
+
+$pdf -> Ln(5);
+$pdf -> SetLineWidth(0.5);
+
+$pdf -> SetLineWidth(0.3);
+$pdf -> Ln(10);
+
+// Campos principales
+$y0 = $pdf -> GetY();
+$c1x = $lx;
+$c2x = $lx + 94;
+$cw1 = 90;
+$cw2 = 88;
+$rh = 5;
+
+function fila(FPDF $pdf, $x, $y, $label, $value, $totalW) {
+    $pdf -> SetFont('Arial', 'B', 7);
+    $pdf -> SetXY($x, $y);
+    $lw = $pdf -> GetStringWidth($label) + 1;
+    $pdf -> Cell($lw, 4, $label, 0, 0, 'L');
+    $pdf -> SetFont('Arial', '', 8);
+    $pdf -> SetXY($x + $lw, $y + 0.5);
+    $pdf -> Cell($totalW - $lw, 4, $value, 'B', 0, 'L');
+}
+
+// Columna izquierda
+$yi = $y0;
+fila($pdf, $c1x, $yi, 'NOMBRE: ', utf8_decode($nombre), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'PUESTO: ', utf8_decode($puesto), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'FECHA DE INGRESO: ', utf8_decode($fecha_ingreso), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'SOLICITUD DE VACACIONES: ', utf8_decode($solicitud_por), $cw1);
+$yi += $rh;
+
+$pdf -> SetFont('Arial', 'B', 7);
+// $pdf -> SetXY($c1x, $yi);
+// $pdf -> Cell(6, 4, 'DE: ',    0, 0, 'L');
+// $pdf -> SetFont('Arial', '', 8);
+// $pdf -> Cell(28, 4, $vacaciones_por, 'B', 0, 'L');
+// $pdf -> SetFont('Arial', 'B', 7);
+// $pdf -> Cell(12, 4, 'DEL 20',    0, 0, 'L');
+// $pdf -> SetFont('Arial', '', 8);
+// $pdf -> Cell(10, 4, $vacaciones_anio_de, 'B', 0, 'L');
+// $pdf -> SetFont('Arial', 'B', 7);
+fila($pdf, $c1x, $yi, utf8_decode('HASTA EL DÍA: '), utf8_decode($vacaciones_hasta), $cw1);
+// $pdf -> Cell(18, 4, 'HASTA EL DIA: ', 0, 0, 'L');
+// $pdf -> SetFont('Arial', '', 8);
+// $pdf -> Cell($cw1 - 18, 4, $vacaciones_hasta, 'B', 1, 'L');
+$yi += $rh;
+
+fila($pdf, $c1x, $yi, 'DIAS CORRESPONDIENTES POR ANTIGUEDAD: ', utf8_decode($dias_antiguedad), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'DIAS DE VACACIONES SOLICITADOS: ', utf8_decode($dias_solicitados), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'PRIMA VACACIONAL EQUIVALENTE: ', utf8_decode($prima_vacacional), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'DIAS DE REPOSICION O FESTIVO: ', utf8_decode($dias_reposicion), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'DIAS DE DESCANSO: ', utf8_decode($dias_descanso), $cw1);
+$yi += $rh;
+fila($pdf, $c1x, $yi, 'TOTAL DE DIAS: ', utf8_decode($total_dias), $cw1);
+$yi += $rh;
+
+
+// COLUMNA DERECHA
+$yd = $y0;
+fila($pdf, $c2x, $yd, 'TARJETA NO.: ', utf8_decode($tarjeta), $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'DEPARTAMENTO: ', utf8_decode($departamento), $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'ANTIGUEDAD DE: ', utf8_decode($antiguedad_de), $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'DIA(S) HABIL(ES) A PARTIR DEL: ', utf8_decode($dias_habiles_partir), $cw2);
+$yd += $rh;
+
+// $pdf -> SetFont('Arial', 'B', 7);
+// $pdf -> SetXY($c2x, $yd);
+// $pdf -> Cell(6, 4, 'DE: ',   0, 0, 'L');
+// $pdf -> SetFont('Arial', '', 8);
+// $pdf -> Cell(22, 4, $vacaciones_por, 'B', 0, 'L');
+// $pdf -> SetFont('Arial', 'B', 7);
+// $pdf -> Cell(12, 4, 'DEL 20', 0, 0, 'L');
+// $pdf -> SetFont('Arial', '', 8);
+// $pdf -> Cell($cw2 - 40, 4, $vacaciones_anio_de, 'B', 1, 'L');
+// $yd += $rh;
+
+fila($pdf, $c2x, $yd, 'PERIODO SOLICITADO: ', utf8_decode($periodo_solicitado), $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'TIPO DE SOLICITUD: ', utf8_decode($tipoSolicitud), $cw2);
+$yd += $rh;
+
+fila($pdf, $c2x, $yd, 'IMPORTE $', $imp1, $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'IMPORTE $', $imp2, $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'IMPORTE $', $imp3, $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'IMPORTE $', $imp4, $cw2);
+$yd += $rh;
+fila($pdf, $c2x, $yd, 'IMPORTE $', $imp5, $cw2);
+$yd += $rh;
+
+$pdf -> SetY(max($yi, $yd) + 2);
+
+// LINEA
+$pdf -> Ln(10);
+$pdf -> SetLineWidth(0.5);
+
+$pdf -> SetLineWidth(0.3);
+
+// INSTRUCCION
+$pdf -> SetFont('Arial', 'B', 8);
+$pdf -> Cell($pw, 5, 'ANOTAR EN EL RECUADRO SIGUIENTE LO QUE CORRESPONDA SEGUN EL CASO', 0, 1, 'C');
+
+$pdf -> SetFont('Arial', 'B', 8);
+$pdf -> SetX($lx);
+$pdf -> Cell(46, 4, 'V = VACACIONES', 0, 0, 'L');
+$pdf -> Cell(46, 4, 'D = DESCANSO', 0, 0, 'L');
+$pdf -> Cell(45, 4, 'F = FESTIVO', 0, 0, 'L');
+$pdf -> Cell(45, 4, 'R = REPOSICION', 0, 1, 'L');
+$pdf -> Ln(5);
+
+// TABLA DEL CALENDARIO
+$cal_x = $lx;
+$cal_y = $pdf->GetY();
+$cw_cel = $pw / 16;
+$ch_hdr = 5;
+$ch_val = 7;
+
+$colores = [
+    'V' => [198, 224, 180],
+    'D' => [255, 255, 153],
+    'F' => [255, 153, 153],
+    'R' => [180, 198, 231],
+];
+
+$diasSemana = ['L','M','M','J','V','S','D'];
+$nombreMeses = [
+    '01'=>'Enero','02'=>'Febrero','03'=>'Marfzo','04'=>'Abril',
+    '05'=>'Mayo','06'=>'Junio','07'=>'Julio','08'=>'Agosto',
+    '09'=>'Septiembre','10'=>'Octubre','11'=>'Noviembre','12'=>'Diciembre'
+];
+
+foreach ($mesesInvolucrados as $m) {
+    $anio = $m['anio'];
+    $mes  = $m['mes'];
+
+    // Informacion del nombre del mes
+    // $pdf->SetFont('Arial','B',10);
+    // $pdf->Cell(0,10,"Calendario de {$nombreMeses[$mes]} $anio",0,1,'C');
+    $pdf->SetFont('Arial','B',8);
+    $pdf->SetXY($cal_x, $cal_y - 4);
+    $pdf->Cell(60, 6, "Calendario de {$nombreMeses[$mes]} $anio", 0, 1, 'L');
+    $cal_y = $pdf->GetY();
+
+
+    // NUMEROS DEL 1-16
+    $pdf->SetFont('Arial', 'B', 8);
+    for($i = 1; $i <= 16; $i++){
+        $pdf->SetXY($cal_x + ($i - 1) * $cw_cel, $cal_y);
+        $pdf->Cell($cw_cel, $ch_hdr, (string)$i, 1, 0, 'C');
+    }
+    $cal_y += $ch_hdr;
+
+    // INICIALES DE DÍAS DE LA SEMANA (1–16)
+    $pdf->SetFont('Arial', 'I', 7);
+    for($i = 1; $i <= 16; $i++){
+        $fecha = DateTime::createFromFormat('Y-m-d', "$anio-$mes-".str_pad($i,2,'0',STR_PAD_LEFT));
+        $diaInicial = $diasSemana[$fecha->format('N')-1];
+        $pdf->SetXY($cal_x + ($i - 1) * $cw_cel, $cal_y);
+        $pdf->Cell($cw_cel, $ch_hdr, $diaInicial, 1, 0, 'C');
+    }
+    $cal_y += $ch_hdr;
+
+    // VALORES 1-16
+    for ($i = 1; $i <= 16; $i++){
+        $fechaStr = "$anio-$mes-".str_pad($i,2,'0',STR_PAD_LEFT);
+        $val = $diasSeleccionados[$fechaStr] ?? '';
+        $pdf->SetXY($cal_x + ($i - 1) * $cw_cel, $cal_y);
+        if (isset($colores[$val])) {
+            [$r,$g,$b] = $colores[$val];
+            $pdf->SetFillColor($r,$g,$b);
+        } else {
+            $pdf->SetFillColor(255,255,255);
+        }
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell($cw_cel, $ch_val, $val, 1, 0, 'C', true);
+    }
+    $cal_y += $ch_val + 2;
+
+    // NUMEROS DEL 17-31
+    $pdf->SetFont('Arial', 'B', 8);
+    for($i = 17; $i <= 31; $i++){
+        $pdf->SetXY($cal_x + ($i - 17) * $cw_cel, $cal_y);
+        $pdf->Cell($cw_cel, $ch_hdr, (string)$i, 1, 0, 'C');
+    }
+    $cal_y += $ch_hdr;
+
+    // INICIALES DE DÍAS DE LA SEMANA (17–31)
+    $pdf->SetFont('Arial', 'I', 7);
+    for($i = 17; $i <= 31; $i++){
+        $fecha = DateTime::createFromFormat('Y-m-d', "$anio-$mes-".str_pad($i,2,'0',STR_PAD_LEFT));
+        $diaInicial = $diasSemana[$fecha->format('N')-1];
+        $pdf->SetXY($cal_x + ($i - 17) * $cw_cel, $cal_y);
+        $pdf->Cell($cw_cel, $ch_hdr, $diaInicial, 1, 0, 'C');
+    }
+    $cal_y += $ch_hdr;
+
+    // VALORES 17-31
+    for ($i = 17; $i <= 31; $i++){
+        $fechaStr = "$anio-$mes-".str_pad($i,2,'0',STR_PAD_LEFT);
+        $val = $diasSeleccionados[$fechaStr] ?? '';
+        $pdf->SetXY($cal_x + ($i - 17) * $cw_cel, $cal_y);
+        if (isset($colores[$val])) {
+            [$r,$g,$b] = $colores[$val];
+            $pdf->SetFillColor($r,$g,$b);
+        } else {
+            $pdf->SetFillColor(255,255,255);
+        }
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell($cw_cel, $ch_val, $val, 1, 0, 'C', true);
+    }
+
+    $cal_y += $ch_val + 5;
+}
+
+
+$pdf->SetY($cal_y + 3);
+
+
+// Si hay más de 2 meses involucrados, saltar a nueva página
+if (count($mesesInvolucrados) > 1) {
+    $pdf->AddPage();
+    $cal_y = $pdf->GetY();
+}
+
+// OBSERVACIONES
+$pdf -> Ln(10);
+$pdf -> SetFont('Arial', 'B', 8);
+$pdf -> SetX($lx);
+$pdf -> Cell(28, 5, 'OBSERVACIONES',0, 0, 'L');
+$pdf -> SetFont('Arial', '', 8);
+$pdf -> Cell($pw - 28, 5, $observacion, 'B', 1, 'L');
+$pdf -> SetX($lx);
+$pdf -> Ln(2);
+
+// REPOSICION O FESTIVO
+$pdf -> SetFont('Arial', 'B', 8);
+$pdf -> SetX($lx);
+$label_rep = 'ANOTAR LAS FECHAS DE LOS DIAS POR REPOSICION O FESTIVO: ';
+$lw_rep = $pdf -> GetStringWidth($label_rep) + 2;
+$pdf -> Cell($lw_rep, 5, $label_rep, 0, 0, 'L');
+$pdf -> SetFont('Arial', '', 8);
+$pdf -> Cell($pw - $lw_rep, 5, $fechas_reposicion, 'B', 1, 'L');
+$pdf -> SetX($lx);
+$pdf -> Ln(4);
+
+// SALDO
+$pdf -> Ln(10);
+$pdf -> SetFont('Arial', 'B', 8);
+$pdf -> SetX($lx);
+$pdf -> Cell(34, 5, 'SALDO AL PERIODO: ', 0, 0, 'L');
+$pdf -> SetFont('Arial', '', 8);
+$pdf -> Cell(52, 5, $saldo_periodo, 'B', 0, 'L');
+$pdf -> SetFont('Arial', 'B', 8);
+$pdf -> Cell(34, 5, 'DIAS HABILES: ', 0, 0, 'L');
+$pdf -> SetFont('Arial', '', 8);
+$pdf -> Cell($pw - 120, 5, utf8_decode($dias_habiles_saldo), 'B', 1, 'L');
+$pdf -> Ln(20);
+
+// FIRMAS
+$fw = 52;
+$gap = 13;
+$fx1 = $lx;
+$fx2 = $lx + $fw + $gap;
+$fx3 = $lx + 2 * ($fw + $gap);
+$fy = $pdf->GetY(); // ahora GetY() está en la nueva página si hubo salto
+
+$pdf->Line($fx1, $fy, $fx1 + $fw, $fy);
+$pdf->Line($fx2, $fy, $fx2 + $fw, $fy);
+$pdf->Line($fx3, $fy, $fx3 + $fw, $fy);
+
+$pdf->SetFont('Arial', 'B', 7);
+$pdf->SetXY($fx1, $fy + 1);
+$pdf->Cell($fw, 4, 'FIRMA DEL TRABAJADOR', 0, 0, 'C');
+$pdf->SetXY($fx2, $fy + 1);
+
+// Firma de personas involucradas
+
+// $firmaPath = __DIR__ . "/../../Tiempoextra/firmas/" . $autorizoemp . ".jpg";
+
+$extensiones = ['png', 'jpg', 'jpeg'];
+$firmaPath = null;
+
+// Buscar primero en Tiempoextra/firmas/
+foreach ($extensiones as $ext) {
+    $ruta = __DIR__ . "/../../Tiempoextra/firmas/" . $autorizoemp . "." . $ext;
+    if (file_exists($ruta)) {
+        $firmaPath = $ruta;
+        $size = 10;
+        $EJx = $fx2 + 18;
+        $EJy = $fy - 14;
+        break;
+    }
+}
+
+// Si no se encontró, buscar en FirmaDigital/firmas/
+if (!$firmaPath) {
+    foreach ($extensiones as $ext) {
+        $ruta = __DIR__ . "/../../FirmaDigital/firmas/" . $autorizoemp . "." . $ext;
+        if (file_exists($ruta)) {
+            $firmaPath = $ruta;
+            $size = 35;
+            $EJx = $fx2 + 10;
+            $EJy = $fy - 14;
+            break;
+        }
+    }
+}
+
+// Usar la ruta encontrada
+
+
+$x = $pdf->GetX();
+$y = $pdf->GetY();
+
+$firmaRIPath = __DIR__ . "/../../Tiempoextra/firmas/" . "22622.jpg";
+
+// Firma jefe de area
+if ($autorizo == 1 && !empty($autorizoemp) && file_exists($firmaPath)) {
+    $pdf->Image($firmaPath, $EJx, $EJy, $size);
+}
+
+$pdf->Cell($fw, 4, utf8_decode('AUTORIZACIÓN JEFE DE AREA'), 0, 0, 'C');
+$pdf->SetXY($fx3, $fy + 1);
+
+// Firma de Relaciones Industriales
+if ($verifico == 1 && $autorizo== 1  && $firmoRI==1 && file_exists($firmaRIPath)) {
+    $pdf->Image($firmaRIPath, $fx2 + 84, $fy - 14, 10);
+}
+$pdf->Cell($fw, 4, 'Vo. Bo. RELACIONES INDS.', 0, 0, 'C');
+$pdf->SetY($fy + 8);
+
+// Nombre flotando debajo de la firma
+$pdf->SetFont('Arial','',8); // tamaño y estilo
+$pdf->Text($x-57, $y-2, ucwords(strtolower(utf8_decode($nombreEmpleado))));
+$pdf->Text($x+8, $y-2, ucwords(strtolower(utf8_decode($nombreSupervisor))));
+$pdf->Text($x+74, $y-2, ucwords(strtolower(utf8_decode($nombreRIND))));
+
+if ($empnoemp){
+    error_log("Empleado que solicito las vacaciones: " . $empnoemp);
+    $extensiones = ['png', 'jpg', 'jpeg'];
+    $ruta_firma_sup = null;
+
+    // Buscar primero en ../firmas/
+    foreach ($extensiones as $ext) {
+        $ruta = "../firmas/" . $empnoemp . "." . $ext;
+        if (file_exists($ruta)) {
+            $ruta_firma_sup = $ruta;
+            $size = 13;
+            break;
+        }
+    }
+
+    // Si no se encontró, buscar en ../../FirmaDigital/firmas/
+    if (!$ruta_firma_sup) {
+        foreach ($extensiones as $ext) {
+            $ruta = "../../FirmaDigital/firmas/" . $empnoemp . "." . $ext;
+            if (file_exists($ruta)) {
+                $ruta_firma_sup = $ruta;
+                $size = 40;
+                break;
+            }
+        }
+    }
+
+    // Si se encontró alguna ruta válida, insertar la imagen en el PDF
+    if ($ruta_firma_sup) {
+        // Firma
+        $pdf->Image($ruta_firma_sup, $x-55, $y-15, $size);
+    }
+
+}
+
+// FOTTER
+$pdf -> Ln(8);
+$pdf -> SetLineWidth(0.5);
+
+$pdf -> SetlineWidth(0.3);
+$pdf -> Ln(5);
+
+$pdf -> SetFont('Arial', 'BI', 9);
+$pdf -> SetX($lx);
+$pdf -> Cell(140, 5, '!LOGRAR LA EXCELENCIA A TRAVES DE LA MEJORA CONTINUA!', 0, 0, 'L');
+
+$ref_x = $lx + $pw - 38;
+$ref_y = $pdf -> GetY() - 1;
+$pdf -> SetFont('Arial', '', 7);
+$pdf -> SetXY($ref_x, $ref_y);
+$pdf -> Cell(38, 3.5, 'Revision: 01', 0, 1, 'R');
+$pdf -> SetX($ref_x);
+$pdf -> Cell(38, 3.5, 'Ref.: 8-702A-07', 0, 1, 'R');
+$pdf -> SetX($ref_x);
+$pdf -> Cell(38, 3.5, 'Formato: KCM-173872', 0, 1, 'R');
+
+// GUARDAR EL PDF
+// Crear carpeta única para solicitudes
+$carpeta = dirname(__DIR__) . '/solicitudes';
+if (!is_dir($carpeta)) {
+    mkdir($carpeta, 0755, true);
+}
+
+$archivo_pdf = $carpeta . '/' . ($empnoemp ? $empnoemp . '_' : '') . $nombreEmpleado . '_' . '.pdf';
+
+// Guardar en disco
+$pdf->Output('F', $archivo_pdf);
+
+// Mostrar en navegador
+header("Content-Type: application/pdf");
+readfile($archivo_pdf);
+exit;
+
+// BORRAR SESSION DESPUES DE GENERAR EL PDF
+unset($_SESSION['solicitud']);
+
+?>

@@ -1,0 +1,65 @@
+.card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.8);
+    max-width: 500px;
+    text-align: center;
+    align-content: center;
+    margin: 20px auto;
+}
+
+.tabla-historial {
+    max-height: 130px;
+    overflow-y: auto; 
+}
+
+.sticky-header th {
+    position: sticky;
+    top: 0;
+    background-color: #212529;
+    color: #fff;
+    z-index: 2;
+}
+
+
+.header-vacaciones {
+    background: linear-gradient(180deg, rgba(27, 27, 27, 0.301), rgba(85, 80, 80, 0.329));
+    border-radius: 14px;
+    padding: 12px 20px;
+    margin: 20px;
+    border-left: 12px solid #ffc507;
+}
+
+.header-vacaciones-consulta {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 20px;
+    margin: 20px;
+}
+
+
+.dato-label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 2px;
+}
+
+.dato-valor {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.dias-badge {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0d6efd;
+    line-height: 1;
+}
+
+.dias-label{
+    font-size: .8rem;
+    color: #888;
+    margin-top: 2px;
+}
