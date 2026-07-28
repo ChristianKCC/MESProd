@@ -3,6 +3,7 @@
 <script type="text/javascript" src="../assets/sweetalert2.all.min.js"></script>
 <script type="text/javascript" src="../assets/bootstrap5/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="../assets/chartjs/chart.min.js"></script>
+<script type="text/javascript" src="../assets/apexcharts/apexcharts.min.js"></script>
 <script type="text/javascript" src="../assets/chartjs/googlechart.js"></script>
 <script type="text/javascript" src="../assets/axios.min.js"></script>
 <script>

@@ -1291,7 +1291,9 @@ if (isset($_GET["saveTrazabilidad"])) {
 }else if (isset($_GET["guardarRechazoskgs"])) {
 	$BitacoraElectronica = new BitacoraElectronica();
 	$BitacoraElectronica->guardarRechazoskgs();
+} else if(isset($_GET["ObtenerdatosPlanProduccionFecha"])) {
+	$BitacoraElectronica = new BitacoraElectronica();
+	$BitacoraElectronica->ObtenerdatosPlanProduccionFecha();
 }
-
 
 

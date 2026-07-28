@@ -1,5 +1,8 @@
 <?php
 require_once("../Session/seguridad.php");
+if ($_SESSION["permisoConfClaves"] != 1) {
+    header('Location: ../index/index');
+}
 require_once("../index/header.php");
 ?>
 <style>

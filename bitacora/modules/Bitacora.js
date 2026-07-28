@@ -389,17 +389,18 @@ export class PlanProducc {
     const dataPromise = await fetch(
       "../bitacora/php/bitacora.php?ObtenerdatosPlanProduccion",
     );
-
     const resp = await dataPromise.json();
 
     let body = '<div class="row">';
     let porcentaje = 0;
     resp.forEach((element, index) => {
-      // porcentaje = checkInfinity(
-      //   (element.produccvsreal ?? 0 / element.STD) * 100
-      // );
       const STD = Number(element.STD ?? 0);
       const STDAcumulado = Number(element.STDAcumulado ?? 0);
+      
+      if (STD === 0 && STDAcumulado === 0) {
+        return;
+      }
+
       const produccvsreal = STD - STDAcumulado;
 
       const displayPercent =
@@ -432,13 +433,10 @@ export class PlanProducc {
           </div>
         </div>
           <div class="mt-3">
-        <!-- contenedor que oculta el desbordamiento para mantener todo dentro de la tarjeta -->
         <div class="progress" role="progressbar" aria-label="Programa vs Producción" style="height: 30px; font-size: 1rem; position: relative; overflow: hidden;">
-          <!-- barra principal (hasta 100%) -->
           <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: ${Math.min(porcentajeSafeDisplay, 100).toFixed(2)}%; background-color: #00aeffd2; height: 100%;">
         ${Math.min(porcentajeSafeDisplay, 100).toFixed(2)}%
           </div>
-          <!-- indicador de excedente en morado dentro del mismo contenedor, alineado a la derecha -->
           ${porcentajeSafeDisplay > 100 ? `<div style="position: absolute; right: 0; top: 0; height: 100%; min-width: 50px; padding: 0 6px; background: linear-gradient(90deg,#9b59b6,#8e44ad); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem;">+${(porcentajeSafeDisplay - 100).toFixed(2)}%</div>` : ""}
         </div>
           </div>
@@ -447,7 +445,7 @@ export class PlanProducc {
       </div>
         `;
     });
-    body += "</div>"; // Cierra el <div class="row">
+    body += "</div>";
 
     document.getElementById(dom).innerHTML = body;
   }
@@ -463,6 +461,7 @@ export class PlanProducc {
         body: data,
       },
     );
+
     let body = '<div class="row">';
     const resp = await dataPromise.json();
     resp.forEach((element) => {
@@ -481,6 +480,10 @@ export class PlanProducc {
             : 0
           : (STDAcumulado / STD) * 100;
       const porcentajeSafeDisplay = Math.max(0, checkInfinity(displayPercent));
+
+      if (STD === 0 && STDAcumulado === 0) {
+        return;
+      }
 
       body += `
       <div class="col-md-4 mb-4 d-flex">

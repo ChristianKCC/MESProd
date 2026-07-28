@@ -1,12 +1,14 @@
-import { Monitor } from "../module/Monitor.js";
+// import { Monitor } from "../module/Monitor.js";
+import { Monitor } from "../module/MonitorApex.js";
 const MonitorObj = new Monitor();
 
-MonitorObj.CreateGraf("GrafMaquina", 60, "numregmonitor1");
-MonitorObj.CreateGraf("GrafMaquina2", 61, "numregmonitor2");
-MonitorObj.CreateGraf("GrafMaquina3", 62, "numregmonitor3");
-MonitorObj.CreateGraf("GrafMaquina4", 63, "numregmonitor4");
-MonitorObj.CreateGraf("GrafMaquina5", 64, "numregmonitor5");
-MonitorObj.CreateGraf("GrafMaquina6", 65, "numregmonitor6");
+// CreateGraf(idCanvas, maquina, inputHorasId, scaleSelectId)
+MonitorObj.CreateGraf("GrafMaquina", 60, "numregmonitor1", "scaleMermaBCM4");
+MonitorObj.CreateGraf("GrafMaquina2", 61, "numregmonitor2", "scaleMermaBCM3");
+MonitorObj.CreateGraf("GrafMaquina3", 62, "numregmonitor3", "scaleMermaPE10");
+MonitorObj.CreateGraf("GrafMaquina4", 63, "numregmonitor4", "scaleMermaBCM1");
+MonitorObj.CreateGraf("GrafMaquina5", 64, "numregmonitor5", "scaleMermaMP22");
+MonitorObj.CreateGraf("GrafMaquina6", 65, "numregmonitor6", "scaleMermaMP25");
 
 setInterval(
   () =>

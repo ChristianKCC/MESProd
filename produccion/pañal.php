@@ -87,6 +87,19 @@ require_once("../index/header.php"); ?>
             <div class="col-6 col-md-2"><strong>Rechazos:</strong> <span id="rc12"></span></div>
             <div class="col-6 col-md-2"><input type="number" class="form-control form-control-sm " value="1"
                 id="numregmonitor1"></div>
+            <div class="col-6 col-md-2">
+              <select id="scaleMermaBCM4" class="form-control form-control-sm">
+                <option value="">Auto</option>
+                <option value="0.5">0.5 %</option>
+                <option value="1">1 %</option>
+                <option value="2">2 %</option>
+                <option value="5">5 %</option>
+                <option value="7">7 %</option>
+                <option value="10">10 %</option>
+                <option value="15">15 %</option>
+                <option value="20">20 %</option>
+              </select>
+            </div>
             <div class="col-6 col-md-2"><strong>TPT: <span id="tptBCM4"></span></strong></div>
             <div class="col-6 col-md-2"><strong>Velocidad: <span id="velocidadBCM4"></span></strong></div>
             <div class="col-6 col-md-2">
@@ -113,7 +126,7 @@ require_once("../index/header.php"); ?>
         <div class="card-body">
           <div class="row">
             <div class="col-12">
-              <canvas class="GraficaMonitor" id="GrafMaquina" style="height: 220px; width: 100%;"></canvas>
+              <div id="GrafMaquina" style="width: 100%;"></div>
             </div>
           </div>
         </div>
@@ -135,6 +148,19 @@ require_once("../index/header.php"); ?>
             <div class="col-6 col-md-2"><strong>Rechazos:</strong> <span id="rc13"></span></div>
             <div class="col-6 col-md-2"><input type="number" class="form-control form-control-sm " value="1"
                 id="numregmonitor2"></div>
+            <div class="col-6 col-md-2">
+              <select id="scaleMermaBCM3" class="form-control form-control-sm">
+                <option value="">Auto</option>
+                <option value="0.5">0.5 %</option>
+                <option value="1">1 %</option>
+                <option value="2">2 %</option>
+                <option value="5">5 %</option>
+                <option value="7">7 %</option>
+                <option value="10">10 %</option>
+                <option value="15">15 %</option>
+                <option value="20">20 %</option>
+              </select>
+            </div>
             <div class="col-6 col-md-2"><strong>TPT: <span id="tptBCM3"></span></strong></div>
             <div class="col-6 col-md-2"><strong>Velocidad: <span id="velocidadBCM3"></span></strong></div>
             <div class="col-6 col-md-2">
@@ -161,7 +187,7 @@ require_once("../index/header.php"); ?>
         <div class="card-body">
           <div class="row">
             <div class="col-12">
-              <canvas class="GraficaMonitor" id="GrafMaquina2" style="height: 220px; width: 100%;"></canvas>
+              <div id="GrafMaquina2" style="width: 100%;"></div>
             </div>
           </div>
         </div>
@@ -183,6 +209,19 @@ require_once("../index/header.php"); ?>
             <div class="col-6 col-md-2"><strong>Rechazos:</strong> <span id="rc14"></span></div>
             <div class="col-6 col-md-2"><input type="number" class="form-control form-control-sm " value="1"
                 id="numregmonitor3"></div>
+            <div class="col-6 col-md-2">
+              <select id="scaleMermaPE10" class="form-control form-control-sm">
+                <option value="">Auto</option>
+                <option value="0.5">0.5 %</option>
+                <option value="1">1 %</option>
+                <option value="2">2 %</option>
+                <option value="5">5 %</option>
+                <option value="7">7 %</option>
+                <option value="10">10 %</option>
+                <option value="15">15 %</option>
+                <option value="20">20 %</option>
+              </select>
+            </div>
             <div class="col-6 col-md-2"><strong>TPT: <span id="tptPE10"></span></strong></div>
             <div class="col-6 col-md-2"><strong>Velocidad: <span id="velocidadPE10"></span></strong></div>
             <div class="col-6 col-md-2">
@@ -209,7 +248,7 @@ require_once("../index/header.php"); ?>
         <div class="card-body">
           <div class="row">
             <div class="col-12">
-              <canvas class="GraficaMonitor" id="GrafMaquina3" style="height: 220px; width: 100%;"></canvas>
+              <div id="GrafMaquina3" style="width: 100%;"></div>
             </div>
           </div>
         </div>
@@ -231,6 +270,19 @@ require_once("../index/header.php"); ?>
             <div class="col-6 col-md-2"><strong>Rechazos:</strong> <span id="rc15"></span></div>
             <div class="col-6 col-md-2"><input type="number" class="form-control form-control-sm " value="1"
                 id="numregmonitor4"></div>
+            <div class="col-6 col-md-2">
+              <select id="scaleMermaBCM1" class="form-control form-control-sm">
+                <option value="">Auto</option>
+                <option value="0.5">0.5 %</option>
+                <option value="1">1 %</option>
+                <option value="2">2 %</option>
+                <option value="5">5 %</option>
+                <option value="7">7 %</option>
+                <option value="10">10 %</option>
+                <option value="15">15 %</option>
+                <option value="20">20 %</option>
+              </select>
+            </div>
             <div class="col-6 col-md-2"><strong>TPT: <span id="tptBCM1"></span></strong></div>
             <div class="col-6 col-md-2"><strong>Velocidad: <span id="velocidadBCM1"></span></strong></div>
             <div class="col-6 col-md-2">
@@ -257,7 +309,7 @@ require_once("../index/header.php"); ?>
         <div class="card-body">
           <div class="row">
             <div class="col-12">
-              <canvas class="GraficaMonitor" id="GrafMaquina4" style="height: 220px; width: 100%;"></canvas>
+              <div id="GrafMaquina4" style="width: 100%;"></div>
             </div>
           </div>
         </div>
@@ -279,6 +331,19 @@ require_once("../index/header.php"); ?>
             <div class="col-6 col-md-2"><strong>Rechazos:</strong> <span id="rc16"></span></div>
             <div class="col-6 col-md-2"><input type="number" class="form-control form-control-sm " value="1"
                 id="numregmonitor5"></div>
+            <div class="col-6 col-md-2">
+              <select id="scaleMermaMP22" class="form-control form-control-sm">
+                <option value="">Auto</option>
+                <option value="0.5">0.5 %</option>
+                <option value="1">1 %</option>
+                <option value="2">2 %</option>
+                <option value="5">5 %</option>
+                <option value="7">7 %</option>
+                <option value="10">10 %</option>
+                <option value="15">15 %</option>
+                <option value="20">20 %</option>
+              </select>
+            </div>
             <div class="col-6 col-md-2"><strong>TPT: <span id="tptMP22"></span></strong></div>
             <div class="col-6 col-md-2"><strong>Velocidad: <span id="velocidadMP22"></span></strong></div>
             <div class="col-6 col-md-2">
@@ -305,7 +370,7 @@ require_once("../index/header.php"); ?>
         <div class="card-body">
           <div class="row">
             <div class="col-12">
-              <canvas class="GraficaMonitor" id="GrafMaquina5" style="height: 220px; width: 100%;"></canvas>
+              <div id="GrafMaquina5" style="width: 100%;"></div>
             </div>
           </div>
         </div>
@@ -327,6 +392,19 @@ require_once("../index/header.php"); ?>
             <div class="col-6 col-md-2"><strong>Rechazos:</strong> <span id="rc17"></span></div>
             <div class="col-6 col-md-2"><input type="number" class="form-control form-control-sm " value="1"
                 id="numregmonitor6"></div>
+            <div class="col-6 col-md-2">
+              <select id="scaleMermaMP25" class="form-control form-control-sm">
+                <option value="">Auto</option>
+                <option value="0.5">0.5 %</option>
+                <option value="1">1 %</option>
+                <option value="2">2 %</option>
+                <option value="5">5 %</option>
+                <option value="7">7 %</option>
+                <option value="10">10 %</option>
+                <option value="15">15 %</option>
+                <option value="20">20 %</option>
+              </select>
+            </div>
             <div class="col-6 col-md-2"><strong>TPT: <span id="tptMP25"></span></strong></div>
             <div class="col-6 col-md-2"><strong>Velocidad: <span id="velocidadMP25"></span></strong></div>
             <div class="col-6 col-md-2">
@@ -353,7 +431,46 @@ require_once("../index/header.php"); ?>
         <div class="card-body">
           <div class="row">
             <div class="col-12">
-              <canvas class="GraficaMonitor" id="GrafMaquina6" style="height: 220px; width: 100%;"></canvas>
+              <div id="GrafMaquina6" style="width: 100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="card border-warning mb-1">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-6 col-md-2">
+              <h5 class="card-title mb-0">HookMesh <span id="estadoOpc67"></span></h5>
+            </div>
+            <div class="col-6 col-md-2"><strong>Velocidad: <span id="velocidadOpc67"></span></strong></div>
+            <div class="col-6 col-md-2"><strong>Merma: <span id="mermaOpc67"></span></strong></div>
+            <div class="col-6 col-md-2"><strong>Paros: <span id="parosOpc67"></span></strong></div>
+            <div class="col-6 col-md-2"><strong>T. Perdido: <span id="pctPerdidoOpc67"></span></strong></div>
+            <div class="col-6 col-md-2"><strong id="turnoOpc67"></strong></div>
+            <div class="col-6 col-md-2">
+              <input type="number" class="form-control form-control-sm" value="1" id="numregOpc67">
+            </div>
+            <div class="col-6 col-md-2">
+              <select id="scaleMermaOpc67" class="form-control form-control-sm">
+                <option value="">Auto</option>
+                <option value="0.5">0.5 %</option>
+                <option value="1">1 %</option>
+                <option value="2">2 %</option>
+                <option value="5">5 %</option>
+                <option value="7">7 %</option>
+                <option value="10">10 %</option>
+                <option value="15">15 %</option>
+                <option value="20">20 %</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-12">
+              <div id="GrafOpc67" style="width: 100%;"></div>
             </div>
           </div>
         </div>
@@ -365,6 +482,7 @@ require_once("../index/header.php"); ?>
 <?php require_once("../index/footer.php") ?>
 <script type="module" src="js/monitorpanal.js"></script>
 <script type="module" src="js/semaforo.js"></script>
+<script type="module" src="js/monitoropc_init.js"></script>
 </body>
 
 </html>

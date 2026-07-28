@@ -547,7 +547,7 @@ $pdf->SetXY($x + 44, $y + 52);
 $pdf->MultiCell(20, 4, mb_convert_encoding('Productos empacados', 'ISO-8859-1', 'UTF-8'), 1, 'C');
 //-----------------------------------------------------------------------------------------------------------------
 $pdf->SetXY($x + 64, $y + 52);
-$pdf->Cell(18, 8, mb_convert_encoding('Rechazos', 'ISO-8859-1', 'UTF-8'), 1, 1, 'C');
+$pdf->MultiCell(18, 4, mb_convert_encoding('Productos empacados', 'ISO-8859-1', 'UTF-8'), 1, 'C');
 //-----------------------------------------------------------------------------------------------------------------
 $pdf->SetXY($x + 82, $y + 52);
 $pdf->Cell(18, 8, mb_convert_encoding('# Paros', 'ISO-8859-1', 'UTF-8'), 1, 1, 'C');

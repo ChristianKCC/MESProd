@@ -624,85 +624,92 @@ class Turnos
 class TurnosSinConexion
 {
     public function getDataTurnosAnteriores($fecha, $maquina, $turno)
-{
-    $conexion = new ClassConexion();
-    $conn = $conexion->conexion('TLX004MXDB');
+    {
+        $conexion = new ClassConexion();
+        $conn = $conexion->conexion('TLX004MXDB');
+        // $ibm = $_SESSION['ibm'];
 
-    if ($conn === false) {
-        die(json_encode(["error" => "Error de conexión a la base de datos."]));
-    }
-
-    if (empty($fecha) || empty($maquina)) {
-        die(json_encode(["error" => "Parámetros insuficientes. Se requieren 'fecha' y 'maquina'."]));
-    }
-
-    // Consultamos la vista, que ya trae deduplicado por presentación
-    // y el total sumado por turno (TotalGeneralPiezas)
-    $query = " SELECT 
-                IdEncabezadoBItacora,
-                presentacion,
-                Descripcion_Articulo,
-                Fecha,
-                Turno,
-                HorasTrabajadas,
-                NoMaquina,
-                NombreMaquina,
-                golpes,
-                merma,
-                CajasReales,
-                CajasxPanal,
-                acumulado,
-                std,
-                Rechazos,
-                MinutosTurno,
-                TiempoPerdido,
-                TiempoArriba,
-                ParosMaquina,
-                NombreEmpleado,
-                TotalGeneralPiezas
-            FROM vw_ProduccionSinRedDedupTotal
-            WHERE Fecha = ?
-            AND NoMaquina = ?
-        ";
-
-    $params = [$fecha, $maquina];
-
-    if (!empty($turno)) {
-        $query .= " AND Turno <= ?";
-        $params[] = $turno;
-    }
-
-    $query .= " ORDER BY Fecha DESC, Turno ASC, IdEncabezadoBItacora DESC";
-
-    $result = sqlsrv_query($conn, $query, $params);
-
-    if ($result === false) {
-        $errors = sqlsrv_errors();
-        die(json_encode(["error" => "Error en la consulta SQL", "detalle" => $errors]));
-    }
-
-    $porTurno = []; // aquí guardamos solo 1 fila representativa por turno
-
-    while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
-        $fechaFormateada = isset($row['Fecha']) && $row['Fecha'] instanceof DateTime
-            ? $row['Fecha']->format('Y-m-d')
-            : (is_string($row['Fecha']) ? $row['Fecha'] : null);
-
-        $fechaBonita = null;
-        if ($fechaFormateada) {
-            $fechaObj = new DateTime($fechaFormateada);
-            $dia = $fechaObj->format('d');
-            $mes = nombreMes((int) $fechaObj->format('m'));
-            $anio = $fechaObj->format('Y');
-            $fechaBonita = "{$dia} - {$mes} - {$anio}";
+        if ($conn === false) {
+            die(json_encode(["error" => "Error de conexión a la base de datos."]));
         }
 
-        $t = (int) $row['Turno'];
+        // Validaciones mínimas para evitar consultas inválidas
+        if (empty($fecha) || empty($maquina)) {
+            die(json_encode(["error" => "Parámetros insuficientes. Se requieren 'fecha' y 'maquina'."]));
+        }
 
-        // Solo guardamos la PRIMERA fila que veamos de cada turno,
-        // pero ya trae el total correcto en TotalGeneralPiezas
-        if (!isset($porTurno[$t])) {
-            $porTurno[$t] = [
+        $array = [];
+
+        // Base de la consulta
+        $query = " SELECT 
+                    IdEncabezadoBItacora,
+                    presentacion,
+                    Descripcion_Articulo,
+                    Fecha,
+                    Turno,
+                    HorasTrabajadas,
+                    NoMaquina,
+                    NombreMaquina,
+                    golpes,
+                    merma,
+                    real AS CajasReales,
+                    cajasxp AS CajasxPanal,
+                    acumulado,
+                    std,
+                    Rechazos,
+                    MinutosTurno,
+                    TotalTiempoPerdido AS TiempoPerdido,
+                    TiempoArriba,
+                    ParosMaquina,
+                    NombreEmpleado
+                FROM (
+                    SELECT *,
+                        ROW_NUMBER() OVER (PARTITION BY Turno ORDER BY IdEncabezadoBItacora DESC) AS rn
+                    FROM ProduccionesMaquinasSinRed
+                    WHERE Fecha = ?
+                    AND NoMaquina = ?
+                ) AS ranked
+                WHERE rn = 1
+            ";
+
+        // Parámetros base
+        $params = [$fecha, $maquina];
+
+        // Agregar filtro de turno solo si viene en el POST
+        if (!empty($turno)) {
+            $query .= " AND Turno <= ?";
+            $params[] = $turno;
+        }
+
+        // Ordenar por fecha (desc) y turno (desc) para ver primero lo más reciente
+        $query .= " ORDER BY Fecha DESC, Turno ASC";
+
+        $result = sqlsrv_query($conn, $query, $params);
+
+        if ($result === false) {
+            $errors = sqlsrv_errors();
+            die(json_encode(["error" => "Error en la consulta SQL", "detalle" => $errors]));
+        }
+
+        while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            // 'Fecha' normalmente viene como objeto DateTime de SQLSRV; protegemos por si viene null
+            $fechaFormateada = isset($row['Fecha']) && $row['Fecha'] instanceof DateTime
+                ? $row['Fecha']->format('Y-m-d')
+                : (is_string($row['Fecha']) ? $row['Fecha'] : null);
+
+            $fechaBonita = null;
+
+            if ($fechaFormateada) {
+                $fechaObj = new DateTime($fechaFormateada);
+
+                $dia = $fechaObj->format('d');
+                $mes = nombreMes((int) $fechaObj->format('m'));
+                $anio = $fechaObj->format('Y');
+
+                $fechaBonita = "{$dia} - {$mes} - {$anio}";
+            }
+
+            $array[] = [
                 "IdEncabezadoBItacora" => $row['IdEncabezadoBItacora'],
                 "presentacion" => $row['presentacion'],
                 "Descripcion_Articulo" => $row['Descripcion_Articulo'],
@@ -714,8 +721,7 @@ class TurnosSinConexion
                 "Cortes" => $row['golpes'],
                 "merma" => $row['merma'],
                 "CajasReales" => $row['CajasReales'],
-                // Aquí está la corrección clave: usamos el total del turno, no la presentación individual
-                "PañalEmpacado" => $row['TotalGeneralPiezas'],
+                "PañalEmpacado" => $row['CajasxPanal'],
                 "acumulado" => $row['acumulado'],
                 "std" => $row['std'],
                 "Rechazos" => $row['Rechazos'],
@@ -726,45 +732,59 @@ class TurnosSinConexion
                 "NombreEmpleado" => $row['NombreEmpleado']
             ];
         }
-    }
 
-    // Asegurar que existan los 3 turnos (1, 2, 3), igual que antes
-    $turnosFinales = [];
-    for ($i = 1; $i <= 3; $i++) {
-        if (isset($porTurno[$i])) {
-            $turnosFinales[] = $porTurno[$i];
-        } else {
-            $turnosFinales[] = [
-                "IdEncabezadoBItacora" => null,
-                "presentacion" => null,
-                "Descripcion_Articulo" => null,
-                "Fecha" => $fecha ?? null,
-                "Turno" => $i,
-                "HorasTrabajadas" => 0,
-                "NoMaquina" => $maquina ?? null,
-                "NombreMaquina" => null,
-                "Cortes" => 0,
-                "merma" => 0,
-                "CajasReales" => 0,
-                "PañalEmpacado" => 0,
-                "acumulado" => 0,
-                "std" => 0,
-                "Rechazos" => 0,
-                "MinutosTurno" => 0,
-                "TiempoPerdido" => 0,
-                "TiempoArriba" => 0,
-                "ParosMaquina" => 0,
-                "NombreEmpleado" => null
-            ];
+
+        // Asegurar que existan los 3 turnos (1, 2, 3)
+        $turnosFinales = [];
+
+        // Indexar lo que sí vino de la BD por turno
+        $indexados = [];
+        foreach ($array as $item) {
+            $indexados[(int) $item['Turno']] = $item;
         }
+
+        // Crear los 3 turnos siempre
+        for ($i = 1; $i <= 3; $i++) {
+
+            if (isset($indexados[$i])) {
+                // Si existe en BD, usarlo tal cual
+                $turnosFinales[] = $indexados[$i];
+            } else {
+                // Si NO existe, crear registro en 0
+                $turnosFinales[] = [
+                    "IdEncabezadoBItacora" => null,
+                    "presentacion" => null,
+                    "Descripcion_Articulo" => null,
+                    "Fecha" => $fecha ?? null,
+                    "Turno" => $i,
+                    "HorasTrabajadas" => 0,
+                    "NoMaquina" => $maquina ?? null,
+                    "NombreMaquina" => null,
+                    "Cortes" => 0,
+                    "merma" => 0,
+                    "CajasReales" => 0,
+                    "PañalEmpacado" => 0,
+                    "acumulado" => 0,
+                    "std" => 0,
+                    "Rechazos" => 0,
+                    "MinutosTurno" => 0,
+                    "TiempoPerdido" => 0,
+                    "TiempoArriba" => 0,
+                    "ParosMaquina" => 0,
+                    "NombreEmpleado" => null
+                ];
+            }
+        }
+
+        // Ordenar por turno (por si acaso)
+        usort($turnosFinales, function ($a, $b) {
+            return $a['Turno'] <=> $b['Turno'];
+        });
+
+        // echo json_encode($turnosFinales, JSON_PRETTY_PRINT);
+        return $turnosFinales;
+
     }
-
-    usort($turnosFinales, function ($a, $b) {
-        return $a['Turno'] <=> $b['Turno'];
-    });
-
-    return $turnosFinales;
-}
 
     public function clavesMaquinasSinRed($fecha, $maquina, $turno)
     {

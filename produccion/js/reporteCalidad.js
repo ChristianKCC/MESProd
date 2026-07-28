@@ -29,14 +29,13 @@ btnGuardarReporte.addEventListener("click", (e) => {
     ).then((response) => {
         if (response.success) {
             Swal.fire("Éxito", "Reporte guardado exitosamente", "success");
-
-            // ✅ Aquí SÍ funcionan porque siguen siendo elementos DOM
             maquinaEl.value = '';
             inspeccionadosEl.value = 0;
             sdEl.value = 0;
             qlEl.value = 0;
             sdobservacionesEl.value = "";
             mostrarReporteCalidad();
+            
         } else {
             Swal.fire("Error", "Error al guardar el reporte", "error");
         }

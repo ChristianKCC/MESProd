@@ -84,7 +84,7 @@ function transformarHook(array $datos, string $fecha): array
             $agrupado[$cat][$maq]['productos'][$prod]['claves'][$clave]['acum'] += (float)$row['MetrosCuadrados'];
         }
 
-        // ── Turnos para %TP (Merma pendiente) ──
+        // ── Turnos para %TP y %Merma ──
         // El SP ya resuelve el duplicado por folio dentro del mismo turno
         // (TiempoAbajo/HorasTrabajadas vienen en 0 salvo en la primera fila
         // del turno), así que sumar directamente es seguro.
@@ -98,12 +98,16 @@ function transformarHook(array $datos, string $fecha): array
                 'Turno'           => $turno,
                 'TiempoAbajo'     => (int)($row['TiempoAbajo'] ?? 0),
                 'HorasTrabajadas' => (float)($row['HorasTrabajadas'] ?? 0),
+                'MetrosLineales'  => (float)($row['MetrosLineales'] ?? 0),
+                'KGSRechazados'   => (float)($row['KGSRechazados'] ?? 0),
             ];
         } else {
             // Salvaguarda: si por alguna razón llega otra fila del mismo turno
             // con horas/tiempo abajo (no debería pasar por el RN_Turno del SP).
             $turnosPorMaquina[$noMaq][$keyTurno]['TiempoAbajo']     += (int)($row['TiempoAbajo'] ?? 0);
             $turnosPorMaquina[$noMaq][$keyTurno]['HorasTrabajadas'] += (float)($row['HorasTrabajadas'] ?? 0);
+            $turnosPorMaquina[$noMaq][$keyTurno]['MetrosLineales']  += (float)($row['MetrosLineales'] ?? 0);
+            $turnosPorMaquina[$noMaq][$keyTurno]['KGSRechazados']   += (float)($row['KGSRechazados'] ?? 0);
         }
     }
 
@@ -318,10 +322,29 @@ function calcularTPAcumHook(array $turnos): string
 }
 
 /**
- * %Merma — PENDIENTE hasta que el SP traiga el peso total.
- * Se deja siempre en '-' para no mostrar un dato incorrecto.
+ * %Merma de Hook
+ * 
+ * Fórmula: %Merma = ((KGSRechazados - MetrosLineales) / MetrosLineales) * 100
+ * 
+ * Lógica:
+ * - Sin turnos registrados → '-' (no hubo producción)
+ * - Con turnos pero MetrosLineales <= 0 → '-' (no hay base para calcular)
+ * - Con datos válidos → porcentaje
  */
 function calcularMermaHook(array $turnos): string
 {
-    return '-';
+    if (empty($turnos)) return '-';
+
+    $totalMetrosLineales = 0;
+    $totalKGSRechazados  = 0;
+
+    foreach ($turnos as $t) {
+        $totalMetrosLineales += (float)($t['MetrosLineales'] ?? 0);
+        $totalKGSRechazados  += (float)($t['KGSRechazados'] ?? 0);
+    }
+
+    if ($totalMetrosLineales <= 0) return '-';
+
+    $merma = (($totalKGSRechazados - $totalMetrosLineales) / $totalMetrosLineales) * 100;
+    return number_format($merma, 2) . '%';
 }

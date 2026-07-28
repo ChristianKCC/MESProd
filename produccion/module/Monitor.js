@@ -85,6 +85,7 @@ export class Monitor {
   CreaGrafica(maquinainput, nomgrafica) {
     const monitorGrafica = new Grafica(nomgrafica);
     monitorGrafica.getDataDBMonitorMult(maquinainput, 1).then((datagraf) => {
+      console.log(datagraf);
       const datosGrafica = {
         labels: datagraf.hora,
         datasets: [

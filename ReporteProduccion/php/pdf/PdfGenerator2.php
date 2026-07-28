@@ -382,7 +382,7 @@ class PdfGenerator
         $this->pdf->SetFont($this->font, 'B', 6);
         $this->setTextColor($this->cHeader1);
         $this->pdf->SetXY($x, $y-7);
-        $this->pdf->Cell(263, 8, 'REPORTE DIARIO DIRECCION', 0, 0, 'C');
+        $this->pdf->Cell(263, 8, 'REPORTE DIARIO GERENCIA', 0, 0, 'C');
 
         // Fecha derecha
         if ($fecha) {

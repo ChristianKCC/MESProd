@@ -388,6 +388,7 @@ class ReporteDiario
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
 
+        // echo json_encode(["ok" => true, "data" => $resultado], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         return $resultado;
     }
 
@@ -415,6 +416,7 @@ class ReporteDiario
             'Clave' => $row['Clave'],
             'Descripcion' => $row['Descripcion'],
             // MetrosCuadrados = TotalMC del SP, ya es el total de MM² de ese turno
+            'MetrosLineales' => $row['TotalMML'] !== null ? (float) $row['TotalMML'] : null,
             'MetrosCuadrados' => $row['TotalMC'] !== null ? (float) $row['TotalMC'] : null,
             'KGSRechazados' => $row['KGSRechazados'] ?? null, // pendiente, no se usa aún
             'TiempoAbajo' => (int) ($row['TiempoAbajo'] ?? 0),
