@@ -1,0 +1,482 @@
+/* ============================================================================
+   ESTILOS RARR
+   Paleta: azul marino #1f3d7c (títulos/encabezados de tabla),
+   azul botón #1a56db, rojo #dc3545, naranja #f0930d, verde #23923d,
+   teal #0d9488, fondo gris claro #eef0f3, paneles blancos con borde fino.
+   ============================================================================ */
+
+:root {
+    --marino:   #1f3d7c;
+    --azul:     #1a56db;
+    --azul-ico: #2563eb;
+    --rojo:     #dc3545;
+    --naranja:  #f0930d;
+    --naranja-ico: #f97316;
+    --verde:    #23923d;
+    --teal:     #0d9488;
+    --gris-bg:  #eef0f3;
+    --borde:    #d9dce1;
+    --texto:    #1f2430;
+}
+
+body {
+    /* background: var(--gris-bg); */
+    /* font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; */
+    color: var(--texto);
+}
+
+/* Panel general blanco con borde fino (marco de cada pantalla) */
+.pantalla {
+    background: #fff;
+    border: 2px solid #2b2f38;
+    border-radius: 4px;
+    padding: 1.6rem 2rem 2rem;
+    margin: 1.2rem auto;
+    max-width: 1500px;
+}
+
+/* Título principal de cada pantalla */
+.titulo-pantalla {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #16181d;
+    margin-bottom: 1rem;
+    letter-spacing: 0.3px;
+}
+
+/* Referencias esquina superior derecha (Tab 3) */
+.ref-normas {
+    text-align: right;
+    color: #9aa0aa;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    margin-left: auto;   /* fuerza a empujar hacia la derecha */
+}
+
+
+.form-label { font-weight: 600; font-size: 0.9rem; color: #2b3038; }
+
+/* ============================ REPORTE (vista 1) ============================ */
+
+/* Select tipo lista del departamento */
+.select-lista {
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 0.35rem 0.4rem;
+    font-size: 0.95rem;
+    color: #333;
+    outline: none;
+}
+.select-lista option { padding: 0.3rem 0.45rem; }
+
+/* Cards de estadísticas con icono cuadrado de color */
+.stat-card {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    height: 100%;
+}
+.stat-icono {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.25rem;
+}
+.icono-azul    { background: var(--azul-ico); }
+.icono-naranja { background: var(--naranja-ico); }
+.icono-teal    { background: var(--teal); }
+.stat-info  { display: flex; flex-direction: column; }
+.stat-label { font-size: 0.9rem; color: #3a3f47; font-weight: 600; }
+.stat-num   { font-size: 1.85rem; font-weight: 700; line-height: 1.1; }
+.num-azul    { color: var(--azul-ico); }
+.num-naranja { color: #e4630d; }
+.num-teal    { color: var(--teal); }
+
+/* Tabla Calificación del Riesgo */
+.tabla-calificacion {
+    width: 100%;
+    border: 1px solid var(--borde);
+    border-collapse: collapse;
+}
+.tabla-calificacion thead th {
+    background: var(--marino);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.7rem 1rem;
+    text-align: center;
+}
+.tabla-calificacion tbody td {
+    padding: 0.85rem 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    border-top: 1px solid #e6e9ee;
+}
+.tabla-calificacion tbody td:first-child {
+    background: #dbe7f6;
+    font-weight: 600;
+    width: 45%;
+}
+.tabla-calificacion tbody tr:nth-child(even) td:last-child { background: #f7f9fc; }
+
+/* Panel KPI negro / rojo / verde / beige */
+.kpi-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    table-layout: fixed;
+}
+.kpi-tabla td {
+    padding: 0.55rem 0.9rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+.kpi-negro { background: #101114; color: #fff; }
+.kpi-rojo  { background: #c81e1e; color: #fff; text-align: center; }
+.kpi-rojo-grande { background: #c81e1e; color: #fff; text-align: center; font-size: 1.35rem; }
+.kpi-verde { background: #1e8e3e; }
+.kpi-beige { background: #e8e0d2; color: #26282e; text-align: center; font-size: 1.35rem; }
+
+/* Card Avance total */
+.card-avance {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+    height: 100%;
+}
+.card-avance .titulo-avance {
+    color: var(--marino);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    text-align: center;
+    margin-bottom: 0.7rem;
+}
+.grafica-contenedor { position: relative; max-width: 250px; margin: 0 auto; }
+.grafica-centro {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center; width: 70%;
+}
+.grafica-centro .porcentaje { font-size: 1.55rem; font-weight: 700; color: #1c1f26; line-height: 1.1; }
+.grafica-centro .sub        { font-size: 0.85rem; font-weight: 600; color: #3a3f47; }
+.grafica-centro .detalle    { font-size: 0.72rem; color: #7b8290; margin-top: 2px; line-height: 1.25; }
+
+.leyenda-avance { margin-top: 0.9rem; font-size: 0.85rem; }
+.leyenda-avance .fila { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
+.leyenda-avance .cuadro {
+    display: inline-block; width: 13px; height: 13px; border-radius: 3px; margin-right: 7px;
+}
+.leyenda-total {
+    border-top: 1px solid #e6e9ee;
+    margin-top: 0.6rem; padding-top: 0.55rem;
+    text-align: center; font-size: 0.85rem; font-weight: 600; color: #3a3f47;
+}
+
+/* Listas Máquina / Sección / RARR */
+.titulo-lista {
+    color: var(--marino);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+.lista-panel {
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    background: #fff;
+    min-height: 320px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+.lista-panel .item {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #e9ebef;
+    font-size: 0.93rem;
+    cursor: pointer;
+}
+.lista-panel .item:last-child { border-bottom: none; }
+.lista-panel .item:hover  { background: #f2f6fd; }
+.lista-panel .item.activo { background: #dbe7f6; font-weight: 600; }
+.lista-panel .item-caja {
+    margin: 0.45rem 0.7rem;
+    border: 1px solid var(--borde);
+    border-radius: 4px;
+    padding: 0.5rem 0.9rem;
+}
+.lista-panel .vacio {
+    color: #a5abb6; text-align: center; padding: 2rem 1rem; font-size: 0.9rem; cursor: default;
+}
+
+/* ============================ VISTA TABS (2) ============================ */
+
+/* Tabs superiores discretos */
+.nav-tabs-rarr { border-bottom: 2px solid var(--borde); margin-bottom: 1.3rem; }
+.nav-tabs-rarr .nav-link {
+    border: none;
+    color: #5a6270;
+    font-weight: 600;
+    padding: 0.7rem 1.3rem;
+}
+.nav-tabs-rarr .nav-link.active {
+    color: var(--marino);
+    border-bottom: 3px solid var(--marino);
+    background: transparent;
+}
+
+/* Card seccion con titulo azul marino + icono escudo */
+.card-seccion {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    margin-bottom: 1.4rem;
+}
+.card-seccion .encabezado {
+    padding: 0.9rem 1.3rem 0.7rem;
+    color: var(--marino);
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+.card-seccion .encabezado i { color: var(--azul); }
+.card-seccion .cuerpo { padding: 0.4rem 1.3rem 1.3rem; }
+.card-seccion .subtexto { color: #6a7180; font-size: 0.88rem; margin: -0.2rem 0 0.8rem; }
+
+/* Inputs readonly grises (ID Equipo, Fecha Última Actualización) */
+.input-solo-lectura {
+    background: #eceef1 !important;
+    color: #4a4f58;
+}
+
+/* From Uiverse.io by Galahhad */ 
+.input {
+  max-width: 190px;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 2px 2px 7px 0 rgb(0, 0, 0, 0.2);
+  outline: none;
+  color: dimgray;
+}
+
+.input:invalid {
+  animation: justshake 0.3s forwards;
+  color: red;
+}
+
+@keyframes justshake {
+  25% {
+    transform: translateX(5px);
+  }
+
+  50% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
+
+  100% {
+    transform: translateX-(5px);
+  }
+}
+
+/* Badge grande de nivel de riesgo (Tab 1) */
+.nivel-riesgo-box {
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 58px;
+    text-transform: uppercase;
+    text-align: center;
+}
+.nivel-alto  { background: var(--rojo); }
+.nivel-medio { background: var(--naranja); }
+.nivel-bajo  { background: var(--verde); }
+.nivel-nulo  { background: #b9bec7; }
+
+/* Botones azules del diseño */
+.btn-azul {
+    background: var(--azul);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.55rem 1.25rem;
+}
+.btn-azul:hover { background: #164bc4; color: #fff; }
+.btn-gris {
+    background: #7d8695;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.55rem 1.25rem;
+}
+.btn-gris:hover { background: #6b7383; color: #fff; }
+
+/* Resumen de riesgos (sidebar Tab 1) */
+.card-resumen {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+}
+.card-resumen .titulo {
+    color: var(--marino);
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.resumen-item { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+.resumen-item .icono {
+    width: 42px; height: 42px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.1rem;
+}
+.resumen-item .etiqueta { font-size: 0.86rem; color: #5a6270; }
+.resumen-item .numero   { font-size: 1.45rem; font-weight: 700; line-height: 1; }
+
+/* Tablas de registros (encabezado azul marino) */
+.tabla-rarr { width: 100%; }
+.tabla-rarr thead th {
+    background: var(--marino);
+    color: #fff;
+    font-size: 0.83rem;
+    font-weight: 600;
+    vertical-align: middle;
+    padding: 0.65rem 0.7rem;
+    border: none;
+}
+.tabla-rarr tbody td {
+    font-size: 0.88rem;
+    vertical-align: middle;
+    padding: 0.7rem;
+    border-top: 1px solid #e9ebef;
+}
+.tabla-rarr tbody tr:hover { background: #f6f8fc; }
+
+.pie-tabla {
+    color: #7b8290;
+    font-size: 0.85rem;
+    padding-top: 0.7rem;
+}
+
+/* Badges de clasificación (RIESGO ALTO / MEDIO / BAJO) */
+.badge-riesgo {
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.4rem 0.65rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.badge-riesgo.alto  { background: var(--rojo); }
+.badge-riesgo.medio { background: var(--naranja); }
+.badge-riesgo.bajo  { background: var(--verde); }
+
+/* Badges de estatus */
+.badge-estatus {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.38rem 0.75rem;
+    border-radius: 7px;
+    white-space: nowrap;
+}
+.est-pendiente-rojo { background: var(--rojo);   color: #fff; }
+.est-enproceso      { background: var(--naranja);color: #fff; }
+.est-completado     { background: var(--verde);  color: #fff; }
+.est-pendiente      { background: #d4d7dd;       color: #43474f; }
+.est-cancelado      { background: #6c757d;       color: #fff; }
+
+/* Iconos de acciones (lápiz / bote) */
+.icono-accion {
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    padding: 0.2rem 0.4rem;
+    cursor: pointer;
+}
+.icono-editar   { color: var(--azul); }
+.icono-eliminar { color: var(--rojo); }
+
+/* Card Riesgo Actual (Tab 2 derecha) */
+.card-riesgo-actual {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 1.2rem;
+    height: 100%;
+    text-align: center;
+}
+.card-riesgo-actual .titulo { color: var(--marino); font-weight: 700; margin-bottom: 1.2rem; }
+.riesgo-actual-contenido { display: flex; align-items: center; justify-content: center; gap: 1rem; text-align: left; }
+.riesgo-actual-icono { font-size: 3.4rem; line-height: 1; }
+.riesgo-actual-texto .nivel { font-size: 1.5rem; font-weight: 800; letter-spacing: 0.5px; }
+.riesgo-actual-texto .sub   { font-size: 0.85rem; color: #6a7180; line-height: 1.3; }
+.texto-alto  { color: var(--rojo); }
+.texto-medio { color: var(--naranja); }
+.texto-bajo  { color: var(--verde); }
+.texto-nulo  { color: #9aa0aa; }
+
+/* Barra de progreso azul */
+.progress-rarr { height: 9px; border-radius: 6px; background: #dfe3e9; }
+.progress-rarr .progress-bar { background: var(--azul); border-radius: 6px; }
+.avance-linea { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.55rem; }
+.avance-linea .pct { font-weight: 700; color: var(--azul); font-size: 0.9rem; min-width: 42px; }
+
+/* Progreso dentro de tabla */
+.progreso-celda { min-width: 130px; }
+.progreso-celda .pct { color: var(--azul); font-weight: 700; font-size: 0.82rem; }
+
+@media (max-width: 992px) {
+    .pantalla { padding: 1rem; }
+    .titulo-pantalla { font-size: 1.3rem; }
+}
+
+
+.rarr-encabezado { padding:.5rem 1rem; border-bottom:1px solid #e5e7eb; }
+.rarr-marcadores {
+  display: flex;
+  flex-direction: row;   /* antes column */
+  gap: .6rem;
+}
+.marcador-card {
+  flex: 1;               /* las tres del mismo ancho */
+  border: 2px solid #d9dce1;
+  border-radius: 10px;
+  padding: .5rem .4rem;
+  text-align: center;
+  background: #fff;
+}
+.marcador-card .valor { font-size: 1.4rem; font-weight: 700; }
+.marcador-card .titulo { font-size: .7rem; color: #555; line-height: 1.1; }
+.marcador-card .nivel-txt { font-size: .68rem; font-weight: 700; margin-top: .15rem; }
+.marcador-card.nivel-nulo .valor { color: #adb5bd; }
+.rarr-avance .etiqueta, .rarr-inversion .etiqueta { font-size:.8rem; color:#555; margin-bottom:.2rem; }
+
