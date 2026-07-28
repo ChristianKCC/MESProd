@@ -25,7 +25,7 @@ $baseUrl = "..";
   <link rel="stylesheet" href="<?php echo $baseUrl ?>/assets/awesome5/css/all.css">
 
   <script src="<?php echo $baseUrl ?>/assets/axios.min.js"></script>
-  
+
 
   <link rel="shortcut icon" href="<?php echo $baseUrl ?>/img/favicon.ico" type="image/x-icon">
 
@@ -42,7 +42,8 @@ $baseUrl = "..";
     <nav class="navbar navbar-dark navbar-expand-xxl mb-1">
       <div class="container-fluid">
         <a class="tittle" href="../index/index.php">
-          <h5><img class="" src="../../img/mes.gif"> Kimberly Clark de México </h5><small class="subtittle">Planta Cuautitlán</small>
+          <h5><img class="" src="../../img/mes.gif"> Kimberly Clark de México </h5><small class="subtittle">Planta
+            Cuautitlán</small>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
           aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,6 +82,8 @@ $baseUrl = "..";
                 <li><a class="dropdown-item" href="../capa/misacciones">Mis acciones</a></li>
                 <li><a class="dropdown-item" href="../capa/capavalidaraccionesefectividad">Efectividad</a></li>
                 <li><a class="dropdown-item" href="../capa/capareporte">Reporte</a></li>
+                <li><a class="dropdown-item" href="../RRAR/AnalisisRRAR.php">Análisis RARR</a></li>
+                <li><a class="dropdown-item" href="../RRAR/RegistroRRAR.php">Registro RARR</a></li>
               </ul>
             </li>
 
@@ -117,8 +120,8 @@ $baseUrl = "..";
             <li class="nav-item">
               <a class="nav-link" href="#" tabindex="-1" aria-disabled="true">Costos</a>
             </li>
-            
-           
+
+
             <li class="nav-item dropdown has-megamenu">
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"> RI </a>
               <div class="dropdown-menu megamenu" role="menu">
@@ -131,57 +134,62 @@ $baseUrl = "..";
                         <li><a class="dropdown-item" href="../Asistencias/Asistencias">Asistencias</a></li>
                         <li><a class="dropdown-item" href="../Asistencias/Descansos">Descansos</a></li>
                         <li><a class="dropdown-item" href="../Asistencias/biostart">Asistencias Externos</a></li>
-                        <li><a class="dropdown-item" href="../ReciboNom/EnvRecibo">Recibos de nomina</a></li>                        
+                        <li><a class="dropdown-item" href="../ReciboNom/EnvRecibo">Recibos de nomina</a></li>
 
                         <?php
-                            if (session_status() == PHP_SESSION_NONE)
-                              session_start();                            
-                            if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 60040 || $_SESSION['ibm'] === 58998 || $_SESSION['ibm'] === 22622 || $_SESSION['ibm'] === 51947 || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 50502 || $_SESSION['ibm'] === 50879 || $_SESSION['ibm'] === 35025) {
-                        ?>
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 60040 || $_SESSION['ibm'] === 58998 || $_SESSION['ibm'] === 22622 || $_SESSION['ibm'] === 51947 || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 50502 || $_SESSION['ibm'] === 50879 || $_SESSION['ibm'] === 35025) {
+                          ?>
                           <li><a class="dropdown-item" href="../FirmaDigital/firma">Firma Digital</a></li>
-                        <?php
-                          }
+                          <?php
+                        }
                         ?>
 
 
                         <?php
-                            if (session_status() == PHP_SESSION_NONE)
-                              session_start();
-                            if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 51947  || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 60040) {
-                        ?>
-                          <li><a class="dropdown-item" href="../BDNominas/index.php">Actualización de Base De Datos Nominas</a></li>
-                          <li><a class="dropdown-item" href="../Vacaciones/upload">Actualización de Archivos para Vacaciones</a></li>
-                        <?php
-                          }
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 51947 || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 60040) {
+                          ?>
+                          <li><a class="dropdown-item" href="../BDNominas/index.php">Actualización de Base De Datos
+                              Nominas</a></li>
+                          <li><a class="dropdown-item" href="../Vacaciones/upload">Actualización de Archivos para
+                              Vacaciones</a></li>
+                          <?php
+                        }
                         ?>
 
                         <?php
                         if (session_status() == PHP_SESSION_NONE)
                           session_start();
-                          if (!isset($_SESSION['ibm'])  || $_SESSION['ibm'] === 51947 || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 60040) {
-                            ?>
-                            <hr class="dropdown-divider">
+                        if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 51947 || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 60040) {
+                          ?>
+                          <hr class="dropdown-divider">
 
-                            <?php
-                            if (session_status() == PHP_SESSION_NONE) session_start();
-                            require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
-                            $VerificarsesionVac = new VerificarSesionVac();
-                            
-                            
-                            $pendientes = $VerificarsesionVac->contarCorrecciones();
-                            ?>                              
-                            <li class="position-relative">
-                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Vacaciones/validarVacaciones.php">
-                                    <span>Validación/Corrección en solicitudes de vacaciones</span>
-                                    <?php if($pendientes > 0): ?>
-                                        <span class="notif-loader"><?php echo $pendientes; ?></span>
-                                    <?php endif; ?>
-                                </a>
-                            </li>
-                            <?php                          
-                          ?>                          
-                          <li><a class="dropdown-item" href="../Tiempoextra/validarTiempoExtra">Validación/Corrección en solicitudes de tiempos extras</a></li>
-                            <?php
+                          <?php
+                          if (session_status() == PHP_SESSION_NONE)
+                            session_start();
+                          require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
+                          $VerificarsesionVac = new VerificarSesionVac();
+
+
+                          $pendientes = $VerificarsesionVac->contarCorrecciones();
+                          ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Vacaciones/validarVacaciones.php">
+                              <span>Validación/Corrección en solicitudes de vacaciones</span>
+                              <?php if ($pendientes > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientes; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <?php
+                          ?>
+                          <li><a class="dropdown-item" href="../Tiempoextra/validarTiempoExtra">Validación/Corrección en
+                              solicitudes de tiempos extras</a></li>
+                          <?php
                         }
                         ?>
 
@@ -201,250 +209,268 @@ $baseUrl = "..";
                             <?php
                         }
                         ?>
-                        <hr class="dropdown-divider">
-                        <!-- Vista para RI -->
-                        <!-- ------------------------------------- CONSULTA DE DATOS PARA VACACIONES ------------------------------------- -->                        
+                          <hr class="dropdown-divider">
+                          <!-- Vista para RI -->
+                          <!-- ------------------------------------- CONSULTA DE DATOS PARA VACACIONES ------------------------------------- -->
 
-                        <?php
-                        if (session_status() == PHP_SESSION_NONE) session_start();
-                        require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
-                        $VerificarsesionVac = new VerificarSesionVac();
-
-                        if (!isset($_SESSION['ibm'])  || $_SESSION['ibm'] === 22622 || $_SESSION['ibm'] === 60040) {
-                            // Llamamos al método que cuenta las firmas pendientes
-                            $pendientesFirma = $VerificarsesionVac->contarPorFirma();
-                            ?>
-                            <li class="position-relative">
-                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Vacaciones/firmarvacacionesRI">
-                                    <span>Firma Relaciones Inds. para solicitudes de vacaciones</span>
-                                    <?php if($pendientesFirma > 0): ?>
-                                        <span class="notif-loader"><?php echo $pendientesFirma; ?></span>
-                                    <?php endif; ?>
-                                </a>
-                            </li>
-                            <?php
-                        }
-                        ?>
-
-
-
-                        <li><a class="dropdown-item" href="../Vacaciones/Consulta">Consulta y Solicita tus Vacaciones</a></li>
-
-                        <!-- Vista para Super Intendente -->
-                        <?php
-                          if (session_status() == PHP_SESSION_NONE) session_start();
+                          <?php
+                          if (session_status() == PHP_SESSION_NONE)
+                            session_start();
                           require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
                           $VerificarsesionVac = new VerificarSesionVac();
 
-                          if ($VerificarsesionVac->puedeVerVacacionesSupInt()) {
-                              $pendientes = $VerificarsesionVac->contarVacacionesPendientesSupInt();
-                              ?>
-                              <li class="position-relative">
-                                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Vacaciones/autorizaSupIntendente">
-                                      <span>Pre-Autoriza/Rechaza Solicitudes de Vacaciones</span>
-                                      <?php if($pendientes > 0): ?>
-                                          <span class="notif-loader"><?php echo $pendientes; ?></span>
-                                      <?php endif; ?>
-                                  </a>
-                              </li>                              
-                              <?php
+                          if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 22622 || $_SESSION['ibm'] === 60040) {
+                            // Llamamos al método que cuenta las firmas pendientes
+                            $pendientesFirma = $VerificarsesionVac->contarPorFirma();
+                            ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Vacaciones/firmarvacacionesRI">
+                              <span>Firma Relaciones Inds. para solicitudes de vacaciones</span>
+                              <?php if ($pendientesFirma > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientesFirma; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <?php
                           }
+                          ?>
+
+
+
+                        <li><a class="dropdown-item" href="../Vacaciones/Consulta">Consulta y Solicita tus
+                            Vacaciones</a></li>
+
+                        <!-- Vista para Super Intendente -->
+                        <?php
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
+                        $VerificarsesionVac = new VerificarSesionVac();
+
+                        if ($VerificarsesionVac->puedeVerVacacionesSupInt()) {
+                          $pendientes = $VerificarsesionVac->contarVacacionesPendientesSupInt();
+                          ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Vacaciones/autorizaSupIntendente">
+                              <span>Pre-Autoriza/Rechaza Solicitudes de Vacaciones</span>
+                              <?php if ($pendientes > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientes; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <?php
+                        }
                         ?>
 
                         <!-- Vista para Gerente -->
 
                         <?php
-                        if (session_status() == PHP_SESSION_NONE) session_start();
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
                         require_once(__DIR__ . "/../Vacaciones/php/guard.php");
                         $VerificarsesionVac = new VerificarSesionVac();
 
                         if ($VerificarsesionVac->puedeVerVacaciones()) {
-                            // Llamamos a tu función
-                            $pendientes = $VerificarsesionVac->contarVacacionesPendientes();
-                            ?>
-                            <li class="position-relative">
-                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Vacaciones/AutorizarVacaciones">
-                                    <span>Autoriza/Rechaza Solicitudes de Vacaciones</span>
-                                    <?php if($pendientes > 0): ?>
-                                        <span class="notif-loader"><?php echo $pendientes; ?></span>
-                                    <?php endif; ?>
-                                </a>
-                            </li>
-                            <hr class="dropdown-divider">
-                            <?php
+                          // Llamamos a tu función
+                          $pendientes = $VerificarsesionVac->contarVacacionesPendientes();
+                          ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Vacaciones/AutorizarVacaciones">
+                              <span>Autoriza/Rechaza Solicitudes de Vacaciones</span>
+                              <?php if ($pendientes > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientes; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <hr class="dropdown-divider">
+                          <?php
                         }
                         ?>
 
 
 
-                        <!-- ------------------------------------- CONSULTA DE DATOS PARA TIEMPOS EXTRA ------------------------------------- -->                                                                         
+                        <!-- ------------------------------------- CONSULTA DE DATOS PARA TIEMPOS EXTRA ------------------------------------- -->
                         <?php
-                          if (session_status() == PHP_SESSION_NONE) session_start();
-                          require_once(__DIR__ . "/../Vacaciones/php/vacacionesLogistica.php");
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        require_once(__DIR__ . "/../Vacaciones/php/vacacionesLogistica.php");
 
-                          // IBM del usuario en sesión
-                          $ibmSesion = $_SESSION["ibm"] ?? null;
+                        // IBM del usuario en sesión
+                        $ibmSesion = $_SESSION["ibm"] ?? null;
 
-                          // Obtener lista de supervisores
-                          $listaSupervisores = obtenerSupervisoresIBM();                          
-                          
-                          $FG = [55075, 53412, 27825, 30950, 59610,	55075, 28342];
+                        // Obtener lista de supervisores
+                        $listaSupervisores = obtenerSupervisoresIBM();
 
-                          // Validar acceso para mostrar el menú
-                          if ($ibmSesion && (in_array($ibmSesion, $listaSupervisores) || in_array($ibmSesion, $FG))) {
-                              ?>                              
-                              <li>
-                                  <a class="dropdown-item" href="../Tiempoextra/index.php">
-                                      Crea Solicitudes de Tiempo Extra
-                                  </a>
-                              </li>                              
-                              <?php
-                          }
+                        $FG = [55075, 53412, 27825, 30950, 59610, 55075, 28342];
+
+                        // Validar acceso para mostrar el menú
+                        if ($ibmSesion && (in_array($ibmSesion, $listaSupervisores) || in_array($ibmSesion, $FG))) {
+                          ?>
+                          <li>
+                            <a class="dropdown-item" href="../Tiempoextra/index.php">
+                              Crea Solicitudes de Tiempo Extra
+                            </a>
+                          </li>
+                          <?php
+                        }
                         ?>
 
                         <!-- <li><a class="dropdown-item" href="../Tiempoextra/index.php">Crea Solicitudes de Tiempo Extra</a></li> -->
 
                         <?php
-                          if (session_status() == PHP_SESSION_NONE) session_start();
-                          require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
-                          $VerificarsesionTiempoT = new VerificarSesion();
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
+                        $VerificarsesionTiempoT = new VerificarSesion();
 
-                          if ($VerificarsesionTiempoT->puedeVerTiemposExtraSupInt()) {
-                              $pendientes = $VerificarsesionTiempoT->contarTiemposExtraSupInt();
-                              ?>
-                              <li class="position-relative">
-                                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Tiempoextra/autorizaSupIntendente.php">
-                                      <span>Pre-Autoriza/Rechaza Solicitudes de Tiempos Extra</span>
-                                      <?php if($pendientes > 0): ?>
-                                          <span class="notif-loader"><?php echo $pendientes; ?></span>
-                                      <?php endif; ?>
-                                  </a>
-                              </li>                              
-                              <?php
-                          }
+                        if ($VerificarsesionTiempoT->puedeVerTiemposExtraSupInt()) {
+                          $pendientes = $VerificarsesionTiempoT->contarTiemposExtraSupInt();
+                          ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Tiempoextra/autorizaSupIntendente.php">
+                              <span>Pre-Autoriza/Rechaza Solicitudes de Tiempos Extra</span>
+                              <?php if ($pendientes > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientes; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <?php
+                        }
                         ?>
 
 
                         <?php
-                        if (session_status() == PHP_SESSION_NONE) session_start();
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
                         require_once(__DIR__ . "/../Tiempoextra/php/guard.php");
                         $VerificarsesionTiempoT = new VerificarSesion();
 
                         if ($VerificarsesionTiempoT->puedeVerTiemposExtra()) {
-                            // Llamamos a tu función
-                            $pendientes = $VerificarsesionTiempoT->contarTiemposExtra();
-                            ?>
-                            <li class="position-relative">
-                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Tiempoextra/Autorizafol.php">
-                                    <span>Autoriza/Rechaza Solicitudes de Tiempo Extra</span>
-                                    <?php if($pendientes > 0): ?>
-                                        <span class="notif-loader"><?php echo $pendientes; ?></span>
-                                    <?php endif; ?>
-                                </a>
-                            </li>
-                            <hr class="dropdown-divider">
-                            <?php
+                          // Llamamos a tu función
+                          $pendientes = $VerificarsesionTiempoT->contarTiemposExtra();
+                          ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Tiempoextra/Autorizafol.php">
+                              <span>Autoriza/Rechaza Solicitudes de Tiempo Extra</span>
+                              <?php if ($pendientes > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientes; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <hr class="dropdown-divider">
+                          <?php
                         }
                         ?>
 
-                      
 
-                        <!-- ------------------------------------- CONSULTA DE DATOS PARA CAMBIO TEMPORAL DE TURNO ------------------------------------- -->                                                
+
+                        <!-- ------------------------------------- CONSULTA DE DATOS PARA CAMBIO TEMPORAL DE TURNO ------------------------------------- -->
                         <!-- <li><a class="dropdown-item" href="../CambioTemporalDeTurno/index.php">Crea Cambios Temporales de Turno</a></li> -->
                         <?php
-                          if (session_status() == PHP_SESSION_NONE) session_start();
-                          require_once(__DIR__ . "/../Vacaciones/php/vacacionesLogistica.php");
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        require_once(__DIR__ . "/../Vacaciones/php/vacacionesLogistica.php");
 
-                          // IBM del usuario en sesión
-                          $ibmSesion = $_SESSION["ibm"] ?? null;
+                        // IBM del usuario en sesión
+                        $ibmSesion = $_SESSION["ibm"] ?? null;
 
-                          $FG = [55075, 53412, 27825, 30950, 59610,	55075, 28342];                        
+                        $FG = [55075, 53412, 27825, 30950, 59610, 55075, 28342];
 
-                          // Obtener lista de supervisores
-                          $listaSupervisores = obtenerSupervisoresIBM();                          
+                        // Obtener lista de supervisores
+                        $listaSupervisores = obtenerSupervisoresIBM();
 
-                          // Validar acceso para mostrar el menú                          
-                          if ($ibmSesion && (in_array($ibmSesion, $listaSupervisores) || in_array($ibmSesion, $FG))) {
+                        // Validar acceso para mostrar el menú                          
+                        if ($ibmSesion && (in_array($ibmSesion, $listaSupervisores) || in_array($ibmSesion, $FG))) {
                           // if ($ibmSesion && (in_array($ibmSesion, $listaSupervisores))) {
-                              ?>                              
-                              <li>
-                                <a class="dropdown-item" href="../CambioTemporalDeTurno/index.php">
-                                  Crea Cambios Temporales de Turno
-                                </a>
-                              </li>
-                              <hr class="dropdown-divider">
-                              <?php
-                          }
+                          ?>
+                          <li>
+                            <a class="dropdown-item" href="../CambioTemporalDeTurno/index.php">
+                              Crea Cambios Temporales de Turno
+                            </a>
+                          </li>
+                          <hr class="dropdown-divider">
+                          <?php
+                        }
                         ?>
-                                                
+
 
                         <!-- ------------------------------------- CONSULTA DE DATOS PARA CAMBIOS DE PUESTO ------------------------------------- -->
-                        
+
                         <!-- <li><a class="dropdown-item" href="../Cambiopuesto/index.php">Crea Solicitudes de Cambio de Puesto</a></li> -->
 
                         <?php
-                          if (session_status() == PHP_SESSION_NONE) session_start();
-                          require_once(__DIR__ . "/../Vacaciones/php/vacacionesLogistica.php");
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        require_once(__DIR__ . "/../Vacaciones/php/vacacionesLogistica.php");
 
-                          // IBM del usuario en sesión
-                          $ibmSesion = $_SESSION["ibm"] ?? null;
+                        // IBM del usuario en sesión
+                        $ibmSesion = $_SESSION["ibm"] ?? null;
 
-                          // Obtener lista de supervisores
-                          $listaSupervisores = obtenerSupervisoresIBM();                          
+                        // Obtener lista de supervisores
+                        $listaSupervisores = obtenerSupervisoresIBM();
 
-                          // Validar acceso para mostrar el menú
-                          if ($ibmSesion && (in_array($ibmSesion, $listaSupervisores))) {
-                              ?>
-                              
-                              <li>
-                                <a class="dropdown-item" href="../Cambiopuesto/index.php">
-                                  Crea Solicitudes de Cambio de Puesto
-                                </a>
-                              </li>                              
-                              <?php
-                          }
+                        // Validar acceso para mostrar el menú
+                        if ($ibmSesion && (in_array($ibmSesion, $listaSupervisores))) {
+                          ?>
+
+                          <li>
+                            <a class="dropdown-item" href="../Cambiopuesto/index.php">
+                              Crea Solicitudes de Cambio de Puesto
+                            </a>
+                          </li>
+                          <?php
+                        }
                         ?>
 
                         <?php
-                          if (session_status() == PHP_SESSION_NONE) session_start();
-                          require_once(__DIR__ . "/../Cambiopuesto/php/guard.php");
-                          $VerificarsesionCambP = new VerificarSesionCambP();
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        require_once(__DIR__ . "/../Cambiopuesto/php/guard.php");
+                        $VerificarsesionCambP = new VerificarSesionCambP();
 
-                          if ($VerificarsesionCambP->puedeVerListaSuperIntendente()) {
-                              $pendientes = $VerificarsesionCambP->contarCambiosPuestoSupInt();
-                              ?>
-                              <li class="position-relative">
-                                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Cambiopuesto/autorizaSupIntendente.php">
-                                      <span>Pre-Autoriza/Rechaza Solicitudes de Cambios de Puesto</span>
-                                      <?php if($pendientes > 0): ?>
-                                          <span class="notif-loader"><?php echo $pendientes; ?></span>
-                                      <?php endif; ?>
-                                  </a>
-                              </li>                              
-                              <?php
-                          }
+                        if ($VerificarsesionCambP->puedeVerListaSuperIntendente()) {
+                          $pendientes = $VerificarsesionCambP->contarCambiosPuestoSupInt();
+                          ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Cambiopuesto/autorizaSupIntendente.php">
+                              <span>Pre-Autoriza/Rechaza Solicitudes de Cambios de Puesto</span>
+                              <?php if ($pendientes > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientes; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <?php
+                        }
                         ?>
 
 
                         <?php
-                        if (session_status() == PHP_SESSION_NONE) session_start();
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
                         require_once(__DIR__ . "/../Cambiopuesto/php/guard.php");
                         $VerificarsesionCambP = new VerificarSesionCambP();
 
                         if ($VerificarsesionCambP->puedeVerListaGerente()) {
-                            // Llamamos a tu función
-                            $pendientes = $VerificarsesionCambP->contarCambiosPuesto();
-                            ?>
-                            <li class="position-relative">
-                                <a class="dropdown-item d-flex justify-content-between align-items-center" href="../Cambiopuesto/AutorizaCambio.php">
-                                    <span>Autoriza/Rechaza Solicitudes de Cambio de Puesto</span>
-                                    <?php if($pendientes > 0): ?>
-                                        <span class="notif-loader"><?php echo $pendientes; ?></span>
-                                    <?php endif; ?>
-                                </a>
-                            </li>
-                            <hr class="dropdown-divider">
-                            <?php
+                          // Llamamos a tu función
+                          $pendientes = $VerificarsesionCambP->contarCambiosPuesto();
+                          ?>
+                          <li class="position-relative">
+                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                              href="../Cambiopuesto/AutorizaCambio.php">
+                              <span>Autoriza/Rechaza Solicitudes de Cambio de Puesto</span>
+                              <?php if ($pendientes > 0): ?>
+                                <span class="notif-loader"><?php echo $pendientes; ?></span>
+                              <?php endif; ?>
+                            </a>
+                          </li>
+                          <hr class="dropdown-divider">
+                          <?php
                         }
                         ?>
                       </ul>
@@ -477,27 +503,31 @@ $baseUrl = "..";
                         </li>
 
                         <?php
-                          if (session_status() == PHP_SESSION_NONE)
-                            session_start();
-                          if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 22622 || $_SESSION['ibm'] === 51947 || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 60040 || $_SESSION['ibm'] === 58998) {
-                            ?>
+                        if (session_status() == PHP_SESSION_NONE)
+                          session_start();
+                        if (!isset($_SESSION['ibm']) || $_SESSION['ibm'] === 22622 || $_SESSION['ibm'] === 51947 || $_SESSION['ibm'] === 55268 || $_SESSION['ibm'] === 53224 || $_SESSION['ibm'] === 60040 || $_SESSION['ibm'] === 58998) {
+                          ?>
                           <h6 class="title">Reportes Nominas</h6>
                           <!-- <li><a class="dropdown-item" href="../Tiempoextra/reporte60hrs.php">Reporte +60.5hrs & Dobletes turno</a>
                           </li> -->
                           <li><a class="dropdown-item" href="../Tiempoextra/reportegenral">Reporte Tiempo Extra</a></li>
-                          <li><a class="dropdown-item" href="../TiempoExtra/ConsultaTE">Historico de Tiempos Extras</a></li>
-                          <li><a class="dropdown-item" href="../TiempoExtra/reporteCTT">Reporte Cambio Temporal de Turno</a></li>
-                          <li><a class="dropdown-item" href="../Cambiopuesto/reportegenral">Reporte Cambio de Puesto</a></li>
+                          <li><a class="dropdown-item" href="../TiempoExtra/ConsultaTE">Historico de Tiempos Extras</a>
+                          </li>
+                          <li><a class="dropdown-item" href="../TiempoExtra/reporteCTT">Reporte Cambio Temporal de
+                              Turno</a></li>
+                          <li><a class="dropdown-item" href="../Cambiopuesto/reportegenral">Reporte Cambio de Puesto</a>
+                          </li>
                           <li><a class="dropdown-item" href="../Vacaciones/reporteVacaciones">Reporte Vacaciones</a></li>
                           <li>
                             <hr class="dropdown-divider">
                           </li>
-                            <?php
-                          }
+                          <?php
+                        }
                         ?>
 
                         <h6 class="title">Reportes Medicos</h6>
-                        <li><a class="dropdown-item" href="../Enfermeria/ReporteConsultas">Reporte Consultas Enfermeria</a></li>
+                        <li><a class="dropdown-item" href="../Enfermeria/ReporteConsultas">Reporte Consultas
+                            Enfermeria</a></li>
                         <li><a class="dropdown-item" href="../Enfermeria/ReporteExamenMedico">Reporte Examen Medico</a>
                         </li>
                       </ul>
@@ -535,7 +565,7 @@ $baseUrl = "..";
                   </div>
                 </div>
               </div>
-              
+
             </li>
 
 
@@ -640,7 +670,7 @@ $baseUrl = "..";
                       </ul>
                     </div>
                   </div>
-              </div>
+                </div>
             </li>
             <!-- <li class="nav-item">
               <a class="nav-link" href="../Creador/GeneradorPantallas" tabindex="-1" aria-disabled="true">Creador</a>
@@ -657,5 +687,5 @@ $baseUrl = "..";
   </header>
   <div class="contenedor2" id="contenedor2">
 
-  <!-- <script src="../assets/menuDesplegable.js"></script> -->
-  <script src="<?php echo $baseUrl ?>/assets/menuDesplegable.js"></script>
+    <!-- <script src="../assets/menuDesplegable.js"></script> -->
+    <script src="<?php echo $baseUrl ?>/assets/menuDesplegable.js"></script>
