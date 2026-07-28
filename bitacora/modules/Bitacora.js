@@ -401,7 +401,7 @@ export class PlanProducc {
         return;
       }
 
-      const produccvsreal = STD - STDAcumulado;
+      const produccvsreal = STDAcumulado - STD;
 
       const displayPercent =
         STD === 0
@@ -428,7 +428,7 @@ export class PlanProducc {
         </div>
         <div class="col-4">
           <span class="fw-bold d-block">Programa vs Producción</span>
-          <p class="card-text mb-0">${produccvsreal < 0 ? `<span style="color:red;font-weight:600">${produccvsreal.toFixed(2)}</span>` : produccvsreal.toFixed(2)}</p>
+          <p class="card-text mb-0">${produccvsreal > 0 ? `<span style="color:green;font-weight:600">${'+' +produccvsreal.toFixed(2)}</span>` : `<span style="color:red;font-weight:600">${produccvsreal.toFixed(2)}</span>`}</p>
         </div>
           </div>
         </div>
@@ -467,7 +467,7 @@ export class PlanProducc {
     resp.forEach((element) => {
       const STD = Number(element.STD ?? 0);
       const STDAcumulado = Number(element.STDAcumulado ?? 0);
-      const produccvsreal = STD === 0 ? 0 : (STDAcumulado / STD) * 100;
+      const produccvsreal = STDAcumulado - STD;
       const porcentajeSafe = Math.max(
         0,
         Math.min(checkInfinity(produccvsreal)),
@@ -502,7 +502,7 @@ export class PlanProducc {
         </div>
         <div class="col-4">
           <span class="fw-bold d-block">Programa vs Producción</span>
-          <p class="card-text mb-0">${displayPercent.toFixed(2)}</p>
+          <p class="card-text mb-0">${produccvsreal > 0 ? `<span style="color:green;font-weight:600">${'+' +produccvsreal.toFixed(2)}</span>` : `<span style="color:red;font-weight:600">${produccvsreal.toFixed(2)}</span>`}</p>
         </div>
           </div>
         </div>
