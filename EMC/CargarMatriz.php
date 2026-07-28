@@ -29,7 +29,7 @@ require_once(__DIR__ . "/../index/header.php");
         <div class="col-20">    
             <small class="alert alert-info">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>                
-                Sube el archivo <strong>Excel (.xlsx)</strong> o <strong>CSV (.csv)</strong> con los datos a consultar. El archivo anterior será reemplazado automáticamente.
+                Sube el archivo <strong>Excel (.xlsx)</strong> o <strong>CSV (.csv)</strong> y pega el <strong>enlace de Excel Online</strong>. El archivo y el enlace anteriores serán reemplazados automáticamente.
             </small>
         </div>
     </div>
@@ -100,7 +100,7 @@ require_once(__DIR__ . "/../index/header.php");
           <?= $fileExists ? 'Reemplazar archivo de datos' : 'Subir archivo de datos' ?>
         </div>
 
-        <form id="emc-upload-form" method="POST" enctype="multipart/form-data">
+        <form id="emc-upload-form" method="POST" enctype="multipart/form-data" data-tipo="1">
 
           <div class="emc-dropzone" id="dropzone">
             <input type="file"
@@ -118,6 +118,39 @@ require_once(__DIR__ . "/../index/header.php");
             <span id="selected-file-name">—</span>
           </div>
 
+          <!-- ════════ NUEVO: enlace de Excel Online ════════ -->
+          <div class="emc-link-block" style="margin-top:1.5rem">
+            <label for="emc-enlace-input" class="emc-link-label">
+              <i class="fa-solid fa-link"></i> Enlace del archivo (Excel Online / SharePoint)
+            </label>
+
+            <textarea id="emc-enlace-input"
+                      name="enlace"
+                      class="emc-link-input"
+                      rows="3"
+                      placeholder='Pega aquí el enlace o el código embed que comparte Excel Online (debe contener "sourcedoc=...")'
+                      required></textarea>
+
+            <small class="emc-link-help">
+              <i class="fa-solid fa-circle-info"></i>
+              Pega el enlace completo o el <strong>código &lt;iframe&gt;</strong> del botón "Insertar / Embed". Se recortará automáticamente.
+            </small>
+
+            <!-- Preview del enlace ya recortado -->
+            <div class="emc-link-preview" id="emc-link-preview-wrap" style="display:none">
+              <div class="emc-link-preview-title">
+                <i class="fa-solid fa-scissors"></i> Así quedará tu enlace recortado:
+              </div>
+              <code class="emc-link-preview-value" id="emc-link-preview-value">—</code>
+            </div>
+
+            <div class="emc-link-error" id="emc-link-error" style="display:none">
+              <i class="fa-solid fa-circle-xmark"></i>
+              <span>No se detectó un <strong>sourcedoc</strong> válido en el enlace.</span>
+            </div>
+          </div>
+          <!-- ════════ /NUEVO ════════ -->
+
           <div class="emc-progress-wrap" id="emc-progress-wrap">
             <div class="emc-progress-label">
               <span>Subiendo…</span>
@@ -130,7 +163,7 @@ require_once(__DIR__ . "/../index/header.php");
 
           <div class="emc-file-select-row d-flex justify-content-center align-items-center gap-3" style="margin-top:1.5rem">
             <button type="submit" class="emc-btn btn-primary emc-btn-lg">
-              <i class="fa-solid fa-cloud-upload-alt"></i> Subir archivo
+              <i class="fa-solid fa-cloud-upload-alt"></i> Subir archivo y enlace
             </button>
             <?php if ($fileExists): ?>
               <span class="emc-alert emc-alert-warning" style="font-size:.78rem;padding:8px 12px;margin:0">
@@ -145,6 +178,28 @@ require_once(__DIR__ . "/../index/header.php");
 
     </div><!-- /emc-page -->
 </div>
+
+<!-- estilos del bloque de enlace (puedes moverlos a excelstyle.css) -->
+<style>
+  .emc-link-label { display:block; font-weight:600; font-size:.85rem; margin-bottom:.4rem; }
+  .emc-link-input {
+      width:100%; resize:vertical; border:1px solid #cfd4dd; border-radius:8px;
+      padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:.8rem;
+  }
+  .emc-link-input:focus { outline:none; border-color:#2E6DB4; box-shadow:0 0 0 3px rgba(46,109,180,.15); }
+  .emc-link-help { display:block; margin-top:.4rem; font-size:.74rem; color:#6b7280; }
+  .emc-link-preview {
+      margin-top:.9rem; background:#f0f8f4; border:1px solid #b6e0c8;
+      border-radius:8px; padding:10px 12px;
+  }
+  .emc-link-preview-title { font-size:.75rem; font-weight:600; color:#1a8040; margin-bottom:.35rem; }
+  .emc-link-preview-value { display:block; word-break:break-all; font-size:.76rem; color:#14532d; }
+  .emc-link-error {
+      margin-top:.9rem; background:#fdecec; border:1px solid #f5b5b5;
+      border-radius:8px; padding:10px 12px; color:#b42318; font-size:.78rem;
+      display:flex; gap:8px; align-items:center;
+  }
+</style>
 
 <script src="js/app.js"></script>
 <?php require_once("../index/footer.php") ?>

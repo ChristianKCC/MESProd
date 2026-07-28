@@ -1,52 +1,34 @@
 <?php
-define('PPTX_FILE',  __DIR__ . '/../../uploads/organigrama.pptx');
-define('THUMB_FILE', __DIR__ . '/../../uploads/organigrama_thumb.jpg');
+/* =====================================================================
+   LogicaVerOrganigrama.php  (tipo 2 = PowerPoint)
+   Toma el enlace ACTIVO de tipo PowerPoint desde tblMXPREnlaceEMC.
 
-$fileExists  = file_exists(PPTX_FILE);
-$fileUpdated = $fileExists ? date('d/m/Y H:i:s', filemtime(PPTX_FILE)) : null;
-$fileSize    = $fileExists ? round(filesize(PPTX_FILE) / 1024, 1) . ' KB' : null;
-$fileName    = 'organigrama.pptx';
+   Ubicacion: EMC/Organigrama/VerOrganigrama/LogicaVerOrganigrama.php
+   - conexion.php  -> dirname(__DIR__, 3)  (VerOrganigrama->Organigrama->EMC->KCMes)
+   - funciones     -> dirname(__DIR__, 2)."/php/funciones_enlace.php"
+   ===================================================================== */
 
-/* ── URL pública del archivo ── */
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-$fileUrl  = $fileExists ? $protocol . '://' . $host . '/mes/KCMes/EMC/uploads/organigrama.pptx' : '';
+require_once(dirname(__DIR__, 3) . "/conexion.php");
+require_once(dirname(__DIR__, 2) . "/php/funciones_enlace.php");
 
-/* ── Protocolo ms-powerpoint ── */
-$msPptUrl = 'ms-powerpoint:ofv|u|' . $fileUrl;
+/* (opcional) archivo fisico, solo para mostrar tamaño si lo sigues subiendo */
+define('PPTX_FILE', __DIR__ . '/../../uploads/organigrama.pptx');
 
-/* ── Thumbnail con LibreOffice (si disponible) ── */
-$thumbExists = file_exists(THUMB_FILE);
-$needThumb   = $fileExists && (!$thumbExists ||
-               filemtime(PPTX_FILE) > filemtime(THUMB_FILE));
+$ClassConexion = new ClassConexion();
+$conn = $ClassConexion->conexion("TLX002MXDB");
 
-if ($needThumb) {
-    $loPaths = [
-        'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
-        'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
-        '/usr/bin/libreoffice',
-        '/usr/local/bin/libreoffice',
-        'soffice',
-        'libreoffice',
-    ];
-    $uploadDir = __DIR__ . '/../../uploads/';
-    foreach ($loPaths as $lo) {
-        if (!file_exists($lo) && !in_array($lo, ['soffice','libreoffice'])) continue;
-        $isWin  = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-        $null   = $isWin ? '2>nul' : '2>/dev/null';
-        $quoted = strpos($lo, ' ') !== false ? '"' . $lo . '"' : $lo;
-        $cmd = $quoted . ' --headless --convert-to jpg:impress_jpg_Export'
-             . ' --outdir ' . escapeshellarg($uploadDir)
-             . ' ' . escapeshellarg(PPTX_FILE) . ' ' . $null;
-        @exec($cmd);
-        $generated = $uploadDir . 'organigrama.jpg';
-        if (file_exists($generated)) {
-            rename($generated, THUMB_FILE);
-            $thumbExists = true;
-            break;
-        }
-    }
+$enlaceRow   = obtenerEnlaceActivo($conn, EMC_TIPO_PPT);
+$enlaceEmbed = $enlaceRow ? construirEnlaceEmbed($enlaceRow['enlace'], EMC_TIPO_PPT) : null;
+
+$fileExists = ($enlaceRow !== null) && !empty($enlaceEmbed);
+$fileName   = $fileExists ? $enlaceRow['nombre_archivo'] : null;
+
+$fileUpdated = null;
+if ($fileExists) {
+    $fileUpdated = ($enlaceRow['fecha_registro'] instanceof DateTime)
+                 ? $enlaceRow['fecha_registro']->format('d/m/Y H:i:s')
+                 : (string) $enlaceRow['fecha_registro'];
 }
 
+$fileSize = file_exists(PPTX_FILE) ? round(filesize(PPTX_FILE) / 1024, 1) . ' KB' : '';
 ?>

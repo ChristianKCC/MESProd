@@ -1,7 +1,7 @@
 <?php
 
-define('UPLOAD_DIR', __DIR__ . '/../../uploads/');
-define('PPTX_FILE', UPLOAD_DIR . 'organigrama.pptx');
+define('UPLOAD_DIR_OEMC', __DIR__ . '/../../uploads/');
+define('PPTX_FILE', UPLOAD_DIR_OEMC . 'organigrama.pptx');
 define('MAX_SIZE_MB', 50);
 
 /* ── Procesar subida ─────────────────────── */
@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['pptx_file'])) {
     }
 
     if (empty($errors)) {
-        if (!is_dir(UPLOAD_DIR)) {
-            mkdir(UPLOAD_DIR, 0755, true);
+        if (!is_dir(UPLOAD_DIR_OEMC)) {
+            mkdir(UPLOAD_DIR_OEMC, 0755, true);
         }
 
         if (move_uploaded_file($file['tmp_name'], PPTX_FILE)) {

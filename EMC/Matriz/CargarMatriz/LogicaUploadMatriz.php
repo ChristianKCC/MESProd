@@ -1,7 +1,7 @@
 <?php
-define('UPLOAD_DIR', __DIR__ . '/../../uploads/');
-define('EXCEL_FILE', UPLOAD_DIR . 'datos.xlsx');
-define('CSV_FILE', UPLOAD_DIR . 'datos.csv');
+define('UPLOAD_DIR_MEMC', __DIR__ . '/../../uploads/');
+define('EXCEL_FILE_MEMC', UPLOAD_DIR_MEMC . 'datos.xlsx');
+define('CSV_FILE_MEMC', UPLOAD_DIR_MEMC . 'datos.csv');
 define('MAX_SIZE_MB', 20);
 
 /* ── Procesar subida ─────────────────────── */
@@ -9,9 +9,9 @@ $response = [];
 $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['EXCEL_FILE_MEMC'])) {
 
-    $file = $_FILES['excel_file'];
+    $file = $_FILES['EXCEL_FILE_MEMC'];
     $errors = [];
 
     if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -29,14 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
     }
 
     if (empty($errors)) {
-        if (!is_dir(UPLOAD_DIR)) mkdir(UPLOAD_DIR, 0755, true);
+        if (!is_dir(UPLOAD_DIR_MEMC)) mkdir(UPLOAD_DIR_MEMC, 0755, true);
 
         /* Guardar con nombre unificado según tipo */
-        $destFile = ($ext === 'csv') ? CSV_FILE : EXCEL_FILE;
+        $destFile = ($ext === 'csv') ? CSV_FILE_MEMC : EXCEL_FILE_MEMC;
 
         /* Si existe el otro tipo, eliminarlo para no confundir */
-        if ($ext === 'csv' && file_exists(EXCEL_FILE)) unlink(EXCEL_FILE);
-        if ($ext !== 'csv' && file_exists(CSV_FILE)) unlink(CSV_FILE);
+        if ($ext === 'csv' && file_exists(EXCEL_FILE_MEMC)) unlink(EXCEL_FILE_MEMC);
+        if ($ext !== 'csv' && file_exists(CSV_FILE_MEMC)) unlink(CSV_FILE_MEMC);
 
         if (move_uploaded_file($file['tmp_name'], $destFile)) {
             $response = [
@@ -65,8 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
 $activeFile = null;
 $activeExt = null;
 
-if (file_exists(EXCEL_FILE)) { $activeFile = EXCEL_FILE; $activeExt = 'xlsx'; }
-elseif (file_exists(CSV_FILE)) { $activeFile = CSV_FILE; $activeExt = 'csv'; }
+if (file_exists(EXCEL_FILE_MEMC)) { $activeFile = EXCEL_FILE_MEMC; $activeExt = 'xlsx'; }
+elseif (file_exists(CSV_FILE_MEMC)) { $activeFile = CSV_FILE_MEMC; $activeExt = 'csv'; }
 
 $fileExists = $activeFile !== null;
 $fileName = $fileExists ? basename($activeFile) : null;
