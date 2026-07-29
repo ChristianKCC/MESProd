@@ -55,9 +55,9 @@ export class BitPresentaciones {
         body: data,
       },
     );
-     respuestaraw.status === 200 &&
+    respuestaraw.status === 200 &&
       swal.fire("Listo", "La acción se completo correctamente", "success");
-      this.recargarTblPresentacionSubSpooler();
+    this.recargarTblPresentacionSubSpooler();
     respuestaraw.status === 500 &&
       swal.fire(
         "ERROR",
@@ -98,15 +98,18 @@ export class BitPresentaciones {
   }
 
   async savePresentacionAdicionalSpooler(id, norollo, kg, acckg) {
-      const data = new FormData();
-      data.append("id", id);
-      data.append("norollo", norollo);
-      data.append("kg", kg);
-      data.append("acckg", acckg);
-      const respuestaraw = await fetch("php/presentacion.php?updateTablaSpooler", {
+    const data = new FormData();
+    data.append("id", id);
+    data.append("norollo", norollo);
+    data.append("kg", kg);
+    data.append("acckg", acckg);
+    const respuestaraw = await fetch(
+      "php/presentacion.php?updateTablaSpooler",
+      {
         method: "POST",
         body: data,
-      });
+      },
+    );
     respuestaraw.ok
       ? null
       : swal.fire(
@@ -116,26 +119,36 @@ export class BitPresentaciones {
         );
   }
 
-  async updateMetrosLinealesRollo(id, metrosLineales, accml){
-        const data = new FormData();
-        data.append("id", id);
-        data.append("ml", metrosLineales);
-        data.append("accml", accml);
-        const respuestaraw = await fetch("php/presentacion.php?updateMetrosLinealesRollo", {
-          method: "POST",
-          body: data,
-        });
-         respuestaraw.ok
-          ? null
-          : swal.fire(
-              "ERROR",
-              "Hay un problema al actualizar la información",
-              "error",
+  async updateMetrosLinealesRollo(id, metrosLineales, accml) {
+    const data = new FormData();
+    data.append("id", id);
+    data.append("ml", metrosLineales);
+    data.append("accml", accml);
+    const respuestaraw = await fetch(
+      "php/presentacion.php?updateMetrosLinealesRollo",
+      {
+        method: "POST",
+        body: data,
+      },
+    );
+    respuestaraw.ok
+      ? null
+      : swal.fire(
+          "ERROR",
+          "Hay un problema al actualizar la información",
+          "error",
         );
-
   }
 
-  async saveBajadasBobinas(id, NoBajada, bobinas, kgtbajada, mlbajada, mcbajada, kgmbajada){
+  async saveBajadasBobinas(
+    id,
+    NoBajada,
+    bobinas,
+    kgtbajada,
+    mlbajada,
+    mcbajada,
+    kgmbajada,
+  ) {
     const data = new FormData();
     data.append("id", id);
     data.append("NoBajada", NoBajada);
@@ -153,9 +166,9 @@ export class BitPresentaciones {
       await this.recargarTblPresentacionSubSpooler();
     } else {
       swal.fire(
-      "ERROR",
-      "Hay un problema al actualizar la información",
-      "error",
+        "ERROR",
+        "Hay un problema al actualizar la información",
+        "error",
       );
     }
   }
@@ -314,7 +327,7 @@ export class BitPresentaciones {
   async saveDataSpooler(id) {
     const data = new FormData();
     data.append("id", id);
-     const respuestaraw = await fetch(
+    const respuestaraw = await fetch(
       "php/presentacion.php?InsertarDataSpooler2",
       {
         method: "POST",
@@ -355,7 +368,7 @@ export class BitPresentaciones {
       }
     }
   }
-  
+
   async recargarTblPresentacionSubSpooler() {
     const folio = document.getElementById("folio")?.value;
 
@@ -481,7 +494,6 @@ export class BitPresentaciones {
         "error",
       );
   }
-
 
   async recargarTblPresentacionSubHook() {
     const folio = document.getElementById("folio")?.value;
@@ -711,24 +723,28 @@ export class BitPresentaciones {
         newelement.idSU,
         newelement.NoRollo,
         newelement.KGTotalRollo,
-        acckg
+        acckg,
       );
       this.updateMetrosLinealesRollo(
         newelement.idSU,
         newelement.MetrosLineales,
-        accml
-      )
+        accml,
+      );
     });
-   
-  const { mlBajada, mm2Bajada, ptcb, kgmb } =
-    calcularBajada(respuesta, acckg, accml);
 
-    if(body !== ""){
-      document.getElementById("presentacion" + notbl + "Spooler").value = presentacion;
+    const { mlBajada, mm2Bajada, ptcb, kgmb } = calcularBajada(
+      respuesta,
+      acckg,
+      accml,
+    );
+
+    if (body !== "") {
+      document.getElementById("presentacion" + notbl + "Spooler").value =
+        presentacion;
       document.getElementById("presentacion" + notbl + "Spooler").disabled =
-          true;
-        document.getElementById("savePresentacion" + notbl + "Spooler").disabled =
-          true;
+        true;
+      document.getElementById("savePresentacion" + notbl + "Spooler").disabled =
+        true;
       body += `<tr>
                 <td class="fw-bold">Total</td>
                 <td>${acckg}</td>
@@ -741,7 +757,7 @@ export class BitPresentaciones {
                   </button>
                 </td>
               </tr>`;
-       body2 += `
+      body2 += `
               <tr data-id="${idBajada}">
                 <td contenteditable="true" class="editable"
                     onblur="getCellValueBobinas(this)"
@@ -760,11 +776,10 @@ export class BitPresentaciones {
                 <td>${kgmb.toFixed(3)}</td>
                 <td>${respuesta[0].pesoBase}</td>
               </tr>`;
-        body2 += `<tr>
+      body2 += `<tr>
           <td>Hola</td>
         </tr>`;
     }
-   
 
     document.getElementById(domtbl).innerHTML = body;
     document.getElementById(domtbl2).innerHTML = body2;
@@ -776,8 +791,6 @@ export class BitPresentaciones {
     }
     return Number(value).toFixed(2);
   }
-
-  
 
   getCellValue(cell) {
     const folio = document.getElementById("folio").value;
@@ -843,82 +856,140 @@ export class BitPresentaciones {
     // Validar que no esté vacío
     if (!rolloNumber) return;
     // Obtener la fila (tr) a la que pertenece esta celda
-    const row = cell.closest('tr');
+    const row = cell.closest("tr");
     // Obtener el ID del registro (data-id de la fila)
-    const recordId = row.getAttribute('data-id');
+    const recordId = row.getAttribute("data-id");
     const cells = row.querySelectorAll("td");
     // Crear FormData para la petición
     const data = new FormData();
     data.append("rollo", rolloNumber);
     try {
-        // Realizar la petición al servidor para buscar el rollo
-        const response = await fetch("php/presentacion.php?buscarRollo", {
-            method: "POST",
-            body: data
+      // Realizar la petición al servidor para buscar el rollo
+      const response = await fetch("php/presentacion.php?buscarRollo", {
+        method: "POST",
+        body: data,
+      });
+      const result = await response.json();
+      if (result.success && result.data) {
+        // Actualizar la celda de KG (segunda celda de la fila, índice 1)
+        const kgCell = row.cells[1]; // La celda de KG está en el índice 1
+        kgCell.innerText = result.data[0].PesoTotal;
+        this.savePresentacionAdicionalSpooler(
+          recordId,
+          rolloNumber,
+          result.data[0].PesoTotal,
+          cells[2].innerText, // Acumulado KG
+        ).then(() => {
+          const table = cell.closest("table");
+          table.id === "tablapresentacion1Spooler" &&
+            this.tblPresentacionSubSpooler(
+              folio,
+              1,
+              "tblpresentacionsub1Spooler",
+              "tblClaveSubSpooler1",
+            );
+          table.id === "tablapresentacion2Spooler" &&
+            this.tblPresentacionSubSpooler(
+              folio,
+              2,
+              "tblpresentacionsub2Spooler",
+              "tblClaveSubSpooler2",
+            );
+          table.id === "tablapresentacion3Spooler" &&
+            this.tblPresentacionSubSpooler(
+              folio,
+              3,
+              "tblpresentacionsub3Spooler",
+              "tblClaveSubSpooler3",
+            );
         });
-        const result = await response.json();
-        if (result.success && result.data) {
-            // Actualizar la celda de KG (segunda celda de la fila, índice 1)
-            const kgCell = row.cells[1]; // La celda de KG está en el índice 1
-            kgCell.innerText = result.data[0].PesoTotal; 
-            this.savePresentacionAdicionalSpooler(
-              recordId,
-              rolloNumber,
-              result.data[0].PesoTotal,
-              cells[2].innerText, // Acumulado KG
-            ).then(() => {
-              const table = cell.closest("table");
-              table.id === "tablapresentacion1Spooler" &&
-                this.tblPresentacionSubSpooler(folio, 1, "tblpresentacionsub1Spooler", "tblClaveSubSpooler1");
-              table.id === "tablapresentacion2Spooler" &&
-                this.tblPresentacionSubSpooler(folio, 2, "tblpresentacionsub2Spooler", "tblClaveSubSpooler2");
-              table.id === "tablapresentacion3Spooler" &&
-                this.tblPresentacionSubSpooler(folio, 3, "tblpresentacionsub3Spooler", "tblClaveSubSpooler3");
-            });
-        } else {
-            console.log(`Rollo ${rolloNumber} no encontrado`);
-            // Opcional: Mostrar mensaje al usuario
-            // alert(`El rollo ${rolloNumber} no existe en la base de datos`);
-        }
+      } else {
+        console.log(`Rollo ${rolloNumber} no encontrado`);
+        // Opcional: Mostrar mensaje al usuario
+        // alert(`El rollo ${rolloNumber} no existe en la base de datos`);
+      }
     } catch (error) {
-        console.error("Error al buscar el rollo:", error);
+      console.error("Error al buscar el rollo:", error);
     }
   }
 
-  getCellValueMetrosLineales(cell){
+  getCellValueMetrosLineales(cell) {
     const folio = document.getElementById("folio").value;
     const metrosLineales = cell.innerText.trim();
-    const row = cell.closest('tr');
-    const rolloId = row.getAttribute('data-id');
+    const row = cell.closest("tr");
+    const rolloId = row.getAttribute("data-id");
     const cells = row.querySelectorAll("td");
-    this.updateMetrosLinealesRollo(rolloId, metrosLineales, cells[4].innerText).then(() => {
+    this.updateMetrosLinealesRollo(
+      rolloId,
+      metrosLineales,
+      cells[4].innerText,
+    ).then(() => {
       const table = cell.closest("table");
       table.id === "tablapresentacion1Spooler" &&
-        this.tblPresentacionSubSpooler(folio, 1, "tblpresentacionsub1Spooler", "tblClaveSubSpooler1");
+        this.tblPresentacionSubSpooler(
+          folio,
+          1,
+          "tblpresentacionsub1Spooler",
+          "tblClaveSubSpooler1",
+        );
       table.id === "tablapresentacion2Spooler" &&
-        this.tblPresentacionSubSpooler(folio, 2, "tblpresentacionsub2Spooler", "tblClaveSubSpooler2");
+        this.tblPresentacionSubSpooler(
+          folio,
+          2,
+          "tblpresentacionsub2Spooler",
+          "tblClaveSubSpooler2",
+        );
       table.id === "tablapresentacion3Spooler" &&
-        this.tblPresentacionSubSpooler(folio, 3, "tblpresentacionsub3Spooler", "tblClaveSubSpooler3");
+        this.tblPresentacionSubSpooler(
+          folio,
+          3,
+          "tblpresentacionsub3Spooler",
+          "tblClaveSubSpooler3",
+        );
     });
   }
 
-  getCellValueBobinas(cell){
+  getCellValueBobinas(cell) {
     const folio = document.getElementById("folio").value;
-    const row = cell.closest('tr');
-    const rolloId = row.getAttribute('data-id');
+    const row = cell.closest("tr");
+    const rolloId = row.getAttribute("data-id");
     const cells = row.querySelectorAll("td");
     const cellIndex = Array.from(row.children).indexOf(cell);
-    let NoBajada = cellIndex === 0 ? cell.innerText.trim() : cells[0].innerText.trim();
-    let bobinas = cellIndex === 1 ? cell.innerText.trim() : cells[1].innerText.trim();
+    let NoBajada =
+      cellIndex === 0 ? cell.innerText.trim() : cells[0].innerText.trim();
+    let bobinas =
+      cellIndex === 1 ? cell.innerText.trim() : cells[1].innerText.trim();
     const table = cell.closest("table");
-    this.saveBajadasBobinas(rolloId, NoBajada, bobinas, cells[2].innerText.trim(), cells[3].innerText.trim(), cells[4].innerText.trim(), cells[6].innerText.trim()).then(() => {
-      
+    this.saveBajadasBobinas(
+      rolloId,
+      NoBajada,
+      bobinas,
+      cells[2].innerText.trim(),
+      cells[3].innerText.trim(),
+      cells[4].innerText.trim(),
+      cells[6].innerText.trim(),
+    ).then(() => {
       table.id === "tablapresentacion1Spooler" &&
-        this.tblPresentacionSubSpooler(folio, 1, "tblpresentacionsub1Spooler", "tblClaveSubSpooler1");
+        this.tblPresentacionSubSpooler(
+          folio,
+          1,
+          "tblpresentacionsub1Spooler",
+          "tblClaveSubSpooler1",
+        );
       table.id === "tablapresentacion2Spooler" &&
-        this.tblPresentacionSubSpooler(folio, 2, "tblpresentacionsub2Spooler", "tblClaveSubSpooler2");
+        this.tblPresentacionSubSpooler(
+          folio,
+          2,
+          "tblpresentacionsub2Spooler",
+          "tblClaveSubSpooler2",
+        );
       table.id === "tablapresentacion3Spooler" &&
-        this.tblPresentacionSubSpooler(folio, 3, "tblpresentacionsub3Spooler", "tblClaveSubSpooler3");
+        this.tblPresentacionSubSpooler(
+          folio,
+          3,
+          "tblpresentacionsub3Spooler",
+          "tblClaveSubSpooler3",
+        );
     });
   }
 
@@ -942,66 +1013,81 @@ export class BitPresentaciones {
   }
 
   // Tabla de HookMesh
-   async tblPresentacionSubHook(folio, notbl, domtbl) {
+  async tblPresentacionSubHook(folio, notbl, domtbl) {
     const data = new FormData();
-
     data.append("folio", folio);
     data.append("notbl", notbl);
 
-    const respuestaraw = await fetch("php/presentacion.php?tblHookSub", {
-      method: "POST",
-      body: data,
-    });
+    // Llamar al NUEVO endpoint que lee de tblMXPRBitacoraEtiquetasImpresion
+    const respuestaraw = await fetch(
+      "php/presentacion.php?obtenerEtiquetasHook",
+      {
+        method: "POST",
+        body: data,
+      },
+    );
+
+    // Validar respuesta
+    if (!respuestaraw.ok) {
+      console.error("Error en obtenerEtiquetasHook:", respuestaraw.status);
+      return;
+    }
 
     const respuesta = await respuestaraw.json();
 
-    let body = "";
-    let clave = "";
-    let idHE = 0;
-    let accML = 0;
-    let accMML = 0;
-    let accMC = 0;
-    let mmc = 0;
-
-    respuesta.forEach((row) => {
-      accML = Math.round((accML + row.ML) * 1000) / 1000;
-      accMML = Math.round((accMML + row.ML / 100) * 1000) / 1000;
-      mmc = (row.ML * row.factor) / 1000;
-      accMC = Math.round((accMC + mmc) * 1000) / 1000;
-      idHE = row.idHE;
-      clave = row.clave;
-
-      body += `
-    <tr data-id="${row.id}">
-        <td>${row.hora}</td>
-        <td contenteditable="true" class="editable" onblur="getCellValueHook(this)">${row.rollos}</td>
-        <td contenteditable="true" class="editable" onblur="getCellValueHook(this)">${row.ML}</td>
-        <td onblur="getCellValueHook(this)">${mmc.toFixed(3)}</td>
-        <td>${accMML}</td>
-        <td>${accMC}</td>
-    </tr>`;
-    });
-
-    document.getElementById("presentacion" + notbl + "Hook").value = clave;
-    if (body !== "") {
-      document.getElementById("presentacion" + notbl + "Hook").disabled = true;
-      document.getElementById("savePresentacion" + notbl + "Hook").disabled =
-        true;
-
-      body += `<tr>
-                <td class="fw-bold">Total</td>
-                <td></td>
-                <td>${accML}</td>
-                <td></td>
-                <td>${accMML}</td>
-                <td>${accMC}</td>
-            </tr>`;
-    } else {
-      document.getElementById("presentacion" + notbl + "Hook").disabled = false;
-      document.getElementById("savePresentacion" + notbl + "Hook").disabled =
-        false;
+    // Validar que sea un array
+    if (!Array.isArray(respuesta)) {
+      console.error("Respuesta no es un array:", respuesta);
+      return;
     }
 
+    let body = "";
+    let totalML = 0;
+    let accML = 0;
+    let accMC = 0;
+
+    // Iterar sobre cada etiqueta impresa
+    respuesta.forEach((row) => {
+      // Acumulativo de metros lineales (suma simple)
+      totalML = Math.round((totalML + row.MetrosLineales) * 1000) / 1000;
+
+      // Acumulativo de metros lineales en decímetros (ML / 100)
+      accML = Math.round((accML + row.MetrosLineales / 100) * 1000) / 1000;
+
+      // MM2 = (MetrosLineales * factor) / 1000
+      const mmc = (row.MetrosLineales * row.factor) / 1000;
+
+      // Acumulativo de MM2
+      accMC = Math.round((accMC + mmc) * 1000) / 1000;
+
+      // Fila de la tabla (READONLY - sin contenteditable)
+      body += `
+        <tr>
+            <td>${row.NumeroRollo}</td>
+            <td>${row.MetrosLineales}</td>
+            <td>${mmc.toFixed(3)}</td>
+            <td>${accML}</td>
+            <td>${accMC}</td>
+        </tr>`;
+    });
+
+    // Si hay datos, agregar fila de TOTAL
+    if (body !== "") {
+      body += `<tr class="table-dark fw-bold">
+                    <td>TOTAL</td>
+                    <td>${totalML}</td>
+                    <td></td>
+                    <td>${accML}</td>
+                    <td>${accMC}</td>
+                </tr>`;
+    } else {
+      // Si no hay datos, mostrar mensaje vacío
+      body = `<tr>
+                    <td colspan="5" class="text-center text-muted">No hay etiquetas</td>
+                </tr>`;
+    }
+
+    // Renderizar tabla en el DOM
     document.getElementById(domtbl).innerHTML = body;
   }
 
@@ -1017,18 +1103,20 @@ export class BitPresentaciones {
     const accMML = parseFloat(cells[4].innerText) || 0;
     const accMC = parseFloat(cells[5].innerText) || 0;
 
-    this.saveDataHookAdditional(rowId, rollos, ML, MC, accMML, accMC).then(() => {
-      const table = cell.closest("table");
+    this.saveDataHookAdditional(rowId, rollos, ML, MC, accMML, accMC).then(
+      () => {
+        const table = cell.closest("table");
 
-      table.id === "tablapresentacion1Hook" &&
-        this.tblPresentacionSubHook(folio, 1, "tblpresentacionsub1Hook");
+        table.id === "tablapresentacion1Hook" &&
+          this.tblPresentacionSubHook(folio, 1, "tblpresentacionsub1Hook");
 
-      table.id === "tablapresentacion2Hook" &&
-        this.tblPresentacionSubHook(folio, 2, "tblpresentacionsub2Hook");
+        table.id === "tablapresentacion2Hook" &&
+          this.tblPresentacionSubHook(folio, 2, "tblpresentacionsub2Hook");
 
-      table.id === "tablapresentacion3Hook" &&
-        this.tblPresentacionSubHook(folio, 3, "tblpresentacionsub3Hook");
-    });
+        table.id === "tablapresentacion3Hook" &&
+          this.tblPresentacionSubHook(folio, 3, "tblpresentacionsub3Hook");
+      },
+    );
   }
 
   // Realiza la sumatoria de las celdas de las filas
@@ -1196,10 +1284,10 @@ window.handleKeyDownTelas = function (e, cell) {
 };
 
 window.handleKeyDownHook = function (e, cell) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        cell.blur();
-    }
+  if (e.key === "Enter") {
+    e.preventDefault();
+    cell.blur();
+  }
 };
 
 function calcularBajada(respuesta, acckg, accml) {
@@ -1210,7 +1298,7 @@ function calcularBajada(respuesta, acckg, accml) {
   const mlBajada = accml * bobinas;
   const mm2Bajada = (mlBajada * ancho) / 1000000;
   const ptcb = mm2Bajada * pesoBase;
-  const kgmb = (acckg - ptcb);
+  const kgmb = acckg - ptcb;
 
   return { mlBajada, mm2Bajada, ptcb, kgmb };
 }

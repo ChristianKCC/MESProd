@@ -1,6 +1,8 @@
 <?php
 require_once "../../conexion.php";
 require_once '../../Session/seguridad.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 class BitacoraElectronica
 {
     function ConsultaHorasxturno($turno)
@@ -139,54 +141,54 @@ class BitacoraElectronica
         }
     }
     function savePresentaciontelas()
-{
-    $Conecta = new ClassConexion();
-    $conn = $Conecta->conexion("TLX004MXDB");
-    $folio = $_POST["folio"];
-    $presentacion = $_POST["presentacion"];
-    $notbl = $_POST["notbl"];
+    {
+        $Conecta = new ClassConexion();
+        $conn = $Conecta->conexion("TLX004MXDB");
+        $folio = $_POST["folio"];
+        $presentacion = $_POST["presentacion"];
+        $notbl = $_POST["notbl"];
 
-    $query = "INSERT INTO tblMXPRProduccionTNTEnc (folio, Clave, NoTabla) 
+        $query = "INSERT INTO tblMXPRProduccionTNTEnc (folio, Clave, NoTabla) 
               OUTPUT INSERTED.idPT
               VALUES (?, ?, ?)";
 
-    $result = sqlsrv_query($conn, $query, array($folio, $presentacion, $notbl));
+        $result = sqlsrv_query($conn, $query, array($folio, $presentacion, $notbl));
 
-    if ($result === false) {
-        http_response_code(500);
-        echo json_encode(sqlsrv_errors());
-    } else {
-        $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
-        
-        // Verifica qué trae $row
-        error_log("ROW completo: " . print_r($row, true));
-        error_log("last_id: " . $row['idPT']);
-        
-        $last_id = $row['idPT'];
-        $this->InsertarDataTelas($last_id);
-        http_response_code(200);
+        if ($result === false) {
+            http_response_code(500);
+            echo json_encode(sqlsrv_errors());
+        } else {
+            $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+
+            // Verifica qué trae $row
+            error_log("ROW completo: " . print_r($row, true));
+            error_log("last_id: " . $row['idPT']);
+
+            $last_id = $row['idPT'];
+            $this->InsertarDataTelas($last_id);
+            http_response_code(200);
+        }
     }
-}
 
-function InsertarDataTelas($idpresentacionenc)
-{
-    // Verifica que llegue el ID
-    error_log("InsertarDataTelas recibió id: " . $idpresentacionenc);
+    function InsertarDataTelas($idpresentacionenc)
+    {
+        // Verifica que llegue el ID
+        error_log("InsertarDataTelas recibió id: " . $idpresentacionenc);
 
-    $Conecta = new ClassConexion();
-    $conn = $Conecta->conexion("TLX004MXDB");
+        $Conecta = new ClassConexion();
+        $conn = $Conecta->conexion("TLX004MXDB");
 
-    $query = "INSERT INTO tblMXPRProduccionTNTSub(idPTEncabezado, MetrosLineales, MMCuadrados, PesoTotal, ACCMMCuadrados, ACCKG, ACCMMLineales) 
+        $query = "INSERT INTO tblMXPRProduccionTNTSub(idPTEncabezado, MetrosLineales, MMCuadrados, PesoTotal, ACCMMCuadrados, ACCKG, ACCMMLineales) 
               VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-    $result = sqlsrv_query($conn, $query, array($idpresentacionenc, 0, 0, 0, 0, 0, 0));
+        $result = sqlsrv_query($conn, $query, array($idpresentacionenc, 0, 0, 0, 0, 0, 0));
 
-    if ($result === false) {
-        error_log("Error InsertarDataTelas: " . print_r(sqlsrv_errors(), true));
-    } else {
-        error_log("InsertarDataTelas insertó correctamente");
+        if ($result === false) {
+            error_log("Error InsertarDataTelas: " . print_r(sqlsrv_errors(), true));
+        } else {
+            error_log("InsertarDataTelas insertó correctamente");
+        }
     }
-}
 
     function DeletePresentacionSub($id)
     {
@@ -317,55 +319,56 @@ function InsertarDataTelas($idpresentacionenc)
         echo json_encode($array);
     }
 
-    function buscarRollo() {
+    function buscarRollo()
+    {
 
-    header('Content-Type: application/json; charset=utf-8');
+        header('Content-Type: application/json; charset=utf-8');
 
-    // Validar POST
-    if (!isset($_POST['rollo']) || empty($_POST['rollo'])) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Rollo no recibido'
-        ]);
-        return;
-    }
+        // Validar POST
+        if (!isset($_POST['rollo']) || empty($_POST['rollo'])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Rollo no recibido'
+            ]);
+            return;
+        }
 
-    $Conecta = new ClassConexion();
-    $conn = $Conecta->conexion("TLX004MXDB");
+        $Conecta = new ClassConexion();
+        $conn = $Conecta->conexion("TLX004MXDB");
 
-    $NoRollo = $_POST['rollo'];
+        $NoRollo = $_POST['rollo'];
 
-    $query = "
+        $query = "
         SELECT NoBajada, PesoTotal 
         FROM [TLX004MXDB].[dbo].[tblMXPRProduccionTNTSub]
         WHERE NoBajada = ?
     ";
 
-    $params = [$NoRollo];
-    $result = sqlsrv_query($conn, $query, $params);
+        $params = [$NoRollo];
+        $result = sqlsrv_query($conn, $query, $params);
 
-    if ($result === false) {
+        if ($result === false) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la consulta',
+                'error' => sqlsrv_errors()
+            ]);
+            return;
+        }
+
+        $data = [];
+
+        while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            $data[] = [
+                'NoBajada' => $row['NoBajada'],
+                'PesoTotal' => $row['PesoTotal']
+            ];
+        }
+
         echo json_encode([
-            'success' => false,
-            'message' => 'Error en la consulta',
-            'error' => sqlsrv_errors()
+            'success' => !empty($data),
+            'data' => $data
         ]);
-        return;
-    }
-
-    $data = [];
-
-    while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
-        $data[] = [
-            'NoBajada'   => $row['NoBajada'],
-            'PesoTotal' => $row['PesoTotal']
-        ];
-    }
-
-    echo json_encode([
-        'success' => !empty($data),
-        'data' => $data
-    ]);
     }
 
 
@@ -439,13 +442,14 @@ function InsertarDataTelas($idpresentacionenc)
 
     // Contenido para Spooler
 
-    function getClaves(){
+    function getClaves()
+    {
 
         $Conexion = new ClassConexion();
         $conn = $Conexion->conexion("TLX004MXDB");
 
         $idMaquina = $_SESSION["idmaquina"];
-        
+
         $query = "SELECT NoClave, 
                     CONCAT([NoClave], ' - ', [Descripcion_Articulo]) AS ClaveDescripcion,
                     pesoBase AS PesoBase,
@@ -468,7 +472,8 @@ function InsertarDataTelas($idpresentacionenc)
         echo json_encode($claves);
     }
 
-    function savePresentacionSpooler(){
+    function savePresentacionSpooler()
+    {
 
         $Conexion = new ClassConexion();
         $conn = $Conexion->conexion("TLX004MXDB");
@@ -494,7 +499,8 @@ function InsertarDataTelas($idpresentacionenc)
 
     }
 
-    function getRolloPorNumero(){
+    function getRolloPorNumero()
+    {
         $Conexion = new ClassConexion();
         $conn = $Conexion->conexion("TLX004MXDB");
 
@@ -517,7 +523,7 @@ function InsertarDataTelas($idpresentacionenc)
         $data = array();
 
         if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            $data [] = [
+            $data[] = [
                 "noRollo" => $NoRollo,
                 "kg" => $row["PesoTotal"]
             ];
@@ -525,15 +531,16 @@ function InsertarDataTelas($idpresentacionenc)
         echo json_encode($data);
     }
 
-    function saveRollos($input){
+    function saveRollos($input)
+    {
         $Conexion = new ClassConexion();
         $conn = $Conexion->conexion("TLX004MXDB");
-        
+
         $idPT = $input["idPT"];
         $rollos = $input["rollo"];
 
 
-        foreach($rollos as $rollo){
+        foreach ($rollos as $rollo) {
             $noRollo = $rollo["NoRollo"];
             $accKG = $rollo["accKG"];
             $accMl = $rollo["accMl"];
@@ -549,7 +556,8 @@ function InsertarDataTelas($idpresentacionenc)
         ]);
     }
 
-    function saveBajada(){
+    function saveBajada()
+    {
         $Conexion = new ClassConexion();
         $conn = $Conexion->conexion("TLX004MXDB");
 
@@ -582,69 +590,70 @@ function InsertarDataTelas($idpresentacionenc)
         ]);
     }
 
-    function getSesionPorFolio() {
-    $Conexion = new ClassConexion();
-    $conn = $Conexion->conexion("TLX004MXDB");
+    function getSesionPorFolio()
+    {
+        $Conexion = new ClassConexion();
+        $conn = $Conexion->conexion("TLX004MXDB");
 
-    $folio = $_GET["folio"];
-    error_log("getSesionPorFolio folio: " . $folio);
+        $folio = $_GET["folio"];
+        error_log("getSesionPorFolio folio: " . $folio);
 
-    $queryEnc = "SELECT idPT, Clave, NoTabla
+        $queryEnc = "SELECT idPT, Clave, NoTabla
                  FROM tblMXPRProduccionTNTEnc
                  WHERE folio = ?";
-    $stmtEnc = sqlsrv_query($conn, $queryEnc, array($folio));
+        $stmtEnc = sqlsrv_query($conn, $queryEnc, array($folio));
 
-    if ($stmtEnc === false) {
-        error_log("Error query Enc: " . print_r(sqlsrv_errors(), true));
-        echo json_encode([]);
-        return;
-    }
+        if ($stmtEnc === false) {
+            error_log("Error query Enc: " . print_r(sqlsrv_errors(), true));
+            echo json_encode([]);
+            return;
+        }
 
-    $presentaciones = [];
+        $presentaciones = [];
 
-    while ($row = sqlsrv_fetch_array($stmtEnc, SQLSRV_FETCH_ASSOC)) {
-        $idPT    = $row['idPT'];
-        $clave   = $row['Clave'];
-        $noTabla = $row['NoTabla'];
+        while ($row = sqlsrv_fetch_array($stmtEnc, SQLSRV_FETCH_ASSOC)) {
+            $idPT = $row['idPT'];
+            $clave = $row['Clave'];
+            $noTabla = $row['NoTabla'];
 
-        error_log("Presentacion encontrada: idPT=$idPT, Clave=$clave, NoTabla=$noTabla");
+            error_log("Presentacion encontrada: idPT=$idPT, Clave=$clave, NoTabla=$noTabla");
 
-        $querybajadas = "SELECT NoBajada, bobinas, KgTotalesBajada, MLBajada,
+            $querybajadas = "SELECT NoBajada, bobinas, KgTotalesBajada, MLBajada,
                          MMCBajada, KgMBajada
                          FROM tblMXPRProduccionTNTSpoolerDos
                          WHERE idPT = ?
                          ORDER BY id DESC";
-        $stmtBajadas = sqlsrv_query($conn, $querybajadas, array($idPT));
+            $stmtBajadas = sqlsrv_query($conn, $querybajadas, array($idPT));
 
-        if ($stmtBajadas === false) {
-            error_log("Error query bajadas: " . print_r(sqlsrv_errors(), true));
-        }
+            if ($stmtBajadas === false) {
+                error_log("Error query bajadas: " . print_r(sqlsrv_errors(), true));
+            }
 
-        $historial = [];
-        while ($bajada = sqlsrv_fetch_array($stmtBajadas, SQLSRV_FETCH_ASSOC)) {
-            $historial[] = [
-                "NoBajada"  => $bajada["NoBajada"],
-                "bobinas"   => $bajada["bobinas"],
-                "KgTotales" => $bajada["KgTotalesBajada"],
-                "MLBajada"  => $bajada["MLBajada"],
-                "MMCBajada" => $bajada["MMCBajada"],
-                "KgMBajada" => $bajada["KgMBajada"]
+            $historial = [];
+            while ($bajada = sqlsrv_fetch_array($stmtBajadas, SQLSRV_FETCH_ASSOC)) {
+                $historial[] = [
+                    "NoBajada" => $bajada["NoBajada"],
+                    "bobinas" => $bajada["bobinas"],
+                    "KgTotales" => $bajada["KgTotalesBajada"],
+                    "MLBajada" => $bajada["MLBajada"],
+                    "MMCBajada" => $bajada["MMCBajada"],
+                    "KgMBajada" => $bajada["KgMBajada"]
+                ];
+            }
+
+            error_log("Historial count: " . count($historial));
+
+            $presentaciones[] = [
+                "idPT" => $idPT,
+                "Clave" => $clave,
+                "NoTabla" => $noTabla,
+                "historial" => $historial  // sin salto de línea
             ];
         }
 
-        error_log("Historial count: " . count($historial));
-
-        $presentaciones[] = [
-            "idPT"      => $idPT,
-            "Clave"     => $clave,
-            "NoTabla"   => $noTabla,
-            "historial" => $historial  // sin salto de línea
-        ];
+        error_log("Total presentaciones: " . count($presentaciones));
+        echo json_encode($presentaciones);
     }
-
-    error_log("Total presentaciones: " . count($presentaciones));
-    echo json_encode($presentaciones);
-}
 
 
     // Contenido para HookMesh
@@ -833,7 +842,109 @@ function InsertarDataTelas($idpresentacionenc)
         $result === false ? http_response_code(500) : http_response_code(200);
     }
 
+    function obtenerEtiquetasHook()
+    {
+        $Conecta = new ClassConexion();
+        $conn = $Conecta->conexion("TLX004MXDB");
 
+        $folio = $_POST['folio'] ?? null;           // IdEncabezadoBitacora
+        $notbl = $_POST['notbl'] ?? null;           // NoTabla
+
+        // Validar que recibimos los parámetros
+        if (!$folio || !$notbl) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Parámetros folio y notbl son requeridos']);
+            return;
+        }
+
+        // PASO 1: Obtener la clave desde tblMXPR_Produccion_Hook_Enc
+        $queryClaveHook = "SELECT clave FROM tblMXPR_Produccion_Hook_Enc 
+                       WHERE folio = ? AND NoTabla = ?";
+        $resultClaveHook = sqlsrv_query($conn, $queryClaveHook, array($folio, $notbl));
+
+        if ($resultClaveHook === false) {
+            error_log("Error obtenerEtiquetasHook (obtener clave): " . print_r(sqlsrv_errors(), true));
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener clave de Hook_Enc']);
+            return;
+        }
+
+        $rowClave = sqlsrv_fetch_array($resultClaveHook, SQLSRV_FETCH_ASSOC);
+        if (!$rowClave) {
+            error_log("No se encontró Hook_Enc para folio=$folio, notbl=$notbl");
+            http_response_code(404);
+            echo json_encode(['error' => 'No se encontró registro en Hook_Enc']);
+            return;
+        }
+
+        $clave = $rowClave['clave'];
+
+        // PASO 2: Obtener el turno desde tblEncabezadoBitacora
+        // Conectar a TLX002MXDB para tblEncabezadoBitacora
+        $Conecta2 = new ClassConexion();
+        $conn2 = $Conecta2->conexion("TLX004MXDB");
+
+        $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora 
+                   WHERE IdEncabezadoBItacora = ?";
+        $resultTurno = sqlsrv_query($conn2, $queryTurno, array($folio));
+
+        if ($resultTurno === false) {
+            error_log("Error obtenerEtiquetasHook (obtener turno): " . print_r(sqlsrv_errors(), true));
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener turno de Encabezado']);
+            return;
+        }
+
+        $rowTurno = sqlsrv_fetch_array($resultTurno, SQLSRV_FETCH_ASSOC);
+        if (!$rowTurno) {
+            error_log("No se encontró turno en tblEncabezadoBitacora para IdEncabezadoBItacora=$folio");
+            http_response_code(404);
+            echo json_encode(['error' => 'No se encontró turno en Encabezado']);
+            return;
+        }
+
+        $turno = $rowTurno['Turno'];
+
+        // PASO 3: Buscar etiquetas en tblMXPRBitacoraEtiquetasImpresion
+        $query = "SELECT e.NumeroRollo, 
+                     e.MetrosLineales, 
+                     e.Clave, 
+                     e.Turno, 
+                     e.IdEncabezadoBitacora,
+                     e.FechaCaptura,
+                     tblVEC.factor
+              FROM tblMXPRBitacoraEtiquetasImpresion e
+              INNER JOIN TLX002MXDB.dbo.tblValeEClaves tblVEC 
+                  ON tblVEC.NoClave = CAST(e.Clave AS VARCHAR(10))
+              WHERE e.IdEncabezadoBitacora = ? 
+                AND e.Clave = ?
+                AND e.Turno = ?
+              ORDER BY e.FechaCaptura ASC";
+
+        $result = sqlsrv_query($conn, $query, array($folio, $clave, $turno));
+
+        if ($result === false) {
+            error_log("Error obtenerEtiquetasHook (consulta etiquetas): " . print_r(sqlsrv_errors(), true));
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al consultar etiquetas']);
+            return;
+        }
+
+        // PASO 4: Construir array de respuesta
+        $array = array();
+
+        while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            array_push($array, [
+                'NumeroRollo' => intval($row['NumeroRollo']),
+                'MetrosLineales' => floatval($row['MetrosLineales']),
+                'Clave' => $row['Clave'],
+                'factor' => floatval($row['factor']),
+            ]);
+        }
+
+        http_response_code(200);
+        echo json_encode($array);
+    }
 }
 
 // instantiate once and reuse       
@@ -863,20 +974,22 @@ if (isset($_GET["savePresentacion"])) {
     $BitacoraElectronica->DeletePresentacionTelas();
 } else if (isset($_GET["InsertarDataTelas2"])) {
     $BitacoraElectronica->InsertarDataTelas2();
-} else if (isset($_GET["getClaves"])){
+} else if (isset($_GET["getClaves"])) {
     $BitacoraElectronica->getClaves();
-} else if (isset($_POST["savePresentacionSpooler"])){
+} else if (isset($_POST["savePresentacionSpooler"])) {
     $BitacoraElectronica->savePresentacionSpooler();
-} else if (isset($_GET["getRolloPorNumero"])){
+} else if (isset($_GET["getRolloPorNumero"])) {
     $BitacoraElectronica->getRolloPorNumero();
-} else if (isset($input["saveRollos"])){
+} else if (isset($input["saveRollos"])) {
     $BitacoraElectronica->saveRollos($input);
-} else if (isset($_POST["saveBajada"])){
+} else if (isset($_POST["saveBajada"])) {
     $BitacoraElectronica->saveBajada();
-} else if (isset($_GET["getSesionPorFolio"])){
+} else if (isset($_GET["getSesionPorFolio"])) {
     $BitacoraElectronica->getSesionPorFolio();
 } else if (isset($_GET["saveHook"])) {
     $BitacoraElectronica->saveHook();
+} else if (isset($_GET["obtenerEtiquetasHook"])) {
+    $BitacoraElectronica->obtenerEtiquetasHook();
 } else if (isset($_GET["tblHookSub"])) {
     $BitacoraElectronica->tblHookSub();
 } else if (isset($_GET["insertarFilaHook"])) {

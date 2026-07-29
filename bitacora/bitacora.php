@@ -435,20 +435,22 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                 <div class="col-2">
                                     <label class="form-label form-label-sm mb-1">Bobinas</label>
                                     <input id="bobinas" type="number" class="form-control form-control-sm"
-                                        placeholder="Bobinas"
-                                        oninput="_bitacora.recalcular()">
+                                        placeholder="Bobinas" oninput="_bitacora.recalcular()">
                                 </div>
                                 <div class="col-2">
                                     <label class="form-label form-label-sm mb-1">Peso Total</label>
-                                    <input id="inpKgTotal" class="form-control form-control-sm bg-light" disabled placeholder="0.00">
+                                    <input id="inpKgTotal" class="form-control form-control-sm bg-light" disabled
+                                        placeholder="0.00">
                                 </div>
                                 <div class="col-2">
                                     <label class="form-label form-label-sm mb-1">ML Bajada</label>
-                                    <input id="inpMlBajada" class="form-control form-control-sm bg-light" disabled placeholder="0.00">
+                                    <input id="inpMlBajada" class="form-control form-control-sm bg-light" disabled
+                                        placeholder="0.00">
                                 </div>
                                 <div class="col-2">
                                     <label class="form-label form-label-sm mb-1">MM² Bajada</label>
-                                    <input id="inpMm2Bajada" class="form-control form-control-sm bg-light" disabled placeholder="0.000">
+                                    <input id="inpMm2Bajada" class="form-control form-control-sm bg-light" disabled
+                                        placeholder="0.000">
                                 </div>
                                 <div class="col-2">
                                     <label class="form-label form-label-sm mb-1">Ancho(mm)</label>
@@ -473,8 +475,8 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                 </div>
                                 <div class="col-2">
                                     <br>
-                                    <button class="btn btn-primary btn-sm" id="btnSaveDataSpooler1" onclick="_bitacora.guardar()"><i
-                                            class="fas fa-save"></i> Guardar</button>
+                                    <button class="btn btn-primary btn-sm" id="btnSaveDataSpooler1"
+                                        onclick="_bitacora.guardar()"><i class="fas fa-save"></i> Guardar</button>
                                 </div>
                             </div>
                             <div class="table-responsive my-2">
@@ -510,11 +512,10 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion1Hook" class="table table-bordered">
                                     <thead class="table-dark">
-                                        <th>Hora</th>
-                                        <th>Rollos</th>
+                                        <th>#Rollo</th>
                                         <th>ML</th>
                                         <th>MM2</th>
-                                        <th>Acum MML</th>
+                                        <th>Acum ML</th>
                                         <th>Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub1Hook">
@@ -534,11 +535,10 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion2Hook" class="table table-bordered">
                                     <thead class="table-dark">
-                                        <th>Hora</th>
-                                        <th>Rollos</th>
+                                        <th>#Rollo</th>
                                         <th>ML</th>
                                         <th>MM2</th>
-                                        <th>Acum MML</th>
+                                        <th>Acum ML</th>
                                         <th>Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub2Hook">
@@ -558,11 +558,10 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion3Hook" class="table table-bordered">
                                     <thead class="table-dark">
-                                        <th>Hora</th>
-                                        <th>Rollos</th>
+                                        <th>#Rollo</th>
                                         <th>ML</th>
                                         <th>MM2</th>
-                                        <th>Acum MML</th>
+                                        <th>Acum ML</th>
                                         <th>Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub3Hook">
@@ -574,7 +573,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
 
                 </div>
             </div>
-            
+
             <div class="col-2" style="width: 15%;">
                 <div class="row">
                     <div class="col-12"><small>Horas trabajadas</small></div>
