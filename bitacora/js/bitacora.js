@@ -33,6 +33,14 @@ const horasPorTurno = {
   3: 8.5,
 };
 
+// Limpiar intervalo de Hook cuando salgas de la página
+window.addEventListener("beforeunload", () => {
+  if (window.hookRefreshInterval) {
+    clearInterval(window.hookRefreshInterval);
+    window.hookRefreshInterval = null;
+  }
+});
+
 class Bitacorastart {
   constructor() {
     this.api = new PresentacionSpooler();
@@ -346,6 +354,10 @@ class Bitacorastart {
         ),
       ),
     ]);
+    // Refrescar tablas cada 10 segundos
+    window.hookRefreshInterval = setInterval(() => {
+      Presentaciones.cargarPresentacionesAutomatico(folio);
+    }, 10000); // 10 segundos
   }
 
   // CATALOGO DE CLAVES

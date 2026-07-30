@@ -435,6 +435,7 @@ export class BitPresentaciones {
   }
 
   async cargarPresentacionesAutomatico(folio) {
+    console.log(folio);
     const data = new FormData();
     data.append("folio", folio);
 
@@ -459,6 +460,9 @@ export class BitPresentaciones {
 
       console.log("Presentaciones cargadas:", respuesta);
 
+      // NUEVO: Obtener qué NoTabla tienen datos
+      const noTablaConDatos = [];
+
       // Paso 2: Por cada presentación creada, cargar sus datos
       // presentaciones es un objeto: { "3422046": {NoTabla: 1, accion: "creado"}, ... }
 
@@ -470,7 +474,30 @@ export class BitPresentaciones {
           const domTable = `tblpresentacionsub${noTabla}Hook`;
           await this.tblPresentacionSubHook(folio, noTabla, domTable, clave);
           
+          noTablaConDatos.push(noTabla);
           console.log(`Tabla ${noTabla} cargada con clave ${clave}`);
+        }
+      }
+
+      // NUEVO: Limpiar las tablas que NO tienen datos en este turno
+      for (let notbl = 1; notbl <= 3; notbl++) {
+        if (!noTablaConDatos.includes(notbl)) {
+          const domTable = `tblpresentacionsub${notbl}Hook`;
+          
+          // Limpiar selector de clave
+          document.getElementById("presentacion" + notbl + "Hook").value = "";
+          document.getElementById("presentacion" + notbl + "Hook").disabled = false;
+          
+          // Habilitar botones
+          document.getElementById("savePresentacion" + notbl + "Hook").disabled = false;
+          
+          // Limpiar tabla
+          document.getElementById(domTable).innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center text-muted">No hay etiquetas</td>
+            </tr>`;
+          
+          console.log(`Tabla ${notbl} limpiada (sin datos)`);
         }
       }
 
