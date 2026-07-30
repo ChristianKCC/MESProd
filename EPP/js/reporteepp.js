@@ -13,7 +13,7 @@ document.getElementById('buscar').addEventListener('click', function (e) {
     const observador = document.getElementById('observador').value;
     const departamento = document.getElementById('departamento').value;
     if(fechai === '' || fechaf ===''){
-        swal.fire('Ups!!!','El rango de fecha es obligatorio','warning');
+        swal.fire('Ups!','El rango de fecha es obligatorio','warning');
         return false;
     }
     EeppObj.tblEPPReporte(fechai,fechaf,noemp,observador,departamento).then((element) => {

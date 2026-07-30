@@ -66,7 +66,7 @@ require_once(__DIR__ . "/../index/header.php");
               <div>
                 <div class="pptx-fname"><?= htmlspecialchars($fileName) ?></div>
                 <div class="pptx-fmeta">
-                  <?= $fileUpdated ?>  <?= $fileSize ? ' &nbsp;·&nbsp; ' . $fileSize : '' ?>
+                  <?= $fileUpdated ?>   <?= $fileSize ? ' &nbsp;·&nbsp; ' . $fileSize : '' ?>
                   &nbsp;·&nbsp;
                   <span class="anim-badge"><i class="bi bi-stars"></i> Interactua con el archivo </span>
                 </div>

@@ -4,14 +4,14 @@ require_once("../index/header.php");
 ?>
 <!--  Contenido  -->
 <div class="container p-3">
-    <h5 class="tittlecont">Reporte equipo de protección personal</h5>
+    <h5 class="tittlecont">Reporte Equipo de Protección Personal</h5>
     <div class="row mb-2">
         <div class="col">
-            <small>Fecha inicial</small>
+            <small>Fecha Inicial</small>
             <input type="date" class="form-control form-control-sm" id="fechai" />
         </div>
         <div class="col">
-            <small>Fecha final</small>
+            <small>Fecha Final</small>
             <input type="date" class="form-control form-control-sm" id="fechaf" />
         </div>
         <div class="col">
@@ -36,7 +36,7 @@ require_once("../index/header.php");
         <table class="table text-center">
             <thead class="table-dark">
                 <th>Folio</th>
-                <th>No. emp</th>
+                <th>Noemp</th>
                 <th>Nombre</th>
                 <th>Departamento</th>
                 <th>Comentario</th>
@@ -59,7 +59,7 @@ require_once("../index/header.php");
                     <div class="table-responsive" style="height: 500px;">
                         <table class="table">
                             <thead class="table-dark text-center">
-                                <th>No. emp</th>
+                                <th>Noemp</th>
                                 <th>Nombre</th>
                                 <th>Departamento</th>
                                 <!-- <th>Fecha</th> -->

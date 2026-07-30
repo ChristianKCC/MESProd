@@ -10,7 +10,7 @@
    ===================================================================== */
 
 /* ── Tipos (mismos numeros que en tblMXPRTipoEnlaceEMC) ── */
-const EMC_TIPO_EXCEL_KDX =5;   // Kardex
+const EMC_TIPO_EXCEL_KDX = 3;   // Kardex
 const EMC_TIPO_PPT = 2;
 const EMC_TIPO_EXCEL = 1;
 
@@ -18,19 +18,19 @@ const EMC_TIPO_EXCEL = 1;
    Si quieres cambiar permisos/aspecto, se cambia aqui en un solo lugar. */
 const EMC_EMBED_PARAMS_EXCEL_KDX =
     'action=embedview'
-  . '&wdAllowInteractivity=True'
-  . '&wdDownloadButton=False'
-  . '&wdHideGridlines=True'
-  . '&wdHideHeaders=True'
-  . '&wdInConfigurator=True'
-  . '&wdOpenInExcel=False';
+    . '&wdAllowInteractivity=True'
+    . '&wdDownloadButton=False'
+    . '&wdHideGridlines=True'
+    . '&wdHideHeaders=True'
+    . '&wdInConfigurator=True'
+    . '&wdOpenInExcel=False';
 
 /* wdAr = relacion de aspecto del PPT. 1.7777... = 16:9.
    Si tu presentacion es 4:3 usa 1.3333333333333333 */
 const EMC_EMBED_PARAMS_PPT =
     'action=embedview'
-  . '&wdAr=1.7777777777777777'
-  . '&wdEaaCheck=1';
+    . '&wdAr=1.7777777777777777'
+    . '&wdEaaCheck=1';
 
 /**
  * Devuelve los parametros fijos segun el tipo.
@@ -91,11 +91,11 @@ function recortarEnlaceEMC($raw)
 
     /* 5) Reconstruir SOLO base + sourcedoc (con sus llaves {} tal cual) */
     $scheme = $parts['scheme'] ?? 'https';
-    $base   = $scheme . '://' . $parts['host'] . $parts['path'];
+    $base = $scheme . '://' . $parts['host'] . $parts['path'];
 
     return [
         'sourcedoc' => $sourcedoc,
-        'enlace'    => $base . '?sourcedoc=' . $sourcedoc,
+        'enlace' => $base . '?sourcedoc=' . $sourcedoc,
     ];
 }
 
