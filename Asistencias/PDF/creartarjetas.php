@@ -235,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
         $pdf->SetAutoPageBreak(false);
         $pdf->AddPage();
         $pdf->Ln(20);
-        $pdf->SetFont('Arial', '', 8);        
+        $pdf->SetFont('Arial', '', 8);
         $x = 2;
         $y = 2;
         $cont = 0;
@@ -250,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
             // Dibujo del marco y datos básicos
             $pdf->rect($x, $y, 205, 142);
             $pdf->Image('../../img/logo.jpg', $x + 5, $y + 5, 60);
-            $pdf->SetXY($x + 5, $y + 10);            
+            $pdf->SetXY($x + 5, $y + 10);
             $pdf->Cell(15, 10, "DEPTO:");
             $pdf->Cell(20, 10, $depto);
             $pdf->Cell(15, 10, "NUM:");

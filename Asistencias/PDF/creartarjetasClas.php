@@ -8,10 +8,8 @@ $conn = $conection->conexion("TLX001MXDB");
 require_once __DIR__ . '/../src/Repositorios/DescansosRepositorio.php';
 require_once __DIR__ . '/../src/Repositorios/EmpleadoRepositorio.php';
 require_once __DIR__ . '/../src/Repositorios/TransaccionRepositorio.php';
-require_once __DIR__ . '/../src/Repositorios/ConceptosRepositorio.php';
 require_once __DIR__ . '/../src/Pdf/TarjetaPdf.php';
 
-use src\Repositorios\ConceptosRepositorio;
 use src\Repositorios\DescansosRepositorio;
 use src\Repositorios\EmpleadoRepositorio;
 use src\Repositorios\TransaccionRepositorio;
@@ -48,8 +46,6 @@ function cortarRangoEntreSemanas(string $inicio, string $fin): array
 
 /**
  * Busca el numero de nomina que corresponde a una semana concreta.
- * Se calcula por semana y no una sola vez para todo el rango, porque un
- * rango de varias semanas nunca cabe dentro de una sola nomina.
  */
 function nominaDeRango(array $nominas, DateTime $ini, DateTime $fin): string
 {
@@ -99,91 +95,6 @@ function filtrarDescPorRango(array $colDescanso, DateTime $inicioDt, DateTime $f
         }
     }
     return $out;
-}
-
-/**
- * Filtra los conceptos de la semana y los resume en renglones listos para el PDF.
- * Tiempo extra se acumula en una sola linea; vacaciones cuentan dias;
- * cambio de puesto genera una linea por cada puesto destino distinto.
- *
- * NOTA: su resultado actualmente NO se pinta (el llenado del bloque de
- * conceptos esta oculto en TarjetaPdf::dibujarConceptos). Se conserva
- * completa para reactivar los conceptos sin reescribir nada.
- */
-function resumirConceptos(array $eventos, DateTime $inicioDt, DateTime $finDt): array
-{
-    $desde = $inicioDt->format('Y-m-d');
-    $hasta = $finDt->format('Y-m-d');
-
-    $te = ['minutos' => 0, 'ini' => null, 'fin' => null];
-    $vac = ['dias' => 0, 'ini' => null, 'fin' => null];
-    $cps = [];
-
-    foreach ($eventos as $ev) {
-        if ($ev['fecha'] < $desde || $ev['fecha'] > $hasta)
-            continue;
-
-        if ($ev['tipo'] === 'TIEMPO EXTRA') {
-            $te['minutos'] += $ev['minutos'];
-            if ($te['ini'] === null || $ev['fecha'] < $te['ini'])
-                $te['ini'] = $ev['fecha'];
-            if ($te['fin'] === null || $ev['fecha'] > $te['fin'])
-                $te['fin'] = $ev['fecha'];
-
-        } elseif ($ev['tipo'] === 'VACACIONES') {
-            $vac['dias']++;
-            // Rango completo de la solicitud, aunque cruce semanas
-            if ($vac['ini'] === null || $ev['ini'] < $vac['ini'])
-                $vac['ini'] = $ev['ini'];
-            if ($vac['fin'] === null || $ev['fin'] > $vac['fin'])
-                $vac['fin'] = $ev['fin'];
-
-        } elseif ($ev['tipo'] === 'CAMBIO DE PUESTO') {
-            $clave = $ev['puesto'];
-            if (!isset($cps[$clave])) {
-                $cps[$clave] = ['dias' => 0, 'ini' => $ev['ini'], 'fin' => $ev['fin']];
-            }
-            $cps[$clave]['dias'] += $ev['dias'];
-            if ($ev['ini'] < $cps[$clave]['ini'])
-                $cps[$clave]['ini'] = $ev['ini'];
-            if ($ev['fin'] > $cps[$clave]['fin'])
-                $cps[$clave]['fin'] = $ev['fin'];
-        }
-    }
-
-    $filas = [];
-
-    if ($te['minutos'] > 0) {
-        $filas[] = [
-            'concepto' => 'TIEMPO EXTRA',
-            'dias' => '',
-            'hrs' => sprintf('%02d:%02d', intdiv($te['minutos'], 60), $te['minutos'] % 60),
-            'puesto' => '',
-            'obs' => "del {$te['ini']} al {$te['fin']}"
-        ];
-    }
-
-    if ($vac['dias'] > 0) {
-        $filas[] = [
-            'concepto' => 'VACACIONES',
-            'dias' => (string) $vac['dias'],
-            'hrs' => '',
-            'puesto' => '',
-            'obs' => "del {$vac['ini']} al {$vac['fin']}"
-        ];
-    }
-
-    foreach ($cps as $puesto => $cp) {
-        $filas[] = [
-            'concepto' => 'CAMBIO DE PUESTO',
-            'dias' => (string) $cp['dias'],
-            'hrs' => '',
-            'puesto' => $puesto,
-            'obs' => "del {$cp['ini']} al {$cp['fin']}"
-        ];
-    }
-
-    return $filas;
 }
 
 /* =====================================================================
@@ -279,18 +190,10 @@ try {
     $descRepo = new DescansosRepositorio($conn);
     $empRepo = new EmpleadoRepositorio($conn);
     $txRepo = new TransaccionRepositorio($conn);
-    $conceptosRepo = new ConceptosRepositorio($conn);
 
     // Cargas globales sobre el rango ya expandido a semanas completas
     $transaccionesAgrupadas = $txRepo->getTransaccionesAgrupadas($rangoIni, $rangoFin);
     $descansosAgrupados = $descRepo->getDescansosAgrupados($rangoIni, $rangoFin);
-
-    // Conceptos OCULTOS temporalmente: el llenado del bloque de conceptos esta
-    // desactivado en TarjetaPdf::dibujarConceptos, asi que se omite la consulta
-    // (son 3 consultas a bases distintas) para no cargar de mas.
-    // Reactivar cambiando la linea de abajo por:
-    // $conceptosAgrupados = $conceptosRepo->getConceptosAgrupados($rangoIni, $rangoFin);
-    $conceptosAgrupados = [];
 
     // Validacion de datos para su uso segun el caso:
     // Si la variable esta vacia le agrega una cadena vacia que no busca nada
@@ -301,8 +204,6 @@ try {
     $empnoFiltro = $empno === '' ? '' : " AND tblEmpleados.NoEmp=" . intval($empno);
 
     // Obtener empleados sin/con filtros
-    // 1er. -> Caso de consulta general
-    // 2do. -> Caso de consulta especifica agregando un cuarto filtro
     if (empty($empno)) {
         $empleados = $empRepo->getEmpleados($tipemp . $ctrocstos . $departamento);
     } else {
@@ -321,7 +222,6 @@ try {
         $noemp = $emp['NoEmp'];
         $todosTxs = $transaccionesAgrupadas[$noemp] ?? [];
         $todosDescs = $descansosAgrupados[$noemp] ?? [];
-        $todosConceptos = $conceptosAgrupados[$noemp] ?? [];
 
         foreach ($weeks as $w) {
             $inicioSemana = $w['start'];
@@ -329,14 +229,11 @@ try {
 
             $txsSemana = filtrarTXSporRango($todosTxs, $inicioSemana, $finSemana);
             $descsSemana = filtrarDescPorRango($todosDescs, $inicioSemana, $finSemana);
-            // Se sigue calculando aunque no se pinte, para reactivar sin tocar el bucle
-            $conceptos = resumirConceptos($todosConceptos, $inicioSemana, $finSemana);
 
             $pdfGen->renderizarEmpleado(
                 $emp,
                 $txsSemana,
                 $descsSemana,
-                $conceptos,
                 $inicioSemana->format('Y-m-d'),
                 $finSemana->format('Y-m-d'),
                 nominaDeRango($nominas, $inicioSemana, $finSemana)
@@ -352,3 +249,4 @@ try {
     http_response_code(500);
     echo "Error: " . $e->getMessage();
 }
+

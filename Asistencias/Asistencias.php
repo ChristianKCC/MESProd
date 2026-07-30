@@ -68,35 +68,36 @@ require_once("../index/header.php");
       <i class="fa fa-file-pdf"></i>  Generar PDF
     </button>
     <button type='submit' name="accion" value="crear_excel" class="btn btn-sm btn-success">
-      <i class="fas fa-file-excel"></i> Generar excel
+      <i class="fas fa-file-excel"></i> Generar Excel
     </button>
     <br>
-    <!-- <small class="text-primary"> 
+    <small class="text-primary"> 
       Las tarjetas se crearán por semana de acuerdo con la fecha de inicio seleccionada (6 dias despues de la fecha inicial).
     </small>
     <br>
     <small class="text-success"> 
       Tanto los archivos 'PDF' como 'Excel' se generaran segun los filtros de busqueda aplicados (Fechas de inicio y fin / No. empleado / Centro de costos / Departamento o Tipo de empleado)
-    </small> -->
-    <br>
+    </small>
+    <br><br>
   </form>
 
   <div id="content">
-  <div class="table-responsive" style="height: 600px;">
-    <table class="table table-bordered table-striped" style="text-align: center;">
-      <thead class="table-dark">
-        <th>No</th>
-        <th>NoEmp</th>
-        <th>Nombre</th>
-        <th>Fecha</th>
-        <th>Temperatura</th>
-        <th>Ubicación</th>
-      </thead>
-      <tbody id="consultaacceso">
-      </tbody>
-    </table>
+    <div class="table-responsive" style="height: 600px;">
+      <table class="table table-bordered table-striped" style="text-align: center;">
+        <thead class="table-dark">
+          <th>No</th>
+          <th>NoEmp</th>
+          <th>Nombre</th>
+          <th>Fecha</th>
+          <th>Temperatura</th>
+          <th>Ubicación</th>
+        </thead>
+        <tbody id="consultaacceso">
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
+  
 </div>
 
 <?php require_once("../index/footer.php") ?>

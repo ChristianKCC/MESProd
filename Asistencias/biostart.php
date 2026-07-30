@@ -2,7 +2,7 @@
 require_once("../Session/seguridad.php");
 require_once("../index/header.php");
 ?>
-<div class="container ">
+<div class="container p-4">
     <h5 class="tittlecont">Registro de asistencias Biostar</h5>
     <form method="POST" target="iframe_a">
         <div class="row">

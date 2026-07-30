@@ -1,6 +1,42 @@
 import { Toolsjs } from "../../Tools/Tools.js";
 
 export class Asistencias {
+    // Funcion para obtener datos como centro de costos, tipo de empleado y departamento basados en el numero de empleado
+    async cargarDatosbyNoEmp() {
+        const empno = document.getElementById("empno").value;
+        // const empno = this.value;
+
+        try {
+            const resp = await fetch('src/Repositorios/getEmpleadoInfo.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'empno=' + encodeURIComponent(empno)
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                // Solo asigna si existe valor, si no deja el select como está
+                if (data.IdCentroCosto !== undefined && data.IdCentroCosto !== null && data.IdCentroCosto !== '') {
+                    document.getElementById('ctrocstos').value = data.IdCentroCosto;
+                }
+                if (data.EmpleadoSindicalizado !== undefined && data.EmpleadoSindicalizado !== null && data.EmpleadoSindicalizado !== '') {
+                    document.getElementById('tipemp').value = data.EmpleadoSindicalizado;
+                }
+                if (data.NombreDepartamento !== undefined && data.NombreDepartamento !== null && data.NombreDepartamento !== '') {
+                    document.getElementById('departamento').value = data.NombreDepartamento;
+                }
+            } else {
+                document.getElementById('ctrocstos').value = "";
+                document.getElementById('tipemp').value = "";
+                document.getElementById('departamento').value = "";
+            }
+        } catch (err) {
+            console.error('Error consultando empleado');
+        }
+    }
+
+
+    // Funcion asincrona que verifica las asistencias segun un rango de fechas
     async buscarAsistencias() {
         let fechai = document.getElementById("fechai").value;
         let fechaf = document.getElementById("fechaf").value;

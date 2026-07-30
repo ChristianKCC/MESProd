@@ -11,36 +11,6 @@ class TarjetaPdf
     // Controlador de posicion en vertical
     private $y = 2;
 
-    /* -----------------------------------------------------------------
-       GEOMETRIA DEL BLOQUE DE TIEMPOS (offsets relativos a $x / $y)
-       ----------------------------------------------------------------- */
-
-    // Las 3 columnas NO son turnos: son las 3 horas de cambio de turno.
-    // Cada columna aloja los dos movimientos que ocurren a esa misma hora.
-    //   col 0 -> 7:00    (I ENTRADA  / III SALIDA)
-    //   col 1 -> 15:00   (I SALIDA   / II ENTRADA)
-    //   col 2 -> 22:30   (III ENTRADA / II SALIDA)
-    private const COL_X = [10, 25, 40];   // inicio de cada columna
-    private const COL_W = 15;             // ancho de cada columna
-    private const FILA_Y = 70;             // primer renglon (lunes)
-    private const FILA_H = 10;             // alto de cada renglon
-
-    /* -----------------------------------------------------------------
-       GEOMETRIA DEL BLOQUE DE CONCEPTOS
-       ----------------------------------------------------------------- */
-
-    // [x, ancho, etiqueta] de cada columna, relativo a $x
-    private const CON_COLS = [
-        ['x' => 90, 'w' => 20, 'label' => 'CONCEPTO'],
-        ['x' => 110, 'w' => 20, 'label' => '# DIAS'],
-        ['x' => 130, 'w' => 20, 'label' => '# HRS'],
-        ['x' => 150, 'w' => 20, 'label' => 'CAMBIO PROV'],
-        ['x' => 170, 'w' => 30, 'label' => 'OBSERVACIONES'],
-    ];
-    private const CON_FILA_Y = 30;   // primer renglon de datos
-    private const CON_FILA_H = 10;
-    private const CON_MAX = 11;   // renglones disponibles
-
     public function __construct()
     {
         $this->pdf = new FPDF('P');
@@ -52,230 +22,10 @@ class TarjetaPdf
         $this->pdf->AddPage();
     }
 
-    /* =================================================================
-       BLOQUE DE TIEMPOS
-       ================================================================= */
-
-    /**
-     * Decide en que columna cae una checada segun su hora.
-     * Las fronteras son los puntos medios entre las horas de cambio de turno:
-     * 11:00 (entre 7:00 y 15:00), 19:00 (entre 15:00 y 22:30) y 03:00 (entre 22:30 y 7:00).
-     */
-    private static function columnaPorHora(int $minutos): int
+    // Funcion para la renderizacion del empleado obteniendo parametros para la generacion del PDF
+    public function renderizarEmpleado(array $emp, array $txs, array $descs, string $fechai, string $fechaf, string $nominaActual = '')
     {
-        if ($minutos >= 180 && $minutos < 660)
-            return 0;   // 03:00 - 10:59  -> 7:00
-        if ($minutos >= 660 && $minutos < 1140)
-            return 1;   // 11:00 - 18:59  -> 15:00
-        return 2;                                           // 19:00 - 02:59  -> 22:30
-    }
-
-    /**
-     * Agrupa las checadas del empleado en la malla [fila][columna] => [horas].
-     * La fila sale de dia_semana (1 = lunes ... 7 = domingo) y la columna de la hora.
-     * El acomodo depende SOLO de la hora: cada una de las 3 columnas es una hora
-     * de cambio de turno, por lo que no hace falta desambiguar el turno.
-     */
-    private function acomodarTransacciones(array $txs): array
-    {
-        $celdas = [];
-
-        foreach ($txs as $t) {
-            $eventTime = $t['event_time'];
-            $dt = ($eventTime instanceof \DateTime) ? $eventTime : new \DateTime($eventTime);
-
-            $fila = (int) $t['dia_semana'] - 1;   // 1 = lunes -> fila 0
-            if ($fila < 0 || $fila > 6)
-                continue;
-
-            $minutos = ((int) $dt->format('H') * 60) + (int) $dt->format('i');
-            $col = self::columnaPorHora($minutos);
-
-            $celdas[$fila][$col][] = $dt->format('H:i:s');
-        }
-
-        return $celdas;
-    }
-
-    /**
-     * Dibuja la malla del bloque de tiempos: columna de dias, banda de turnos
-     * de dia, banda de turnos de noche, letras de los dias y separadores.
-     */
-    private function dibujarEncabezadoTurnos(float $x, float $y): void
-    {
-        $pdf = $this->pdf;
-
-        // Rellenos solo del area de turnos, sin invadir la columna de dias
-        $pdf->SetFillColor(228, 233, 245);
-        $pdf->Rect($x + 10, $y + 50, 45, 10, 'F');
-        $pdf->SetFillColor(210, 217, 236);
-        $pdf->Rect($x + 10, $y + 60, 45, 10, 'F');
-
-        // Marco general del bloque
-        $pdf->Rect($x + 5, $y + 50, 80, 90);
-
-        $pdf->SetTextColor(0, 0, 0);
-
-        // "DIA" apilado en vertical, una letra por renglon de 5mm,
-        // para que no se desborde ni la cruce el separador de bandas
-        $pdf->SetFont('Arial', 'B', 6);
-        foreach (['D', 'I', 'A'] as $i => $letra) {
-            $pdf->SetXY($x + 5, $y + 50 + ($i * 5));
-            $pdf->Cell(5, 5, $letra, 0, 0, 'C');
-        }
-
-        $pdf->SetXY($x + 55, $y + 50);
-        $pdf->Cell(30, 20, 'TIEMPOS', 0, 0, 'C');
-
-        // [columna, banda, turno, movimiento, hora de referencia]
-        // banda 0 = turnos de dia (arriba), banda 1 = turnos de noche (abajo)
-        $etiquetas = [
-            [0, 0, 'I TURNO', 'ENTRADA', '7:00'],
-            [1, 0, 'I TURNO', 'SALIDA', '15:00'],
-            [2, 0, 'III TURNO', 'ENTRADA', '22:30'],
-            [0, 1, 'III TURNO', 'SALIDA', '7:00'],
-            [1, 1, 'II TURNO', 'ENTRADA', '15:00'],
-            [2, 1, 'II TURNO', 'SALIDA', '22:30'],
-        ];
-
-        foreach ($etiquetas as $e) {
-            list($col, $banda, $turno, $mov, $hora) = $e;
-            $cx = $x + self::COL_X[$col];
-            $cy = $y + 50 + ($banda * 10);
-
-            $pdf->SetFont('Arial', 'B', 6);
-            $pdf->SetXY($cx, $cy + 0.3);
-            $pdf->Cell(self::COL_W, 3.4, $turno, 0, 0, 'C');
-
-            $pdf->SetXY($cx, $cy + 3.4);
-            $pdf->Cell(self::COL_W, 3.4, $mov, 0, 0, 'C');
-
-            // Hora de referencia de cada columna, mas discreta
-            $pdf->SetFont('Arial', '', 5);
-            $pdf->SetTextColor(0, 0, 0);
-            $pdf->SetXY($cx, $cy + 6.4);
-            $pdf->Cell(self::COL_W, 3.2, $hora, 0, 0, 'C');
-        }
-
-        // Separador entre bandas: arranca en x+10 para no cruzar la columna de dias
-        $pdf->Line($x + 10, $y + 60, $x + 55, $y + 60);
-
-        // Renglones de los 7 dias
-        for ($i = 0; $i <= 7; $i++) {
-            $yy = $y + self::FILA_Y + ($i * self::FILA_H);
-            $pdf->Line($x + 5, $yy, $x + 85, $yy);
-        }
-
-        // Separadores verticales de las columnas
-        $pdf->Line($x + 10, $y + 50, $x + 10, $y + 140);
-        foreach (self::COL_X as $cx) {
-            $pdf->Line($x + $cx + self::COL_W, $y + 50, $x + $cx + self::COL_W, $y + 140);
-        }
-
-        // Letra de cada dia, alineada arriba del renglon
-        $pdf->SetFont('Arial', 'B', 7);
-        $dias = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-        foreach ($dias as $i => $letra) {
-            $pdf->SetXY($x + 5, $y + self::FILA_Y + ($i * self::FILA_H));
-            $pdf->Cell(5, 5, $letra, 0, 0, 'C');
-        }
-    }
-
-    /* =================================================================
-       BLOQUE DE CONCEPTOS
-       ================================================================= */
-
-    /**
-     * Dibuja la rejilla del bloque de conceptos (encabezados y lineas).
-     *
-     * EL LLENADO DE DATOS ESTA OCULTO TEMPORALMENTE (return; abajo).
-     * La rejilla se sigue pintando siempre; solo se omite el volcado de
-     * tiempo extra / vacaciones / cambio de puesto mientras se analiza el
-     * modulo. Toda la tuberia de datos sigue viva y sin usar:
-     *   - ConceptosRepositorio->getConceptosAgrupados()  (las 3 consultas)
-     *   - resumirConceptos()  en CrearTarjetasClas.php    (arma los renglones)
-     *   - el parametro $conceptos que llega hasta aqui
-     * Para REACTIVAR: borrar el 'return;' y quitar las lineas de apertura
-     * y cierre del comentario que envuelve el foreach de contenido.
-     */
-    private function dibujarConceptos(float $x, float $y, array $conceptos): void
-    {
-        $pdf = $this->pdf;
-
-        // Encabezado sombreado
-        $pdf->SetFillColor(228, 233, 245);
-        $pdf->Rect($x + 90, $y + 20, 110, 10, 'F');
-
-        $pdf->Rect($x + 90, $y + 20, 110, 120);
-        $pdf->SetTextColor(0, 0, 0);
-
-        // Titulos alineados a las columnas reales
-        $pdf->SetFont('Arial', 'B', 6);
-        foreach (self::CON_COLS as $c) {
-            $pdf->SetXY($x + $c['x'], $y + 20 + ($c['label'] === 'CAMBIO PROV' ? 1.5 : 3));
-            $pdf->Cell($c['w'], 4, $c['label'], 0, 0, 'C');
-        }
-        // Segunda linea del encabezado de cambio provisional
-        $pdf->SetXY($x + 150, $y + 25);
-        $pdf->Cell(20, 4, 'AL PUESTO', 0, 0, 'C');
-
-        // Verticales
-        foreach ([110, 130, 150, 170] as $vx) {
-            $pdf->Line($x + $vx, $y + 20, $x + $vx, $y + 140);
-        }
-        // Horizontales
-        for ($sub = 30; $sub <= 130; $sub += 10) {
-            $pdf->Line($x + 90, $y + $sub, $x + 200, $y + $sub);
-        }
-
-        // ===== CONCEPTOS: llenado de datos OCULTO temporalmente =====
-        // Ver el docblock del metodo para reactivarlo.
-        return;
-        /*
-        // Contenido
-        $pdf->SetFont('Arial', '', 6);
-        $fila = 0;
-        foreach ($conceptos as $c) {
-            if ($fila >= self::CON_MAX)
-                break;
-            $cy = $y + self::CON_FILA_Y + ($fila * self::CON_FILA_H) + 3;
-
-            $valores = [
-                $c['concepto'],
-                $c['dias'],
-                $c['hrs'],
-                $c['puesto'],
-                $c['obs']
-            ];
-
-            foreach (self::CON_COLS as $i => $col) {
-                if ($valores[$i] === '')
-                    continue;
-                $pdf->SetXY($x + $col['x'] + 1, $cy);
-                $pdf->Cell($col['w'] - 2, 4, utf8_decode($valores[$i]), 0, 0, 'C');
-            }
-            $fila++;
-        }
-        */
-    }
-
-    /* =================================================================
-       RENDER PRINCIPAL
-       ================================================================= */
-
-    /**
-     * Renderiza una tarjeta completa de un empleado para una semana.
-     *
-     * @param array  $conceptos  Renglones ya resumidos (tiempo extra, vacaciones,
-     *                           cambio de puesto). ACTUALMENTE NO SE PINTAN: el
-     *                           llenado esta oculto en dibujarConceptos(). El
-     *                           parametro se conserva para reactivarlo sin tocar
-     *                           la firma ni la llamada.
-     */
-    public function renderizarEmpleado(array $emp, array $txs, array $descs, array $conceptos, string $fechai, string $fechaf, string $nominaActual = '')
-    {
-        // Nueva hoja cada 2 tarjetas, solo cuando realmente se va a dibujar.
-        // Va al INICIO (no al final) para no generar una hoja en blanco al cerrar.
+        // Nueva hoja cada 2 tarjetas, al inicio para no dejar una hoja en blanco al final
         if ($this->cont % 2 === 0) {
             $this->pdf->AddPage();
             $this->y = 2;
@@ -287,16 +37,18 @@ class TarjetaPdf
         $puesto = $emp['Puesto'];
         $depto = $emp['DepartamentoClave'];
 
+        // Generación del PDF usando array (transaccion y descansos)
         $this->pdf->Ln(20);
         $this->pdf->SetFont('Arial', 'B', 10);
         $x = 2;
         $y = $this->y;
 
         // Dibujo del marco y datos básicos
-        $this->pdf->Rect($x, $y, 205, 142);
+        $this->pdf->rect($x, $y, 205, 142);
         $this->pdf->Image('../../img/logo.jpg', $x + 5, $y + 5, 60);
         $this->pdf->SetXY($x + 5, $y + 10);
 
+        // Texto en negro
         $this->pdf->SetTextColor(0, 0, 0);
 
         $this->pdf->Cell(15, 10, "DEPTO:");
@@ -327,66 +79,150 @@ class TarjetaPdf
         $this->pdf->SetX($x + 5);
         $this->pdf->Cell(20, 10, utf8_decode($puesto));
 
-        /* ----- Bloque de tiempos ----- */
-        $this->dibujarEncabezadoTurnos($x, $y);
+        // ----- Encabezado del bloque de tiempos (diseño original) -----
+        $this->pdf->rect($x + 5, $y + 50, 80, 90);
+        $this->pdf->SetXY($x + 5, $y + 50);
 
-        /* ----- Bloque de conceptos (solo rejilla; datos ocultos) ----- */
-        $this->dibujarConceptos($x, $y, $conceptos);
+        $this->pdf->SetFont('Arial', 'B', 7);
+        $this->pdf->multiCell(2, 5, "DIA L M M J V S D");
+        $this->pdf->SetXY($x + 10, $y + 50);
+        $this->pdf->Cell(15, 5, "I TURNO");
+        $this->pdf->Cell(15, 5, "I TURNO");
+        $this->pdf->Cell(24, 5, "III TURNO");
+        $yi = $this->pdf->GETY();
+        $xi = $this->pdf->GETX();
+        $this->pdf->multiCell(20, 20, "TIEMPOS");
+        $this->pdf->SETY($yi);
+        $this->pdf->SETX($xi + 15);
+        $this->pdf->SetXY($x + 10, $y + 55);
+        $this->pdf->Cell(15, 5, "ENTRADA");
+        $this->pdf->Cell(15, 5, "SALIDA");
+        $this->pdf->Cell(15, 5, "ENTRADA");
+        $this->pdf->SetXY($x + 10, $y + 60);
+        $this->pdf->Cell(15, 5, "III TURNO");
+        $this->pdf->Cell(15, 5, "II TURNO");
+        $this->pdf->Cell(15, 5, "II TURNO");
+        $this->pdf->SetXY($x + 10, $y + 65);
+        $this->pdf->Cell(15, 5, "SALIDA");
+        $this->pdf->Cell(15, 5, "ENTRADA");
+        $this->pdf->Cell(15, 5, "SALIDA");
+        $this->pdf->line($x + 10, $y + 55, $x + 55, $y + 55);
+        $this->pdf->line($x + 10, $y + 60, $x + 55, $y + 60);
+        $this->pdf->line($x + 10, $y + 65, $x + 55, $y + 65);
+        $this->pdf->line($x + 5, $y + 70, $x + 85, $y + 70);
+        $this->pdf->line($x + 5, $y + 80, $x + 85, $y + 80);
+        $this->pdf->line($x + 5, $y + 90, $x + 85, $y + 90);
+        $this->pdf->line($x + 5, $y + 100, $x + 85, $y + 100);
+        $this->pdf->line($x + 5, $y + 110, $x + 85, $y + 110);
+        $this->pdf->line($x + 5, $y + 120, $x + 85, $y + 120);
+        $this->pdf->line($x + 5, $y + 130, $x + 85, $y + 130);
+        $this->pdf->line($x + 10, $y + 50, $x + 10, $y + 140);
+        $this->pdf->line($x + 25, $y + 50, $x + 25, $y + 140);
+        $this->pdf->line($x + 40, $y + 50, $x + 40, $y + 140);
+        $this->pdf->line($x + 55, $y + 50, $x + 55, $y + 140);
 
-        /* ----- Checadas acomodadas por hora ----- */
-        $celdas = $this->acomodarTransacciones($txs);
-
-        foreach ($celdas as $fila => $columnas) {
-            foreach ($columnas as $col => $horas) {
-                sort($horas);
-                $cx = $x + self::COL_X[$col];
-                $cy = $y + self::FILA_Y + ($fila * self::FILA_H);
-
-                $this->pdf->SetFont('Arial', '', 7);
-                $this->pdf->SetTextColor(0, 0, 0);
-                $this->pdf->SetXY($cx, $cy + 0.5);
-                $this->pdf->Cell(self::COL_W, 4.5, $horas[0], 0, 0, 'C');
-
-                // Si hubo mas de una checada en la misma ventana se muestra la ultima abajo
-                if (count($horas) > 1) {
-                    $this->pdf->SetFont('Arial', '', 5.5);
-                    $this->pdf->SetTextColor(0, 0, 0);
-                    $this->pdf->SetXY($cx, $cy + 5);
-                    $this->pdf->Cell(self::COL_W, 4.5, end($horas), 0, 0, 'C');
-                }
-            }
+        // ----- Bloque de conceptos (rejilla original, siempre vacia) -----
+        $this->pdf->rect($x + 90, $y + 20, 110, 120);
+        $this->pdf->SetXY($x + 90, $y + 20);
+        $this->pdf->Cell(2, 5, "");
+        $this->pdf->Cell(22, 5, "CONCEPTO");
+        $this->pdf->Cell(20, 5, "# DIAS");
+        $this->pdf->Cell(16, 5, "# HRS");
+        $this->pdf->Cell(22, 5, "CAMBIO PROV");
+        $this->pdf->Cell(20, 5, "OBSERVACIONES");
+        $this->pdf->SetXY($x + 152, $y + 25);
+        $this->pdf->Cell(20, 5, "AL PUESTO");
+        // Vertical
+        $this->pdf->line($x + 110, $y + 20, $x + 110, $y + 140);
+        $this->pdf->line($x + 130, $y + 20, $x + 130, $y + 140);
+        $this->pdf->line($x + 150, $y + 20, $x + 150, $y + 140);
+        $this->pdf->line($x + 170, $y + 20, $x + 170, $y + 140);
+        // Horizontal
+        for ($sub = 30; $sub <= 130; $sub += 10) {
+            $this->pdf->line($x + 90, $y + $sub, $x + 200, $y + $sub);
         }
-        $this->pdf->SetTextColor(0, 0, 0);
+        $this->pdf->SetFont('Arial', '', 7);
 
-        /* ----- Descansos ----- */
+        $horasx = 12;
+        $horasy = $y;
+        $antrow = 0;
+
+        // Recorrer transacciones de horas por empleado segun los tiempos checados por dia.
+        // Acomodo "de corrido": todas las checadas de un mismo dia van seguidas en su
+        // renglon, corriendose 15mm a la derecha una tras otra.
+        foreach ($txs as $t) {
+            // Obtencion de fecha segun array con indice event_time
+            $eventTime = $t['event_time'];
+            // Cortar hora de la fecha que se provee en event_time
+            $hora = ($eventTime instanceof \DateTime) ? $eventTime->format('H:i:s') : date('H:i:s', strtotime($eventTime));
+            // Dia de la semana: 1 = lunes ... 7 = domingo (numeracion del repositorio)
+            $dia = (int) $t['dia_semana'];
+
+            if ($dia === $antrow) {
+                $horasx += 15;
+            } else {
+                $horasx = 12;
+            }
+
+            // Asignacion de renglon segun el dia (1 = lunes arriba ... 7 = domingo abajo)
+            switch ($dia) {
+                case 2:
+                    $this->pdf->SetXY($x + $horasx, $horasy + 70);
+                    break;
+                case 3:
+                    $this->pdf->SetXY($x + $horasx, $horasy + 80);
+                    break;
+                case 4:
+                    $this->pdf->SetXY($x + $horasx, $horasy + 90);
+                    break;
+                case 5:
+                    $this->pdf->SetXY($x + $horasx, $horasy + 100);
+                    break;
+                case 6:
+                    $this->pdf->SetXY($x + $horasx, $horasy + 110);
+                    break;
+                case 7:
+                    $this->pdf->SetXY($x + $horasx, $horasy + 120);
+                    break;
+                case 1:
+                    $this->pdf->SetXY($x + $horasx, $horasy + 130);
+                    break;
+            }
+
+            // Agregacion de datos en PDF
+            $this->pdf->Cell(15, 5, $hora);
+            $antrow = $dia;
+        }
+
+        // Cabecera y generacion de contenido para validacion de descansos
         $this->pdf->SetFont('Arial', 'B', 10);
         foreach ($descs as $d) {
             if (!empty($d['lunes'])) {
-                $this->pdf->SetXY(60, $y + 70);
+                $this->pdf->SetXY(60, $horasy + 70);
                 $this->pdf->Cell(15, 5, $d['lunes']);
             }
             if (!empty($d['martes'])) {
-                $this->pdf->SetXY(60, $y + 80);
+                $this->pdf->SetXY(60, $horasy + 80);
                 $this->pdf->Cell(15, 5, $d['martes']);
             }
             if (!empty($d['miercoles'])) {
-                $this->pdf->SetXY(60, $y + 90);
+                $this->pdf->SetXY(60, $horasy + 90);
                 $this->pdf->Cell(15, 5, $d['miercoles']);
             }
             if (!empty($d['jueves'])) {
-                $this->pdf->SetXY(60, $y + 100);
+                $this->pdf->SetXY(60, $horasy + 100);
                 $this->pdf->Cell(15, 5, $d['jueves']);
             }
             if (!empty($d['viernes'])) {
-                $this->pdf->SetXY(60, $y + 110);
+                $this->pdf->SetXY(60, $horasy + 110);
                 $this->pdf->Cell(15, 5, $d['viernes']);
             }
             if (!empty($d['sabado'])) {
-                $this->pdf->SetXY(60, $y + 120);
+                $this->pdf->SetXY(60, $horasy + 120);
                 $this->pdf->Cell(15, 5, $d['sabado']);
             }
             if (!empty($d['domingo'])) {
-                $this->pdf->SetXY(60, $y + 130);
+                $this->pdf->SetXY(60, $horasy + 130);
                 $this->pdf->Cell(15, 5, $d['domingo']);
             }
         }
