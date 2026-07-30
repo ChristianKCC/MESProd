@@ -57,6 +57,57 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
             transition: none;
         }
     }
+     .tabla-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table-header-kc {
+            background-color: #002B75 !important;
+            color: white !important;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            padding: 12px 8px;
+        }
+        .table thead tr:first-child th:first-child {
+            border-top-left-radius: 8px;
+        }
+        .table thead tr:first-child th:last-child {
+            border-top-right-radius: 8px;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #f9f9f9;
+        }
+        .table-striped > tbody > tr:hover {
+            background-color: #e8f0ff;
+        }
+        tbody tr td {
+            vertical-align: middle;
+            padding: 12px 8px;
+            text-align: center;
+            border-color: #e0e0e0;
+        }
+        .row-total {
+            background-color: #e8e8e8 !important;
+            color: #333;
+            font-weight: 700;
+        }
+        .row-total td {
+            color: #333;
+            border-color: #e8e8e8;
+        }
+        .table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 8px;
+        }
+        .table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 8px;
+        }
 </style>
 
 <link rel="stylesheet" href="./css/estilosWR.css">
@@ -87,13 +138,13 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                         </button>
                     </div>
                 </div>
-                <div class="table-responsive border" style="height: 380px;">
-                    <table class="table table-bordered">
-                        <thead class="table-dark text-center">
-                            <th>NoEmp</th>
-                            <th>Nombre</th>
-                            <th>Puesto</th>
-                            <th></th>
+                <div class="table-responsive" style="height: 380px;">
+                    <table class="table table-striped table-hover border">
+                        <thead>
+                            <th class="table-header-kc">NoEmp</th>
+                            <th class="table-header-kc">Nombre</th>
+                            <th class="table-header-kc">Puesto</th>
+                            <th class="table-header-kc"></th>
                         </thead>
                         <tbody id="tblasistencias">
 
@@ -115,16 +166,15 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                 </button>
                             </div>
                         </div>
-                        <div class="table-responsive border" style="height: 100px;">
-                            <table class="table table-bordered">
-                                <thead class="table-dark text-center">
-                                    <th>Folio</th>
-                                    <th>Cajas recibidas</th>
-                                    <th>Corrugados de almacen</th>
-                                    <th>Cajas producidas</th>
-                                    <th>Cajas entregadas</th>
-                                    <th>Clave de producto</th>
-                                    <th></th>
+                        <div class="table-responsive" style="height: 100px;">
+                            <table class="table table-striped table-hover border">
+                                <thead>
+                                    <th class="table-header-kc">Folio</th>
+                                    <th class="table-header-kc">Cajas recibidas</th>
+                                    <th class="table-header-kc">Corrugados de almacen</th>
+                                    <th class="table-header-kc">Cajas producidas</th>
+                                    <th class="table-header-kc">Cajas entregadas</th>
+                                    <th class="table-header-kc">Clave de producto</th>
                                 </thead>
                                 <tbody id="tblcorrugados">
                                 </tbody>
@@ -137,15 +187,15 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                 <h5 class="tittlecont">INDICADORES</h5>
                             </div>
                         </div>
-                        <div class="table-responsive border" style="height: 100px;">
-                            <table class="table table-bordered">
-                                <thead class="table-dark text-center">
-                                    <th>Turno</th>
-                                    <th>Clave</th>
-                                    <th>STD</th>
-                                    <th>Merma</th>
-                                    <th>TPT</th>
-                                    <th>S+D</th>
+                        <div class="table-responsive" style="height: 100px;">
+                            <table class="table table-striped table-hover border">
+                                <thead>
+                                    <th class="table-header-kc">Turno</th>
+                                    <th class="table-header-kc">Clave</th>
+                                    <th class="table-header-kc">STD</th>
+                                    <th class="table-header-kc">Merma</th>
+                                    <th class="table-header-kc">TPT</th>
+                                    <th class="table-header-kc">S+D</th>
                                 </thead>
                                 <tbody id="tblindicadores">
                                 </tbody>
@@ -164,14 +214,14 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                 </button>
                             </div>
                         </div>
-                        <div class="table-responsive border" style="height: 100px;">
-                            <table class="table table-bordered">
+                        <div class="table-responsive" style="height: 100px;">
+                            <table class="table table-striped table-hover border">
                                 <thead class="table-dark text-center">
-                                    <th>Inspeccionados</th>
-                                    <th>S+D</th>
-                                    <th>QL</th>
-                                    <th>Observación</th>
-                                    <th></th>
+                                    <th class="table-header-kc">Inspeccionados</th>
+                                    <th class="table-header-kc">S+D</th>
+                                    <th class="table-header-kc">QL</th>
+                                    <th class="table-header-kc">Observación</th>
+                                    <th class="table-header-kc"></th>
                                 </thead>
                                 <tbody id="tblcalidadsd">
                                 </tbody>
@@ -510,13 +560,13 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="col-1"><br><button class="btn btn-sm btn-danger" id="resetPresentacion1Hook"><i
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">
-                                <table id="tablapresentacion1Hook" class="table table-bordered">
-                                    <thead class="table-dark">
-                                        <th>#Rollo</th>
-                                        <th>ML</th>
-                                        <th>MM2</th>
-                                        <th>Acum ML</th>
-                                        <th>Acum MM2</th>
+                                <table id="tablapresentacion1Hook" class="table table-striped table-hover border">
+                                    <thead>
+                                        <th class="table-header-kc">#Rollo</th>
+                                        <th class="table-header-kc">ML</th>
+                                        <th class="table-header-kc">MM2</th>
+                                        <th class="table-header-kc">Acum ML</th>
+                                        <th class="table-header-kc">Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub1Hook">
                                     </tbody>
@@ -533,13 +583,13 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="col-1"><br><button class="btn btn-sm btn-danger" id="resetPresentacion2Hook"><i
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">
-                                <table id="tablapresentacion2Hook" class="table table-bordered">
+                                <table id="tablapresentacion2Hook" class="table table-striped table-hover border">
                                     <thead class="table-dark">
-                                        <th>#Rollo</th>
-                                        <th>ML</th>
-                                        <th>MM2</th>
-                                        <th>Acum ML</th>
-                                        <th>Acum MM2</th>
+                                        <th class="table-header-kc">#Rollo</th>
+                                        <th class="table-header-kc">ML</th>
+                                        <th class="table-header-kc">MM2</th>
+                                        <th class="table-header-kc">Acum ML</th>
+                                        <th class="table-header-kc">Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub2Hook">
                                     </tbody>
@@ -556,13 +606,13 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="col-1"><br><button class="btn btn-sm btn-danger" id="resetPresentacion3Hook"><i
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">
-                                <table id="tablapresentacion3Hook" class="table table-bordered">
+                                <table id="tablapresentacion3Hook" class="table table-striped table-hover border">
                                     <thead class="table-dark">
-                                        <th>#Rollo</th>
-                                        <th>ML</th>
-                                        <th>MM2</th>
-                                        <th>Acum ML</th>
-                                        <th>Acum MM2</th>
+                                        <th class="table-header-kc">#Rollo</th>
+                                        <th class="table-header-kc">ML</th>
+                                        <th class="table-header-kc">MM2</th>
+                                        <th class="table-header-kc">Acum ML</th>
+                                        <th class="table-header-kc">Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub3Hook">
                                     </tbody>
@@ -1295,7 +1345,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
     <!--Seccion de Platicas-->
     <section id="sectionplaticas" class="section px-2">
         <!-- Platicas de 5 minutos  -->
-        <div id="platicas5" class="border p-2">
+        <div id="platicas5" class="p-2">
             <h4 class="tittlecont">Platica de 5 minutos</h4>
             <form id="formencplaticas">
                 <div class="row">
@@ -1322,13 +1372,13 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                         class="fa-solid fa-plus"></i> Registrar</button>
                             </div>
                         </div>
-                        <div class="table-responsive border" style="height:600px;">
-                            <table class="table table-sm table-bordered">
-                                <thead class="table-dark">
-                                    <th>ID</th>
-                                    <th>NOEMP</th>
-                                    <th>NOMBRE</th>
-                                    <th>PUESTO</th>
+                        <div class="table-responsive" style="height:600px;">
+                            <table class="table table-striped table-hover border">
+                                <thead>
+                                    <th class="table-header-kc">ID</th>
+                                    <th class="table-header-kc">NOEMP</th>
+                                    <th class="table-header-kc">NOMBRE</th>
+                                    <th class="table-header-kc">PUESTO</th>
                                 </thead>
                                 <tbody id="tblsubencabezadoplaticas5"></tbody>
                                 </tbody>

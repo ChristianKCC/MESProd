@@ -434,6 +434,51 @@ export class BitPresentaciones {
       );
   }
 
+  async cargarPresentacionesAutomatico(folio) {
+    const data = new FormData();
+    data.append("folio", folio);
+
+    try {
+      // Paso 1: Crear/verificar Hook_Enc para todas las claves
+      const respuestaraw = await fetch("php/presentacion.php?cargarPresentacionesAutomatico", {
+        method: "POST",
+        body: data,
+      });
+
+      if (!respuestaraw.ok) {
+        console.error("Error en cargarPresentacionesAutomatico:", respuestaraw.status);
+        return;
+      }
+
+      const respuesta = await respuestaraw.json();
+
+      if (!respuesta.presentaciones) {
+        console.log("No hay presentaciones para cargar:", respuesta);
+        return;
+      }
+
+      console.log("Presentaciones cargadas:", respuesta);
+
+      // Paso 2: Por cada presentación creada, cargar sus datos
+      // presentaciones es un objeto: { "3422046": {NoTabla: 1, accion: "creado"}, ... }
+
+      for (const [clave, info] of Object.entries(respuesta.presentaciones)) {
+        const noTabla = info.NoTabla;
+
+        if (noTabla && noTabla >= 1 && noTabla <= 3) {
+          // Cargar la tabla correspondiente
+          const domTable = `tblpresentacionsub${noTabla}Hook`;
+          await this.tblPresentacionSubHook(folio, noTabla, domTable, clave);
+          
+          console.log(`Tabla ${noTabla} cargada con clave ${clave}`);
+        }
+      }
+
+    } catch (error) {
+      console.error("Error en cargarPresentacionesAutomatico:", error);
+    }
+  }
+
   agregarFilaHook(idHE) {
     Swal.fire({
       title: "Agregar nueva fila",
@@ -1013,10 +1058,15 @@ export class BitPresentaciones {
   }
 
   // Tabla de HookMesh
-  async tblPresentacionSubHook(folio, notbl, domtbl) {
+  async tblPresentacionSubHook(folio, notbl, domtbl, claveOpcional = null) {
     const data = new FormData();
     data.append("folio", folio);
     data.append("notbl", notbl);
+
+    // Si viene clave opcional (desde cargarPresentacionesAutomatico), pasarla
+    if (claveOpcional) {
+      data.append("clave", claveOpcional);
+    }
 
     // Llamar al NUEVO endpoint que lee de tblMXPRBitacoraEtiquetasImpresion
     const respuestaraw = await fetch(
@@ -1045,6 +1095,7 @@ export class BitPresentaciones {
     let totalML = 0;
     let accML = 0;
     let accMC = 0;
+    let clave = "";
 
     // Iterar sobre cada etiqueta impresa
     respuesta.forEach((row) => {
@@ -1060,6 +1111,8 @@ export class BitPresentaciones {
       // Acumulativo de MM2
       accMC = Math.round((accMC + mmc) * 1000) / 1000;
 
+      clave = row.Clave; // Asignar la clave de la última fila procesada
+
       // Fila de la tabla (READONLY - sin contenteditable)
       body += `
         <tr>
@@ -1067,20 +1120,27 @@ export class BitPresentaciones {
             <td>${row.MetrosLineales}</td>
             <td>${mmc.toFixed(3)}</td>
             <td>${accML}</td>
-            <td>${accMC}</td>
+            <td>${accMC.toFixed(3)}</td>
         </tr>`;
     });
 
+    document.getElementById("presentacion" + notbl + "Hook").value = clave;
     // Si hay datos, agregar fila de TOTAL
     if (body !== "") {
-      body += `<tr class="table-dark fw-bold">
-                    <td>TOTAL</td>
+      document.getElementById("presentacion" + notbl + "Hook").disabled = true;
+      document.getElementById("savePresentacion" + notbl + "Hook").disabled =
+        true;
+      body += `<tr class="row-total">
+                    <td colspan="1">TOTAL</td>
                     <td>${totalML}</td>
                     <td></td>
                     <td>${accML}</td>
                     <td>${accMC}</td>
                 </tr>`;
     } else {
+      document.getElementById("presentacion" + notbl + "Hook").disabled = false;
+      document.getElementById("savePresentacion" + notbl + "Hook").disabled =
+        false;
       // Si no hay datos, mostrar mensaje vacío
       body = `<tr>
                     <td colspan="5" class="text-center text-muted">No hay etiquetas</td>

@@ -321,10 +321,8 @@ class Bitacorastart {
         "presentacion1Hook",
         0,
       ).then(() =>
-        Presentaciones.tblPresentacionSubHook(
-          folio,
-          1,
-          "tblpresentacionsub1Hook",
+        Presentaciones.cargarPresentacionesAutomatico(
+          folio
         ),
       ),
       Tools.llnarslc(
@@ -333,10 +331,8 @@ class Bitacorastart {
         "presentacion2Hook",
         0,
       ).then(() =>
-        Presentaciones.tblPresentacionSubHook(
+        Presentaciones.cargarPresentacionesAutomatico(
           folio,
-          2,
-          "tblpresentacionsub2Hook",
         ),
       ),
       Tools.llnarslc(
@@ -345,10 +341,8 @@ class Bitacorastart {
         "presentacion3Hook",
         0,
       ).then(() =>
-        Presentaciones.tblPresentacionSubHook(
+        Presentaciones.cargarPresentacionesAutomatico(
           folio,
-          3,
-          "tblpresentacionsub3Hook",
         ),
       ),
     ]);
