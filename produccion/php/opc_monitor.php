@@ -10,7 +10,7 @@ class OpcMonitor
 		$conn = $Conecta->conexion("TLX004MXDB");
 		$maquina = $_GET['maquina'];
 		$query = "SELECT TOP 1 Turno, MilesMetrosHora, Metros, Rechazos, TiempoParoMin, TiempoEnhebrandoMin,
-		TiempoCorriendoMin, MermaMaquina, TiempoPerdido, ParosMaquina, PorcentajeTiempoPerdido, CorriendoParada,
+		TiempoCorriendoMin, MermaMaquina, TiempoPerdido, ParosMaquina, PorcentajeTiempoPerdido, CorriendoParada, VelocidadActual,
 		FechaHora
 		FROM tblMXPRBitacoraHook WHERE NoMaquina=$maquina ORDER BY Id DESC";
 		$result = sqlsrv_query($conn, $query);
@@ -29,6 +29,7 @@ class OpcMonitor
 				'paros' => round($row['ParosMaquina'], 2),
 				'porcentajeTiempoPerdido' => round($row['PorcentajeTiempoPerdido'], 2),
 				'corriendoParada' => $row['CorriendoParada'],
+				'velocidadActual' => round($row['VelocidadActual'], 2),
 				'fechaHora' => $row['FechaHora']->format('H:i:s')
 			]);
 		}
@@ -52,7 +53,7 @@ class OpcMonitor
 			array_push($hora, $row["FechaHora"]->format("H:i:s"));
 			array_push($operacion, $row["CorriendoParada"] * 10);
 			array_push($merma, number_format($row["MermaMaquina"], 2));
-			array_push($velocidad, number_format($row["MilesMetrosHora"], 2));
+			array_push($velocidad, number_format($row["VelocidadActual"], 2));
 		}
 		$respuesta = ["hora" => $hora, "operacion" => $operacion, "merma" => $merma, "velocidad" => $velocidad];
 		echo json_encode($respuesta);

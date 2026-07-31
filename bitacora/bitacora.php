@@ -555,8 +555,6 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                         <div class="row">
                             <div class="col-9"><small>Presentacion</small><select class="form-control form-control-sm"
                                     id="presentacion1Hook"></select></div>
-                            <div class="col-1"><br><button class="btn btn-sm bg-target" id="savePresentacion1Hook"><i
-                                        class="fas fa-play"></i></button></div>
                             <div class="col-1"><br><button class="btn btn-sm btn-danger" id="resetPresentacion1Hook"><i
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">
@@ -578,8 +576,6 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                         <div class="row">
                             <div class="col-9"><small>Presentacion</small><select class="form-control form-control-sm"
                                     id="presentacion2Hook"></select></div>
-                            <div class="col-1"><br><button class="btn btn-sm bg-target" id="savePresentacion2Hook"><i
-                                        class="fas fa-play"></i></button></div>
                             <div class="col-1"><br><button class="btn btn-sm btn-danger" id="resetPresentacion2Hook"><i
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">
@@ -601,8 +597,6 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                         <div class="row">
                             <div class="col-9"><small>Presentacion</small><select class="form-control form-control-sm"
                                     id="presentacion3Hook"></select></div>
-                            <div class="col-1"><br><button class="btn btn-sm bg-target" id="savePresentacion3Hook"><i
-                                        class="fas fa-play"></i></button></div>
                             <div class="col-1"><br><button class="btn btn-sm btn-danger" id="resetPresentacion3Hook"><i
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">

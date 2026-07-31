@@ -200,9 +200,9 @@ class PdfGenerator
         // Título depto 1
         $this->pdf->SetFont($this->font, 'B', $this->fsDepto);
         $this->setTextColor($this->cHeader1);
-        $this->pdf->SetXY($xLeft, $yLeft - 8);
+        $this->pdf->SetXY($xLeft, $yLeft - 10);
         $this->pdf->Cell($this->colLeftW-67, 6, $nombre1, 0, 0, 'C');
-        $yLeft += 4;
+        $yLeft += -1;
 
         foreach ($tablas1 as $categoria => $maquinas) {
             $yLeft = $this->dibujarTablaUSTD($fechas1, $categoria, $maquinas, $xLeft, $yLeft, $yMax, $paginaActual);
@@ -215,9 +215,9 @@ class PdfGenerator
         $this->pdf->setPage($paginaActual);
         $this->pdf->SetFont($this->font, 'B', $this->fsDepto);
         $this->setTextColor($this->cHeader1);
-        $this->pdf->SetXY($xLeft, $yLeft - 8);
+        $this->pdf->SetXY($xLeft, $yLeft - 9);
         $this->pdf->Cell($this->colLeftW-67, 6, $nombre2, 0, 0, 'C');
-        $yLeft += 4;
+        $yLeft += -1;
 
         foreach ($tablas2 as $categoria => $maquinas) {
             $yLeft = $this->dibujarTablaUSTD($fechas2, $categoria, $maquinas, $xLeft, $yLeft, $yMax, $paginaActual);

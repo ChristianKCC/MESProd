@@ -212,6 +212,10 @@ class Bitacorastart {
 
   // Solo para volver al turno anterior sin credenciales
   async turnoanterior(fecha, turno) {
+    if (window.hookRefreshInterval) {
+      clearInterval(window.hookRefreshInterval);
+      window.hookRefreshInterval = null;
+    }
     const data = new FormData();
     data.append("fecha", fecha);
     data.append("turno", turno);
@@ -1719,79 +1723,79 @@ document
   });
 
 // Seccion HookMesh
-document
-  .getElementById("savePresentacion1Hook")
-  .addEventListener("click", (e) => {
-    e.preventDefault();
-    const folio = document.getElementById("folio").value;
-    const presentacion = document.getElementById("presentacion1Hook").value;
-    const turnoen = document.getElementById("turnoenctext").textContent;
-    if (presentacion == "") {
-      swal.fire("UPS", "Selecciona una clave", "warning");
-      return false;
-    }
-    document.getElementById("presentacion1Hook").disabled = true;
-    document.getElementById("savePresentacion1Hook").disabled = true;
-    Presentaciones.savePresentacionHook(folio, presentacion, turnoen, 1).then(
-      () => {
-        Presentaciones.tblPresentacionSubHook(
-          folio,
-          1,
-          "tblpresentacionsub1Hook"
-        );
-        Presentaciones.tblGolpes(folio);
-      }
-    );
-  });
+// document
+//   .getElementById("savePresentacion1Hook")
+//   .addEventListener("click", (e) => {
+//     e.preventDefault();
+//     const folio = document.getElementById("folio").value;
+//     const presentacion = document.getElementById("presentacion1Hook").value;
+//     const turnoen = document.getElementById("turnoenctext").textContent;
+//     if (presentacion == "") {
+//       swal.fire("UPS", "Selecciona una clave", "warning");
+//       return false;
+//     }
+//     document.getElementById("presentacion1Hook").disabled = true;
+//     document.getElementById("savePresentacion1Hook").disabled = true;
+//     Presentaciones.savePresentacionHook(folio, presentacion, turnoen, 1).then(
+//       () => {
+//         Presentaciones.tblPresentacionSubHook(
+//           folio,
+//           1,
+//           "tblpresentacionsub1Hook"
+//         );
+//         Presentaciones.tblGolpes(folio);
+//       }
+//     );
+//   });
 
-  document
-  .getElementById("savePresentacion2Hook")
-  .addEventListener("click", (e) => {
-    e.preventDefault();
-    const folio = document.getElementById("folio").value;
-    const presentacion = document.getElementById("presentacion2Hook").value;
-    const turnoen = document.getElementById("turnoenctext").textContent;
-    if (presentacion == "") {
-      swal.fire("UPS", "Selecciona una clave", "warning");
-      return false;
-    }
-    document.getElementById("presentacion2Hook").disabled = true;
-    document.getElementById("savePresentacion2Hook").disabled = true;
-    Presentaciones.savePresentacionHook(folio, presentacion, turnoen, 2).then(
-      () => {
-        Presentaciones.tblPresentacionSubHook(
-          folio,
-          2,
-          "tblpresentacionsub2Hook"
-        );
-        Presentaciones.tblGolpes(folio);
-      }
-    );
-  });
-  document
-  .getElementById("savePresentacion3Hook")
-  .addEventListener("click", (e) => {
-    e.preventDefault();
-    const folio = document.getElementById("folio").value;
-    const presentacion = document.getElementById("presentacion3Hook").value;
-    const turnoen = document.getElementById("turnoenctext").textContent;
-    if (presentacion == "") {
-      swal.fire("UPS", "Selecciona una clave", "warning");
-      return false;
-    }
-    document.getElementById("presentacion3Hook").disabled = true;
-    document.getElementById("savePresentacion3Hook").disabled = true;
-    Presentaciones.savePresentacionHook(folio, presentacion, turnoen, 3).then(
-      () => {
-        Presentaciones.tblPresentacionSubHook(
-          folio,
-          3,
-          "tblpresentacionsub3Hook"
-        );
-        Presentaciones.tblGolpes(folio);
-      }
-    );
-  });
+  // document
+  // .getElementById("savePresentacion2Hook")
+  // .addEventListener("click", (e) => {
+  //   e.preventDefault();
+  //   const folio = document.getElementById("folio").value;
+  //   const presentacion = document.getElementById("presentacion2Hook").value;
+  //   const turnoen = document.getElementById("turnoenctext").textContent;
+  //   if (presentacion == "") {
+  //     swal.fire("UPS", "Selecciona una clave", "warning");
+  //     return false;
+  //   }
+  //   document.getElementById("presentacion2Hook").disabled = true;
+  //   document.getElementById("savePresentacion2Hook").disabled = true;
+  //   Presentaciones.savePresentacionHook(folio, presentacion, turnoen, 2).then(
+  //     () => {
+  //       Presentaciones.tblPresentacionSubHook(
+  //         folio,
+  //         2,
+  //         "tblpresentacionsub2Hook"
+  //       );
+  //       Presentaciones.tblGolpes(folio);
+  //     }
+  //   );
+  // });
+  // document
+  // .getElementById("savePresentacion3Hook")
+  // .addEventListener("click", (e) => {
+  //   e.preventDefault();
+  //   const folio = document.getElementById("folio").value;
+  //   const presentacion = document.getElementById("presentacion3Hook").value;
+  //   const turnoen = document.getElementById("turnoenctext").textContent;
+  //   if (presentacion == "") {
+  //     swal.fire("UPS", "Selecciona una clave", "warning");
+  //     return false;
+  //   }
+  //   document.getElementById("presentacion3Hook").disabled = true;
+  //   document.getElementById("savePresentacion3Hook").disabled = true;
+  //   Presentaciones.savePresentacionHook(folio, presentacion, turnoen, 3).then(
+  //     () => {
+  //       Presentaciones.tblPresentacionSubHook(
+  //         folio,
+  //         3,
+  //         "tblpresentacionsub3Hook"
+  //       );
+  //       Presentaciones.tblGolpes(folio);
+  //     }
+  //   );
+  // });
   document
     .getElementById("resetPresentacion1Hook")
     .addEventListener("click", (e) => {

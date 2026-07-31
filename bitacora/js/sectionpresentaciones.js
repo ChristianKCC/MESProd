@@ -435,7 +435,6 @@ export class BitPresentaciones {
   }
 
   async cargarPresentacionesAutomatico(folio) {
-    console.log(folio);
     const data = new FormData();
     data.append("folio", folio);
 
@@ -454,11 +453,8 @@ export class BitPresentaciones {
       const respuesta = await respuestaraw.json();
 
       if (!respuesta.presentaciones) {
-        console.log("No hay presentaciones para cargar:", respuesta);
         return;
       }
-
-      console.log("Presentaciones cargadas:", respuesta);
 
       // NUEVO: Obtener qué NoTabla tienen datos
       const noTablaConDatos = [];
@@ -475,7 +471,6 @@ export class BitPresentaciones {
           await this.tblPresentacionSubHook(folio, noTabla, domTable, clave);
           
           noTablaConDatos.push(noTabla);
-          console.log(`Tabla ${noTabla} cargada con clave ${clave}`);
         }
       }
 
@@ -488,16 +483,12 @@ export class BitPresentaciones {
           document.getElementById("presentacion" + notbl + "Hook").value = "";
           document.getElementById("presentacion" + notbl + "Hook").disabled = false;
           
-          // Habilitar botones
-          document.getElementById("savePresentacion" + notbl + "Hook").disabled = false;
-          
           // Limpiar tabla
           document.getElementById(domTable).innerHTML = `
             <tr>
               <td colspan="5" class="text-center text-muted">No hay etiquetas</td>
             </tr>`;
           
-          console.log(`Tabla ${notbl} limpiada (sin datos)`);
         }
       }
 
@@ -976,7 +967,6 @@ export class BitPresentaciones {
             );
         });
       } else {
-        console.log(`Rollo ${rolloNumber} no encontrado`);
         // Opcional: Mostrar mensaje al usuario
         // alert(`El rollo ${rolloNumber} no existe en la base de datos`);
       }
@@ -1155,8 +1145,6 @@ export class BitPresentaciones {
     // Si hay datos, agregar fila de TOTAL
     if (body !== "") {
       document.getElementById("presentacion" + notbl + "Hook").disabled = true;
-      document.getElementById("savePresentacion" + notbl + "Hook").disabled =
-        true;
       body += `<tr class="row-total">
                     <td colspan="1">TOTAL</td>
                     <td>${totalML}</td>
@@ -1166,8 +1154,7 @@ export class BitPresentaciones {
                 </tr>`;
     } else {
       document.getElementById("presentacion" + notbl + "Hook").disabled = false;
-      document.getElementById("savePresentacion" + notbl + "Hook").disabled =
-        false;
+
       // Si no hay datos, mostrar mensaje vacío
       body = `<tr>
                     <td colspan="5" class="text-center text-muted">No hay etiquetas</td>

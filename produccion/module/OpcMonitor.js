@@ -7,7 +7,7 @@ export class OpcMonitor {
     if (respuesta.length === 0) return;
 
     const d = respuesta[0];
-    document.getElementById(ids.velocidad).innerHTML = d.velocidad;
+    document.getElementById(ids.velocidad).innerHTML = d.velocidadActual + " m/min";
     document.getElementById(ids.merma).innerHTML = d.merma + " %";
     document.getElementById(ids.paros).innerHTML = d.paros;
     document.getElementById(ids.porcentajeTiempoPerdido).innerHTML =
@@ -65,6 +65,7 @@ class OpcGrafica {
   }
 
   baseOptions(data) {
+    console.log(data);
     return {
       chart: {
         type: "area",
