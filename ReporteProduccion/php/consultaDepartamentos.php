@@ -584,9 +584,9 @@ class ReporteDepartamentos
                 ];
             }
 
-            $datosClaves[$idProducto][$clave]["Reales"] += (float)$row["AcumuladoReales"];
-            $datosClaves[$idProducto][$clave]["USTD"] += (float)$row["STDAcumulado"];
-            $datosClaves[$idProducto][$clave]["PlanProduccion"] += (float)$row["PlanProduccion"];
+            $datosClaves[$idProducto][$clave]["Reales"] += (float) $row["AcumuladoReales"];
+            $datosClaves[$idProducto][$clave]["USTD"] += (float) $row["STDAcumulado"];
+            $datosClaves[$idProducto][$clave]["PlanProduccion"] += (float) $row["PlanProduccion"];
             $datosClaves[$idProducto][$clave]["DiferenciaUSTD"] =
                 $datosClaves[$idProducto][$clave]["PlanProduccion"] -
                 $datosClaves[$idProducto][$clave]["USTD"];
@@ -602,7 +602,8 @@ class ReporteDepartamentos
         // echo json_encode($datosClaves, JSON_PRETTY_PRINT);
         return $datosClaves;
     }
-    public function getReporteTelasNoTejidas($fechai, $fechaf){
+    public function getReporteTelasNoTejidas($fechai, $fechaf)
+    {
         $conexion = new ClassConexion();
         $conn = $conexion->conexion('TLX004MXDB');
 
@@ -695,7 +696,8 @@ class ReporteDepartamentos
         return $salida;
     }
 
-    public function getInfoReporteTurnosTNT($fechai, $fechaf){
+    public function getInfoReporteTurnosTNT($fechai, $fechaf)
+    {
         $conexion = new ClassConexion();
         $conn = $conexion->conexion('TLX004MXDB');
 
@@ -715,7 +717,7 @@ class ReporteDepartamentos
         $map = [];           // clave Fecha|Turno|NoMaquina => registro normalizado (prioridad fuente 1)
         $datosTiemposTNN = [];
 
-         // Helper: normaliza fecha y arma clave
+        // Helper: normaliza fecha y arma clave
         $makeKey = function ($fecha, $turno, $noMaquina) {
             if ($fecha instanceof DateTime) {
                 $fecha = $fecha->format('Y-m-d');
@@ -809,7 +811,8 @@ class ReporteDepartamentos
 
 
     }
-    public function getInfoClavesTNT($fechai, $fechaf){
+    public function getInfoClavesTNT($fechai, $fechaf)
+    {
         $conexion = new ClassConexion();
         $conn = $conexion->conexion('TLX004MXDB');
 
@@ -858,7 +861,8 @@ class ReporteDepartamentos
 
     }
 
-    public function getTiemposTNT($fechai, $fechaf){
+    public function getTiemposTNT($fechai, $fechaf)
+    {
         $conexion = new ClassConexion();
         $conn = $conexion->conexion('TLX004MXDB');
 
@@ -880,7 +884,7 @@ class ReporteDepartamentos
         $map = [];           // clave Fecha|Turno|NoMaquina => registro normalizado (prioridad fuente 1)
         $datosTiemposTNN = [];
 
-         // Helper: normaliza fecha y arma clave
+        // Helper: normaliza fecha y arma clave
         $makeKey = function ($fecha, $turno, $noMaquina) {
             if ($fecha instanceof DateTime) {
                 $fecha = $fecha->format('Y-m-d');
@@ -922,7 +926,7 @@ class ReporteDepartamentos
             $agrupado[$maq][$fecha][$turno] = $rec;
         }
 
-         foreach ($agrupado as $maq => $fechas) {
+        foreach ($agrupado as $maq => $fechas) {
             foreach ($fechas as $fecha => $turnos) {
 
                 // Tomar registro base para copiar info fija
@@ -969,7 +973,8 @@ class ReporteDepartamentos
         return $datosMaquinas;
     }
 
-    public function getInfoPlanProduccionTNT($fechai, $fechaf){
+    public function getInfoPlanProduccionTNT($fechai, $fechaf)
+    {
         $conexion = new ClassConexion();
         $conn = $conexion->conexion('TLX004MXDB');
         $sqlQuery = "EXEC dbo.pa_PRSD_ConsultarProduccionPlanTNT_V2
@@ -984,7 +989,7 @@ class ReporteDepartamentos
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
             $idProducto = $row['Producto'];
             $clave = trim($row['clave']);
- 
+
             if (!isset($datosClaves[$idProducto][$clave])) {
                 $datosClaves[$idProducto][$clave] = [
                     "Fecha" => $row["fecha"]->format('Y-m-d'),
@@ -1004,26 +1009,165 @@ class ReporteDepartamentos
                     "DiferenciaMMC" => 0,
                 ];
             }
- 
+
             // Kg ya viene redondeado por bajada desde el SP
             // (pa_PRSD_ConsultarProduccionPlanTNT_V2), así que aquí solo
             // se suma directo. MMC y PlanProduccion sin cambios.
-            $datosClaves[$idProducto][$clave]["TotalKilos"] += (float)$row["TotalKilos"];
-            $datosClaves[$idProducto][$clave]["TotalMMC"] += (float)$row["TotalMMC"];
-            $datosClaves[$idProducto][$clave]["PlanProduccion"] += (float)$row["PlanProduccion"];
+            $datosClaves[$idProducto][$clave]["TotalKilos"] += (float) $row["TotalKilos"];
+            $datosClaves[$idProducto][$clave]["TotalMMC"] += (float) $row["TotalMMC"];
+            $datosClaves[$idProducto][$clave]["PlanProduccion"] += (float) $row["PlanProduccion"];
             $datosClaves[$idProducto][$clave]["DiferenciaMMC"] =
                 $datosClaves[$idProducto][$clave]["PlanProduccion"] -
                 $datosClaves[$idProducto][$clave]["TotalMMC"];
         }
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
- 
+
         // Reindexar para que quede como arrays normales
         foreach ($datosClaves as $producto => $claves) {
             $datosClaves[$producto] = array_values($claves);
         }
- 
+
         // echo json_encode($datosClaves, JSON_PRETTY_PRINT);
         return $datosClaves;
     }
+
+    public function getInfoParosMaquinas($departamento, $fechai, $fechaf)
+    {
+        $conexion = new ClassConexion();
+        $conn = $conexion->conexion('TLX004MXDB');
+
+        if (!$conn) {
+            $errors = sqlsrv_errors();
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(["ok" => false, "error" => "Error conectando a BD", "details" => $errors]);
+            return [];
+        }
+
+        $sqlQuery = "EXEC dbo.sp_PRSD_ReporteParosMaquinas
+                 @FechaInicio = ?,
+                 @FechaFin = ?,
+                 @NoDepto = ?";
+
+        $params = array($fechai, $fechaf, $departamento);
+        $stmt = sqlsrv_query($conn, $sqlQuery, $params);
+
+        if ($stmt === false) {
+            $errors = sqlsrv_errors();
+            sqlsrv_close($conn);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(["ok" => false, "error" => "Error ejecutando query", "details" => $errors]);
+            return [];
+        }
+
+        // Estructura: $datosMaquinas[NoMaquina][Fecha][Turno] = row
+        $datosMaquinas = [];
+
+        while ($fila = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $noMaq = $fila['NoMaquina'];
+            // Convertir fecha si viene como DateTime object
+            $fecha = is_object($fila["Fecha"])
+                ? $fila["Fecha"]->format('Y-m-d')
+                : $fila["Fecha"];
+            $turno = (int) $fila["Turno"];
+
+            // Inicializar estructura de máquina si no existe
+            if (!isset($datosMaquinas[$noMaq])) {
+                $datosMaquinas[$noMaq] = [];
+            }
+
+            // Inicializar estructura de fecha con 3 turnos vacíos
+            if (!isset($datosMaquinas[$noMaq][$fecha])) {
+                $datosMaquinas[$noMaq][$fecha] = [
+                    1 => null,
+                    2 => null,
+                    3 => null,
+                ];
+            }
+
+            // Guardar el registro en el turno correspondiente
+            $datosMaquinas[$noMaq][$fecha][$turno] = [
+                "Fecha" => $fecha,
+                "Turno" => $turno,
+                "NoDepto" => $fila["NoDepto"],
+                "NombreDepto" => $fila["NombreDepto"],
+                "NoMaquina" => $noMaq,
+                "NombreMaquina" => $fila["NombreMaquina"],
+                "MinutosTurno" => $fila["MinutosTurno"],
+                "TiempoAbajo" => $fila["TiempoAbajo"],
+                "TiempoArriba" => $fila["TiempoArriba"],
+                "ParosMaquinaTurno" => $fila["ParosMaquinaTurno"],
+                "Origen" => $fila["Origen"] ?? null,
+            ];
+        }
+
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+
+        // Si no hay datos, retornar array vacío
+        if (empty($datosMaquinas)) {
+            return [];
+        }
+
+        // Generar array AGRUPADO POR MÁQUINA - Estructura: $salida["68"] = [registros...]
+        $salida = [];
+
+        // Ordenar máquinas numéricamente
+        ksort($datosMaquinas, SORT_NUMERIC);
+
+        foreach ($datosMaquinas as $noMaq => $porFecha) {
+            // Inicializar array de registros para esta máquina
+            $registrosMaquina = [];
+
+            // Ordenar fechas
+            ksort($porFecha);
+
+            foreach ($porFecha as $fecha => $turnos) {
+                // Garantiza que existan turnos 1, 2, 3
+                for ($t = 1; $t <= 3; $t++) {
+                    if ($turnos[$t] === null) {
+                        // Turno vacío: tomar datos de referencia de otro turno
+                        $nombreMaq = null;
+                        $nombreDepto = null;
+                        $noDepto = null;
+
+                        for ($i = 1; $i <= 3; $i++) {
+                            if ($turnos[$i] !== null) {
+                                $nombreMaq = $turnos[$i]["NombreMaquina"];
+                                $nombreDepto = $turnos[$i]["NombreDepto"];
+                                $noDepto = $turnos[$i]["NoDepto"];
+                                break;
+                            }
+                        }
+
+                        // Crear registro vacío para este turno
+                        $registrosMaquina[] = [
+                            "Fecha" => $fecha,
+                            "Turno" => $t,
+                            "NoDepto" => $noDepto,
+                            "NombreDepto" => $nombreDepto,
+                            "NoMaquina" => $noMaq,
+                            "NombreMaquina" => $nombreMaq,
+                            "MinutosTurno" => 0,
+                            "TiempoAbajo" => 0,
+                            "TiempoArriba" => 0,
+                            "ParosMaquinaTurno" => 0,
+                            "Origen" => null,
+                        ];
+                    } else {
+                        // Turno con datos
+                        $registrosMaquina[] = $turnos[$t];
+                    }
+                }
+            }
+
+            // Agregar máquina al resultado (clave como string)
+            $salida[(string) $noMaq] = $registrosMaquina;
+        }
+        // echo json_encode($salida, JSON_PRETTY_PRINT);
+
+        return $salida;
+    }
+
+
 }

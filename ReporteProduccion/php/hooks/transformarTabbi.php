@@ -82,13 +82,18 @@ function transformarTabbi(array $datos, string $fecha): array
         // una por cada clave/producto trabajado en ese turno. TiempoAbajo y
         // HorasTrabajadas son valores a NIVEL TURNO (el SP los repite igual,
         // o los pone en 0 en filas duplicadas), así que se fijan una sola vez
-        // con la primera fila del turno. Pero MetrosCuadrados, KGSRechazados,
-        // PesoTotal y ML SÍ cambian por fila porque son la producción de esa
-        // clave específica dentro del turno — si se toman solo de la primera
-        // fila (como antes), se pierde la producción de las claves adicionales
-        // que comparten turno, y el acumulado de la máquina queda por debajo
-        // del real.
+        // con la primera fila del turno. 
+        //
+        // Pero MetrosCuadrados, PesoTotal y ML SÍ cambian por fila porque son 
+        // la producción de esa clave específica dentro del turno.
+        //
+        // KGSRechazados es especial: es un valor a NIVEL DE IdEncabezadoBitacora 
+        // (cierre de bitácora completo), NO por clave/producto. Si hay 3 claves 
+        // en el mismo turno, todas traen KGSRechazados = 14, pero debe contarse 
+        // UNA SOLA VEZ, no 14+14+14.
         $keyTurno = $rowFecha . '_' . $turno;
+        $idEncabezado = $row['IdEncabezadoBitacora'] ?? null;
+        
         if (!isset($agrupado[$cat][$maq]['_turnos'][$keyTurno])) {
             $agrupado[$cat][$maq]['_turnos'][$keyTurno] = [
                 'Fecha'            => $rowFecha,
@@ -99,18 +104,29 @@ function transformarTabbi(array $datos, string $fecha): array
                 'MetrosCuadrados'  => 0.0,
                 'KGSRechazados'    => 0.0,
                 'PesoTotal'        => 0.0,
+                '_EncabezadosVisto' => [],  // Track unique IdEncabezadoBitacora
             ];
         }
         $agrupado[$cat][$maq]['_turnos'][$keyTurno]['ML']              += (float)($row['MetrosLineales'] ?? 0);
         $agrupado[$cat][$maq]['_turnos'][$keyTurno]['MetrosCuadrados'] += (float)($row['MetrosCuadrados'] ?? 0);
-        $agrupado[$cat][$maq]['_turnos'][$keyTurno]['KGSRechazados']   += (float)($row['KGSRechazados'] ?? 0);
         $agrupado[$cat][$maq]['_turnos'][$keyTurno]['PesoTotal']       += (float)($row['Kilogramos'] ?? 0);
+        
+        // KGSRechazados: contar UNA SOLA VEZ por IdEncabezadoBitacora
+        if ($idEncabezado !== null && !isset($agrupado[$cat][$maq]['_turnos'][$keyTurno]['_EncabezadosVisto'][$idEncabezado])) {
+            $agrupado[$cat][$maq]['_turnos'][$keyTurno]['KGSRechazados'] += (float)($row['KGSRechazados'] ?? 0);
+            $agrupado[$cat][$maq]['_turnos'][$keyTurno]['_EncabezadosVisto'][$idEncabezado] = true;
+        } else if ($idEncabezado === null) {
+            // Si no hay IdEncabezadoBitacora, no sumar (evita duplicación)
+            // pero esto debería ser raro si el SP siempre lo retorna
+        }
     }
 
     // ── Construir turnosPorMaquina a partir de los _turnos ya agregados ──────
     // Se hace en un segundo paso (en vez de fila por fila) para que no dependa
     // de si la fila que llega primero trae HorasTrabajadas en 0 o distinto de
     // 0 — así ninguna clave se pierde por el orden en que vienen las filas del SP.
+    // KGSRechazados sigue siendo deduplicado por IdEncabezadoBitacora globalmente
+    // en toda la máquina (no por categoría), por eso se mantiene _EncabezadosVisto.
     foreach ($agrupado as $catTmp => $maquinasTmp) {
         foreach ($maquinasTmp as $maqTmp => $dataTmp) {
             $noMaqTmp = $dataTmp['NoMaquina'] ?? null;
@@ -122,15 +138,23 @@ function transformarTabbi(array $datos, string $fecha): array
             }
             foreach ($dataTmp['_turnos'] as $keyTurnoTmp => $t) {
                 if (!isset($turnosPorMaquina[$noMaqTmp][$keyTurnoTmp])) {
+                    // Primera vez que vemos este turno: copiar todo (incluyendo _EncabezadosVisto)
                     $turnosPorMaquina[$noMaqTmp][$keyTurnoTmp] = $t;
                 } else {
-                    // El mismo turno aparece agrupado bajo más de una
-                    // categoría/producto para esta máquina: sumar las
-                    // métricas por-clave, no duplicar TiempoAbajo/HorasTrabajadas.
+                    // El mismo turno aparece en más de una categoría/producto para esta máquina:
+                    // - Sumar métrica por-clave (MetrosCuadrados, PesoTotal, ML)
+                    // - KGSRechazados: solo contar IdEncabezados nuevos
                     $turnosPorMaquina[$noMaqTmp][$keyTurnoTmp]['MetrosCuadrados'] += $t['MetrosCuadrados'];
-                    $turnosPorMaquina[$noMaqTmp][$keyTurnoTmp]['KGSRechazados']   += $t['KGSRechazados'];
                     $turnosPorMaquina[$noMaqTmp][$keyTurnoTmp]['PesoTotal']       += $t['PesoTotal'];
                     $turnosPorMaquina[$noMaqTmp][$keyTurnoTmp]['ML']             += $t['ML'];
+                    
+                    // Sumar KGSRechazados solo para IdEncabezados nuevos
+                    foreach ($t['_EncabezadosVisto'] as $idEnc => $_) {
+                        if (!isset($turnosPorMaquina[$noMaqTmp][$keyTurnoTmp]['_EncabezadosVisto'][$idEnc])) {
+                            $turnosPorMaquina[$noMaqTmp][$keyTurnoTmp]['KGSRechazados'] += $t['KGSRechazados'];
+                            $turnosPorMaquina[$noMaqTmp][$keyTurnoTmp]['_EncabezadosVisto'][$idEnc] = true;
+                        }
+                    }
                 }
             }
         }
@@ -230,6 +254,13 @@ function transformarTabbi(array $datos, string $fecha): array
 
             $data['total_maquina']   = $totalMaq;
             $data['_diasTrabajados'] = $diasTrabajados;
+            
+            // Limpiar variables de control (tracking de deduplicación)
+            foreach ($data['_turnos'] as &$t) {
+                unset($t['_EncabezadosVisto']);
+            }
+            unset($t);
+            
             unset($data['_turnos']);
 
             foreach ($fechas as $f) {
@@ -270,6 +301,15 @@ function transformarTabbi(array $datos, string $fecha): array
         $maquinas['_total_operacion'] = $totalOp;
     }
     unset($maquinas);
+    
+    // Limpiar variables de control de deduplicación en turnosPorMaquina
+    foreach ($turnosPorMaquina as &$turnos) {
+        foreach ($turnos as &$t) {
+            unset($t['_EncabezadosVisto']);
+        }
+        unset($t);
+    }
+    unset($turnos);
 
     return [
         'fechas' => $fechas,
@@ -353,6 +393,7 @@ function calcularMermaTabbi(array $turnos): string
 
     $kgsRechazados = array_sum(array_column($turnos, 'KGSRechazados'));
     $pesoTotal     = array_sum(array_column($turnos, 'PesoTotal'));
-    if ($pesoTotal <= 0) return '0.00%'; // hubo producción, pero sin peso registrado
-    return number_format(($kgsRechazados / $pesoTotal) * 100, 2) . '%';
+    if ($pesoTotal <= 0) return ''; // hubo producción, pero sin peso registrado
+    // return number_format(($kgsRechazados / $pesoTotal) * 100, 2) . '%';
+    return number_format($kgsRechazados, 2) . ' KG';
 }

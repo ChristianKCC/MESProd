@@ -1514,9 +1514,9 @@ class PdfGenerator
                 $cx += $wPres;
 
                 foreach ($fechas as $f) {
-                    $v   = $producto['dias'][$f] ?? null;
-                    $txt = ($v === null || $v == 0) ? '—' : number_format((float)$v, 3, '.', ',');
-                    $this->setTextColor(($v === null || $v == 0) ? [187,187,187] : $this->cText);
+                    $v   = $producto['dias'][$f] ?? 0;
+                    $txt = $v > 0 ? number_format((float)$v, 3, '.', ',') : '—';
+                    $this->setTextColor($v > 0 ? $this->cText : [187,187,187]);
                     $this->pdf->SetFont($this->font, '', $this->fsSmall);
                     $this->pdf->SetXY($cx+0.5, $y);
                     $this->pdf->Cell($wFecha+2.14, $this->rowH, $txt, $this->border(), 0, 'C', true);

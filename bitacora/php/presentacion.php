@@ -977,149 +977,307 @@ class BitacoraElectronica
         echo json_encode($array);
     }
     function cargarPresentacionesAutomatico()
-{
-    $folio = $_POST['folio'] ?? null;
- 
-    if (!$folio) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Parámetro folio es requerido']);
-        return;
-    }
- 
-    // PASO 1: Obtener turno de tblEncabezadoBitacora
-    $Conecta = new ClassConexion();
-    $connTLX004 = $Conecta->conexion("TLX004MXDB");
-    
-    $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora 
+    {
+        $folio = $_POST['folio'] ?? null;
+
+        if (!$folio) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Parámetro folio es requerido']);
+            return;
+        }
+
+        // PASO 1: Obtener turno de tblEncabezadoBitacora
+        $Conecta = new ClassConexion();
+        $connTLX004 = $Conecta->conexion("TLX004MXDB");
+
+        $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora 
                    WHERE IdEncabezadoBItacora = ?";
-    $resultTurno = sqlsrv_query($connTLX004, $queryTurno, array($folio));
-    
-    if ($resultTurno === false) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Error al obtener turno']);
-        return;
-    }
- 
-    $rowTurno = sqlsrv_fetch_array($resultTurno, SQLSRV_FETCH_ASSOC);
-    if (!$rowTurno) {
-        http_response_code(404);
-        echo json_encode(['error' => 'Folio no encontrado']);
-        return;
-    }
- 
-    $turno = $rowTurno['Turno'];
- 
-    // PASO 2: Obtener etiquetas agrupadas por Clave
-    $queryEtiquetas = "SELECT DISTINCT Clave 
+        $resultTurno = sqlsrv_query($connTLX004, $queryTurno, array($folio));
+
+        if ($resultTurno === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener turno']);
+            return;
+        }
+
+        $rowTurno = sqlsrv_fetch_array($resultTurno, SQLSRV_FETCH_ASSOC);
+        if (!$rowTurno) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Folio no encontrado']);
+            return;
+        }
+
+        $turno = $rowTurno['Turno'];
+
+        // PASO 2: Obtener etiquetas agrupadas por Clave
+        $queryEtiquetas = "SELECT DISTINCT Clave 
                        FROM tblMXPRBitacoraEtiquetasImpresion
                        WHERE IdEncabezadoBitacora = ? AND Turno = ?
                        ORDER BY Clave ASC";
-    $resultEtiquetas = sqlsrv_query($connTLX004, $queryEtiquetas, array($folio, $turno));
-    
-    if ($resultEtiquetas === false) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Error al obtener etiquetas']);
-        return;
-    }
- 
-    $clavesEnEtiquetas = array();
-    while ($row = sqlsrv_fetch_array($resultEtiquetas, SQLSRV_FETCH_ASSOC)) {
-        $clavesEnEtiquetas[] = $row['Clave'];
-    }
- 
-    if (empty($clavesEnEtiquetas)) {
-        http_response_code(200);
-        echo json_encode(['mensaje' => 'No hay etiquetas para este folio']);
-        return;
-    }
- 
-    // PASO 3: Conectar a TLX008MXDB (donde está Hook_Enc en pruebas)
-    $connTLX008 = $Conecta->conexion("TLX008MXDB");
- 
-    // Obtener claves ya existentes en Hook_Enc para este folio
-    $queryExistentes = "SELECT DISTINCT clave, NoTabla 
+        $resultEtiquetas = sqlsrv_query($connTLX004, $queryEtiquetas, array($folio, $turno));
+
+        if ($resultEtiquetas === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener etiquetas']);
+            return;
+        }
+
+        $clavesEnEtiquetas = array();
+        while ($row = sqlsrv_fetch_array($resultEtiquetas, SQLSRV_FETCH_ASSOC)) {
+            $clavesEnEtiquetas[] = $row['Clave'];
+        }
+
+        if (empty($clavesEnEtiquetas)) {
+            http_response_code(200);
+            echo json_encode(['mensaje' => 'No hay etiquetas para este folio']);
+            return;
+        }
+
+        // PASO 3: Conectar a TLX008MXDB (donde está Hook_Enc en pruebas)
+        $connTLX008 = $Conecta->conexion("TLX008MXDB");
+
+        // Obtener claves ya existentes en Hook_Enc para este folio
+        $queryExistentes = "SELECT DISTINCT clave, NoTabla 
                         FROM tblMXPR_Produccion_Hook_Enc
                         WHERE folio = ?";
-    $resultExistentes = sqlsrv_query($connTLX008, $queryExistentes, array($folio));
-    
-    if ($resultExistentes === false) {
-        error_log("Error en cargarPresentacionesAutomatico (existentes): " . print_r(sqlsrv_errors(), true));
-    }
- 
-    $clavesExistentes = array();
-    $noTablaUsados = array();
-    while ($row = sqlsrv_fetch_array($resultExistentes, SQLSRV_FETCH_ASSOC)) {
-        $clavesExistentes[$row['clave']] = $row['NoTabla'];
-        $noTablaUsados[] = $row['NoTabla'];
-    }
- 
-    // PASO 4: Crear Hook_Enc para claves nuevas
-    $resultado = array();
-    $proxNoTabla = 1;
- 
-    foreach ($clavesEnEtiquetas as $clave) {
-        if (isset($clavesExistentes[$clave])) {
-            // La clave ya existe, solo registrar
-            $resultado[$clave] = [
-                'NoTabla' => $clavesExistentes[$clave],
-                'accion' => 'ya_existe'
-            ];
-        } else {
-            // Encontrar el próximo NoTabla disponible
-            while (in_array($proxNoTabla, $noTablaUsados) && $proxNoTabla <= 3) {
-                $proxNoTabla++;
-            }
- 
-            if ($proxNoTabla > 3) {
-                // No hay más espacios
+        $resultExistentes = sqlsrv_query($connTLX008, $queryExistentes, array($folio));
+
+        if ($resultExistentes === false) {
+            error_log("Error en cargarPresentacionesAutomatico (existentes): " . print_r(sqlsrv_errors(), true));
+        }
+
+        $clavesExistentes = array();
+        $noTablaUsados = array();
+        while ($row = sqlsrv_fetch_array($resultExistentes, SQLSRV_FETCH_ASSOC)) {
+            $clavesExistentes[$row['clave']] = $row['NoTabla'];
+            $noTablaUsados[] = $row['NoTabla'];
+        }
+
+        // PASO 4: Crear Hook_Enc para claves nuevas
+        $resultado = array();
+        $proxNoTabla = 1;
+
+        foreach ($clavesEnEtiquetas as $clave) {
+            if (isset($clavesExistentes[$clave])) {
+                // La clave ya existe, obtener idHE
+                $queryIdHE = "SELECT idHE FROM tblMXPR_Produccion_Hook_Enc 
+                        WHERE folio = ? AND clave = ?";
+                $resultIdHE = sqlsrv_query($connTLX008, $queryIdHE, array($folio, $clave));
+                $rowIdHE = sqlsrv_fetch_array($resultIdHE, SQLSRV_FETCH_ASSOC);
+
                 $resultado[$clave] = [
-                    'NoTabla' => null,
-                    'accion' => 'no_hay_espacio'
+                    'NoTabla' => $clavesExistentes[$clave],
+                    'idHE' => $rowIdHE['idHE'],  // ← AGREGAR
+                    'accion' => 'ya_existe'
                 ];
-                continue;
-            }
- 
-            // Crear registro en Hook_Enc
-            $queryInsert = "INSERT INTO tblMXPR_Produccion_Hook_Enc (folio, clave, NoTabla)
+            } else {
+                // Encontrar el próximo NoTabla disponible
+                while (in_array($proxNoTabla, $noTablaUsados) && $proxNoTabla <= 3) {
+                    $proxNoTabla++;
+                }
+
+                if ($proxNoTabla > 3) {
+                    // No hay más espacios
+                    $resultado[$clave] = [
+                        'idHE' => null,
+                        'NoTabla' => null,
+                        'accion' => 'no_hay_espacio'
+                    ];
+                    continue;
+                }
+
+                // Crear registro en Hook_Enc
+                $queryInsert = "INSERT INTO tblMXPR_Produccion_Hook_Enc (folio, clave, NoTabla)
                             OUTPUT INSERTED.idHE
                             VALUES (?, ?, ?)";
-            $resultInsert = sqlsrv_query($connTLX008, $queryInsert, array($folio, $clave, $proxNoTabla));
- 
-            if ($resultInsert === false) {
-                error_log("Error insertando Hook_Enc: " . print_r(sqlsrv_errors(), true));
+                $resultInsert = sqlsrv_query($connTLX008, $queryInsert, array($folio, $clave, $proxNoTabla));
+
+                if ($resultInsert === false) {
+                    error_log("Error insertando Hook_Enc: " . print_r(sqlsrv_errors(), true));
+                    $resultado[$clave] = [
+                        'NoTabla' => $proxNoTabla,
+                        'accion' => 'error_al_crear'
+                    ];
+                    continue;
+                }
+
+                $rowInsert = sqlsrv_fetch_array($resultInsert, SQLSRV_FETCH_ASSOC);
+                $idHE = $rowInsert['idHE'];
+
+                // PASO 5: Insertar filas en Hook_Sub para todas las horas del turno
+                $arrayHoras = $this->ConsultaHorasxturno($turno);
+                foreach ($arrayHoras as $hora) {
+                    $this->insertarSubHook($idHE, $hora['id'], $folio);
+                }
+
+                $noTablaUsados[] = $proxNoTabla;
                 $resultado[$clave] = [
                     'NoTabla' => $proxNoTabla,
-                    'accion' => 'error_al_crear'
+                    'idHE' => $idHE,
+                    'accion' => 'creado'
                 ];
+
+                $proxNoTabla++;
+            }
+        }
+
+        http_response_code(200);
+        echo json_encode([
+            'folio' => $folio,
+            'turno' => $turno,
+            'presentaciones' => $resultado
+        ]);
+    }
+    function guardarEtiquetasHook()
+    {
+        $Conecta = new ClassConexion();
+        $conn = $Conecta->conexion("TLX004MXDB");
+
+        $folio = $_POST['folio'] ?? null;           // IdEncabezadoBitacora
+        $clave = $_POST['clave'] ?? null;           // Clave
+        $idEncabezadoHook = $_POST['idEncabezadoHook'] ?? null;  // idHE de Hook_Enc
+
+        if (!$folio || !$clave || !$idEncabezadoHook) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Parámetros folio, clave e idEncabezadoHook son requeridos']);
+            return;
+        }
+
+        // PASO 1: Obtener turno
+        $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora 
+                   WHERE IdEncabezadoBItacora = ?";
+        $resultTurno = sqlsrv_query($conn, $queryTurno, array($folio));
+
+        if ($resultTurno === false) {
+            error_log("Error guardarEtiquetasHook (turno): " . print_r(sqlsrv_errors(), true));
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener turno']);
+            return;
+        }
+
+        $rowTurno = sqlsrv_fetch_array($resultTurno, SQLSRV_FETCH_ASSOC);
+        if (!$rowTurno) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Folio no encontrado']);
+            return;
+        }
+
+        $turno = $rowTurno['Turno'];
+
+        // PASO 2: Obtener etiquetas de tblMXPRBitacoraEtiquetasImpresion
+        $queryEtiquetas = "SELECT e.NumeroEtiqueta, 
+                              e.NumeroRollo, 
+                              e.MetrosLineales, 
+                              e.Clave, 
+                              e.Turno,
+                              e.Supervisor,
+                              e.DiametroSEWEmpalmeHMUFlechaA,
+                              e.DiametroSEWEmpalmeNBLFlechaA,
+                              e.DiametroSEWEmpalmeHBUFlechaA,
+                              e.Flecha,
+                              e.DiametroRolloMetros,
+                              e.DiametroSEWEmpalmeHMUFlechaB,
+                              e.DiametroSEWEmpalmeNBLFlechaB,
+                              e.DiametroSEWEmpalmeHBUFlechaB,
+                              e.FechaCaptura,
+                              tblVEC.factor
+                       FROM tblMXPRBitacoraEtiquetasImpresion e
+                       INNER JOIN TLX002MXDB.dbo.tblValeEClaves tblVEC 
+                           ON tblVEC.NoClave = CAST(e.Clave AS VARCHAR(10))
+                       WHERE e.IdEncabezadoBitacora = ? 
+                         AND e.Clave = ?
+                         AND e.Turno = ?
+                       ORDER BY e.FechaCaptura ASC";
+
+        $resultEtiquetas = sqlsrv_query($conn, $queryEtiquetas, array($folio, $clave, $turno));
+
+        if ($resultEtiquetas === false) {
+            error_log("Error guardarEtiquetasHook (etiquetas): " . print_r(sqlsrv_errors(), true));
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener etiquetas']);
+            return;
+        }
+
+        // PASO 3: Verificar cuáles ya existen y guardar solo las nuevas
+        $cantidadGuardadas = 0;
+        $cantidadDuplicadas = 0;
+        $accML = 0;      
+        $accMC = 0;      
+
+        while ($row = sqlsrv_fetch_array($resultEtiquetas, SQLSRV_FETCH_ASSOC)) {
+            // Verificar si ya existe esta etiqueta guardada
+            $queryExiste = "SELECT TOP 1 id FROM tblMXPR_Produccion_Hook_Etiquetas
+                        WHERE folio = ? AND Clave = ? AND NumeroEtiqueta = ?";
+            $resultExiste = sqlsrv_query($conn, $queryExiste, array($folio, $clave, $row['NumeroEtiqueta']));
+
+            if ($resultExiste === false) {
+                error_log("Error verificando duplicados: " . print_r(sqlsrv_errors(), true));
                 continue;
             }
- 
-            $rowInsert = sqlsrv_fetch_array($resultInsert, SQLSRV_FETCH_ASSOC);
-            $idHE = $rowInsert['idHE'];
- 
-            // PASO 5: Insertar filas en Hook_Sub para todas las horas del turno
-            $arrayHoras = $this->ConsultaHorasxturno($turno);
-            foreach ($arrayHoras as $hora) {
-                $this->insertarSubHook($idHE, $hora['id'], $folio);
+
+            $existe = sqlsrv_fetch_array($resultExiste, SQLSRV_FETCH_ASSOC);
+
+            if ($existe) {
+                // Ya existe, no guardar
+                $cantidadDuplicadas++;
+                continue;
             }
- 
-            $noTablaUsados[] = $proxNoTabla;
-            $resultado[$clave] = [
-                'NoTabla' => $proxNoTabla,
-                'accion' => 'creado'
-            ];
- 
-            $proxNoTabla++;
+
+            // Calcular MM2 = (MetrosLineales * Factor) / 1000
+            $mm2 = (floatval($row['MetrosLineales']) * floatval($row['factor'])) / 1000;
+            // Acumular
+            $accML = $accML + (floatval($row['MetrosLineales']) / 1000);
+            $accMC = $accMC + $mm2;
+
+            // Guardar etiqueta nueva
+            $queryInsert = "INSERT INTO tblMXPR_Produccion_Hook_Etiquetas 
+                (idEncabezadoHook, folio, Clave, NumeroEtiqueta, NumeroRollo, 
+                MetrosLineales, MM2, Factor, Supervisor,
+                DiametroSEWEmpalmeHMUFlechaA, DiametroSEWEmpalmeNBLFlechaA,
+                DiametroSEWEmpalmeHBUFlechaA, Flecha, DiametroRolloMetros,
+                DiametroSEWEmpalmeHMUFlechaB, DiametroSEWEmpalmeNBLFlechaB,
+                DiametroSEWEmpalmeHBUFlechaB, FechaCaptura, AccML, AccMC)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            $resultInsert = sqlsrv_query($conn, $queryInsert, array(
+                                $idEncabezadoHook,
+                                $folio,
+                                $clave,
+                                $row['NumeroEtiqueta'],
+                                $row['NumeroRollo'],
+                                floatval($row['MetrosLineales']),
+                                $mm2,
+                                floatval($row['factor']),
+                                $row['Supervisor'],
+                                floatval($row['DiametroSEWEmpalmeHMUFlechaA']),
+                                floatval($row['DiametroSEWEmpalmeNBLFlechaA']),
+                                floatval($row['DiametroSEWEmpalmeHBUFlechaA']),
+                                $row['Flecha'],
+                                floatval($row['DiametroRolloMetros']),
+                                floatval($row['DiametroSEWEmpalmeHMUFlechaB']),
+                                floatval($row['DiametroSEWEmpalmeNBLFlechaB']),
+                                floatval($row['DiametroSEWEmpalmeHBUFlechaB']),
+                                $row['FechaCaptura'],
+                                $accML,  // ← AGREGAR
+                                $accMC   // ← AGREGAR
+                            ));
+
+            if ($resultInsert === false) {
+                error_log("Error insertando etiqueta: " . print_r(sqlsrv_errors(), true));
+                continue;
+            }
+
+            $cantidadGuardadas++;
         }
+
+        http_response_code(200);
+        echo json_encode([
+            'folio' => $folio,
+            'clave' => $clave,
+            'guardadas' => $cantidadGuardadas,
+            'duplicadas' => $cantidadDuplicadas
+        ]);
     }
- 
-    http_response_code(200);
-    echo json_encode([
-        'folio' => $folio,
-        'turno' => $turno,
-        'presentaciones' => $resultado
-    ]);
-}
 }
 
 // instantiate once and reuse       
@@ -1175,4 +1333,6 @@ if (isset($_GET["savePresentacion"])) {
     $BitacoraElectronica->updateDataHook();
 } else if (isset($_GET["DeletePresentacionHook"])) {
     $BitacoraElectronica->DeletePresentacionHook();
+} else if (isset($_GET["guardarEtiquetasHook"])) {
+    $BitacoraElectronica->guardarEtiquetasHook();
 }

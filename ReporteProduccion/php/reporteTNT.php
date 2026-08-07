@@ -856,8 +856,7 @@ function pintarCuerpoCortesRechazos(
 
     }
 }
-
-function pintarMermaMaquinasTotal(
+ function pintarMermaMaquinasTotal(
     FPDF $pdf,
     float $x,
     float $y,
@@ -1925,7 +1924,7 @@ $texto = mb_convert_encoding("REPORTE DE PRODUCCIÓN TELAS NO TEJIDAS", 'ISO-885
 
 $pdf->SetXY($x + 70, $y - 8);
 $pdf->Write(10, $texto);
-$pdf->SetXY($x + 165, $y - 8);
+$pdf->SetXY($x + 160, $y - 8);
 
 $fechaInicioFormateada = formatFecha($fechai);
 $fechaFinFormateada = formatFecha($fechaf);
@@ -1933,7 +1932,7 @@ $pdf->SetFont('Arial', 'B', 5);
 $pdf->Write(10, "DE: ");
 $pdf->SetTextColor(143, 139, 139);
 $pdf->Write(10, $fechaInicioFormateada);
-$pdf->SetX($x + 183);
+$pdf->SetX($x + 178);
 $pdf->SetTextColor(65, 147, 199);
 $pdf->Write(10, "A: ");
 $pdf->SetTextColor(143, 139, 139);

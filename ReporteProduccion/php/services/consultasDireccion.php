@@ -154,6 +154,7 @@ class ReporteDiario
         }
         
         return [
+            'IdEncabezadoBitacora' => $row['IdEncabezadoBitacora'] ?? null,
             "Fecha" => $fecha,
             'Turno' => $row['Turno'],
             'NoDepto' => $row['NoDepto'],

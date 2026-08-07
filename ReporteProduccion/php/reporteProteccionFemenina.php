@@ -33,6 +33,11 @@ $dataClaves = filtrarPorFecha($dataClavesProduccion, $fechaf);
 $dataClaves = ordenarPorTurno($dataClaves);
 $dataClavesP = ordenarPorTurno($dataClavesProduccion);
 
+// Para el calculo del SATO
+$dataSatos = $departamentosObj->getInfoParosMaquinas($departamento, $fechai, $fechaf);
+$dataSD = filtrarPorFecha($dataSatos, $fechaf);
+$dataSatoDia = ordenarPorTurno($dataSD);
+$dataSatoPeriodo = ordenarPorTurno($dataSatos);
 
 // Mapa de nombres -> NoMaquina 
 $mapaNombres = construirMapaNombres($dataPeriodo);
@@ -2161,6 +2166,317 @@ function pintarOEEMaquinas(
     }
 }
 
+function pintarSATOMaquinas(
+    FPDF $pdf,
+    float $x,
+    float $y,
+    array $dataSD,                      // Datos por máquina/turno
+    array $mapaNombres,                 // Mapa de nombres a NoMaquina
+    string $campoParos = 'ParosMaquinaTurno',      // Campo de paros
+    string $campoMinutosTurno = 'MinutosTurno',    // Campo minutos
+    string $campoTiempoArriba = 'TiempoArriba',    // Denominador
+    bool $agregarAcumulado = false,
+    array $dataPeriodo = [],
+    string $campoParosPeriodo = 'ParosMaquinaTurno'
+) {
+    $rowHeight = 3.5;
+    $labelsTurno = ['TURNO 1', 'TURNO 2', 'TURNO 3'];
+    $colOffsets = [-3, 9, 19, 29, 39, 49, 59, 69, 79, 89, 99, 109, 119];
+    $colW = [12, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10];
+    $colMachines = ['MP01', 'MP03', 'MP08', 'MP09', 'MP10', 'MP11', 'MP12', 'MP13', 'MP14', 'MP15', 'MP16'];
+ 
+    $bodyStartY = $y + 3.5;
+ 
+    // Acumuladores por máquina para totales del día
+    $sumParosPorMaquina = array_fill(0, count($colMachines), 0.0);
+    $sumMinutosPorMaquina = array_fill(0, count($colMachines), 0.0);
+    $sumTiempoArribaPorMaquina = array_fill(0, count($colMachines), 0.0);
+ 
+    // Totales generales
+    $sumParosGeneral = 0.0;
+    $sumMinutosGeneral = 0.0;
+    $sumTiempoArribaGeneral = 0.0;
+ 
+    $pdf->SetFont('Arial', 'B', 4);
+ 
+    // ---------------- Turnos 1..3 ----------------
+    for ($i = 0; $i < 3; $i++) {
+        $currY = $bodyStartY + ($i * $rowHeight);
+ 
+        $pdf->SetXY($x - 3, $currY);
+        $pdf->Cell($colW[0], $rowHeight, $labelsTurno[$i], 1, 0, 'C');
+ 
+        // Totales por turno
+        $sumParosTurno = 0.0;
+        $sumMinutosTurno = 0.0;
+        $sumTiempoArribaTurno = 0.0;
+ 
+        foreach ($colMachines as $idx => $nombreMaquina) {
+            $cellX = $x + $colOffsets[$idx + 1];
+ 
+            $paros = 0.0;
+            $minutos = 0.0;
+            $tiempoArriba = 0.0;
+            $sato = 0.0;
+            $valorStr = '';
+ 
+            if (isset($mapaNombres[$nombreMaquina])) {
+                $noMaq = $mapaNombres[$nombreMaquina];
+ 
+                // Obtener valores del dataset
+                if (isset($dataSD[$noMaq][$i][$campoParos]) && is_numeric($dataSD[$noMaq][$i][$campoParos])) {
+                    $paros = (float) $dataSD[$noMaq][$i][$campoParos];
+                }
+ 
+                if (isset($dataSD[$noMaq][$i][$campoMinutosTurno]) && is_numeric($dataSD[$noMaq][$i][$campoMinutosTurno])) {
+                    $minutos = (float) $dataSD[$noMaq][$i][$campoMinutosTurno];
+                }
+ 
+                if (isset($dataSD[$noMaq][$i][$campoTiempoArriba]) && is_numeric($dataSD[$noMaq][$i][$campoTiempoArriba])) {
+                    $tiempoArriba = (float) $dataSD[$noMaq][$i][$campoTiempoArriba];
+                }
+ 
+                // Fórmula: SATO = (Paros * MinutosTurno) / TiempoArriba
+                if ($tiempoArriba > 0) {
+                    $sato = ($paros * $minutos) / $tiempoArriba;
+                    if ($sato > 0) {
+                        $valorStr = number_format($sato, 2);
+                    }
+                }
+            }
+ 
+            // Acumular para totales
+            $sumParosPorMaquina[$idx] += $paros;
+            $sumMinutosPorMaquina[$idx] += $minutos;
+            $sumTiempoArribaPorMaquina[$idx] += $tiempoArriba;
+ 
+            $sumParosTurno += $paros;
+            $sumMinutosTurno += $minutos;
+            $sumTiempoArribaTurno += $tiempoArriba;
+ 
+            $sumParosGeneral += $paros;
+            $sumMinutosGeneral += $minutos;
+            $sumTiempoArribaGeneral += $tiempoArriba;
+ 
+            // Pintar celda
+            $pdf->SetXY($cellX, $currY);
+            $pdf->Cell($colW[$idx + 1], $rowHeight, $valorStr, 1, 0, 'C');
+        }
+ 
+        // Columna TOTAL por turno
+        $pdf->SetXY($x + 119, $currY);
+        $satoTurno = 0.0;
+        $textoTotal = '';
+ 
+        if ($sumTiempoArribaTurno > 0) {
+            $satoTurno = ($sumParosTurno * $sumMinutosTurno) / $sumTiempoArribaTurno;
+            if ($satoTurno > 0) {
+                $textoTotal = number_format($satoTurno, 2);
+            }
+        }
+ 
+        $pdf->Cell($colW[12], $rowHeight, $textoTotal, 1, 0, 'C');
+    }
+ 
+    // ============= FILA PAROS DÍA (suma de los 3 turnos) =============
+    $parosDiaY = $bodyStartY + (3 * $rowHeight);
+    $pdf->SetXY($x - 3, $parosDiaY);
+    $pdf->Cell($colW[0], $rowHeight, 'PAROS DIA', 1, 0, 'C');
+ 
+    foreach ($colMachines as $idx => $nombreMaquina) {
+        $pdf->SetXY($x + $colOffsets[$idx + 1], $parosDiaY);
+ 
+        $sumParos = $sumParosPorMaquina[$idx] ?? 0.0;
+        $texto = '';
+ 
+        if ($sumParos > 0) {
+            $texto = number_format($sumParos, 0);
+        }
+ 
+        $pdf->Cell($colW[$idx + 1], $rowHeight, $texto, 1, 0, 'C');
+    }
+ 
+    // TOTAL Paros Día (General)
+    $pdf->SetXY($x + 119, $parosDiaY);
+    $textoParosGeneral = '';
+ 
+    if ($sumParosGeneral > 0) {
+        $textoParosGeneral = number_format($sumParosGeneral, 0);
+    }
+ 
+    $pdf->Cell($colW[12], $rowHeight, $textoParosGeneral, 1, 0, 'C');
+ 
+    // ============= FILA PAROS ACC (suma del período) =============
+    if (!empty($dataPeriodo)) {
+        $parosAccY = $parosDiaY + $rowHeight;
+        $pdf->SetXY($x - 3, $parosAccY);
+        $pdf->Cell($colW[0], $rowHeight, 'PAROS ACC', 1, 0, 'C');
+ 
+        // Calcular acumulados de paros del período
+        $acumParosPorMaq = array_fill(0, count($colMachines), 0.0);
+        $acumParosGeneral = 0.0;
+ 
+        foreach ($colMachines as $idx => $nombreMaquina) {
+            if (isset($mapaNombres[$nombreMaquina])) {
+                $noMaq = $mapaNombres[$nombreMaquina];
+ 
+                // Sumar todos los paros del período
+                if (isset($dataPeriodo[$noMaq])) {
+                    foreach ($dataPeriodo[$noMaq] as $registro) {
+                        if (is_numeric($registro[$campoParosPeriodo] ?? null)) {
+                            $acumParosPorMaq[$idx] += (float) $registro[$campoParosPeriodo];
+                        }
+                    }
+                }
+            }
+ 
+            $acumParosGeneral += $acumParosPorMaq[$idx];
+        }
+ 
+        // Pintar fila de PAROS ACC
+        foreach ($colMachines as $idx => $nombreMaquina) {
+            $pdf->SetXY($x + $colOffsets[$idx + 1], $parosAccY);
+ 
+            $satoAcum = $acumParosPorMaq[$idx] ?? 0.0;
+            $texto = '';
+ 
+            if ($satoAcum > 0) {
+                $texto = number_format($satoAcum, 0);
+            }
+ 
+            $pdf->Cell($colW[$idx + 1], $rowHeight, $texto, 1, 0, 'C');
+        }
+ 
+        // TOTAL Paros Acumulado (General)
+        $pdf->SetXY($x + 119, $parosAccY);
+        $textoParosAccGeneral = '';
+ 
+        if ($acumParosGeneral > 0) {
+            $textoParosAccGeneral = number_format($acumParosGeneral, 0);
+        }
+ 
+        $pdf->Cell($colW[12], $rowHeight, $textoParosAccGeneral, 1, 0, 'C');
+ 
+        // Ajustar Y para TOTAL DÍA
+        $totalDiaY = $parosAccY + $rowHeight;
+    } else {
+        // Si no hay período, TOTAL DÍA va justo después de PAROS DÍA
+        $totalDiaY = $parosDiaY + $rowHeight;
+    }
+ 
+    // ============= FILA TOTAL DÍA (suma de los 3 turnos con SATO) =============
+    $pdf->SetFillColor(230, 240, 250);
+    $pdf->SetXY($x - 3, $totalDiaY);
+    $pdf->Cell($colW[0], $rowHeight, 'TOTAL DIA', 1, 0, 'C', true);
+ 
+    foreach ($colMachines as $idx => $nombreMaquina) {
+        $pdf->SetXY($x + $colOffsets[$idx + 1], $totalDiaY);
+ 
+        $sumParos = $sumParosPorMaquina[$idx] ?? 0.0;
+        $sumMinutos = $sumMinutosPorMaquina[$idx] ?? 0.0;
+        $sumTiempoArriba = $sumTiempoArribaPorMaquina[$idx] ?? 0.0;
+ 
+        $sato = 0.0;
+        $texto = '';
+ 
+        if ($sumTiempoArriba > 0) {
+            $sato = ($sumParos * $sumMinutos) / $sumTiempoArriba;
+            if ($sato > 0) {
+                $texto = number_format($sato, 2);
+            }
+        }
+ 
+        $pdf->Cell($colW[$idx + 1], $rowHeight, $texto, 1, 0, 'C', true);
+    }
+ 
+    // TOTAL General Día
+    $pdf->SetXY($x + 119, $totalDiaY);
+    $satoGeneral = 0.0;
+    $textoGeneral = '';
+ 
+    if ($sumTiempoArribaGeneral > 0) {
+        $satoGeneral = ($sumParosGeneral * $sumMinutosGeneral) / $sumTiempoArribaGeneral;
+        if ($satoGeneral > 0) {
+            $textoGeneral = number_format($satoGeneral, 2);
+        }
+    }
+ 
+    $pdf->Cell($colW[12], $rowHeight, $textoGeneral, 1, 0, 'C', true);
+ 
+    // ============= FILA TOTAL ACUMULADO (suma del período con SATO) =============
+    if (!empty($dataPeriodo)) {
+        $acumY = $totalDiaY + $rowHeight;
+        $pdf->SetFillColor(230, 240, 250);
+        $pdf->SetXY($x - 3, $acumY);
+        $pdf->Cell($colW[0], $rowHeight, 'TOTAL ACC', 1, 0, 'C', true);
+ 
+        // Calcular acumulados del período (para SATO)
+        $acumParosPorMaq = array_fill(0, count($colMachines), 0.0);
+        $acumMinutosPorMaq = array_fill(0, count($colMachines), 0.0);
+        $acumTiempoArribaPorMaq = array_fill(0, count($colMachines), 0.0);
+ 
+        $acumParosGeneral = 0.0;
+        $acumMinutosGeneral = 0.0;
+        $acumTiempoArribaGeneral = 0.0;
+ 
+        foreach ($colMachines as $idx => $nombreMaquina) {
+            if (isset($mapaNombres[$nombreMaquina])) {
+                $noMaq = $mapaNombres[$nombreMaquina];
+ 
+                // Sumar todos los turnos del período
+                if (isset($dataPeriodo[$noMaq])) {
+                    foreach ($dataPeriodo[$noMaq] as $registro) {
+                        if (is_numeric($registro[$campoParosPeriodo] ?? null)) {
+                            $acumParosPorMaq[$idx] += (float) $registro[$campoParosPeriodo];
+                        }
+                        if (is_numeric($registro[$campoMinutosTurno] ?? null)) {
+                            $acumMinutosPorMaq[$idx] += (float) $registro[$campoMinutosTurno];
+                        }
+                        if (is_numeric($registro[$campoTiempoArriba] ?? null)) {
+                            $acumTiempoArribaPorMaq[$idx] += (float) $registro[$campoTiempoArriba];
+                        }
+                    }
+                }
+            }
+ 
+            $acumParosGeneral += $acumParosPorMaq[$idx];
+            $acumMinutosGeneral += $acumMinutosPorMaq[$idx];
+            $acumTiempoArribaGeneral += $acumTiempoArribaPorMaq[$idx];
+        }
+ 
+        // Pintar fila de acumulado SATO
+        foreach ($colMachines as $idx => $nombreMaquina) {
+            $pdf->SetXY($x + $colOffsets[$idx + 1], $acumY);
+ 
+            $satoAcum = 0.0;
+            $texto = '';
+ 
+            if ($acumTiempoArribaPorMaq[$idx] > 0) {
+                // $satoAcum = ($acumParosPorMaq[$idx] * $acumMinutosPorMaq[$idx]) / $acumTiempoArribaPorMaq[$idx];
+                $satoAcum = $acumTiempoArribaPorMaq[$idx];
+                if ($satoAcum > 0) {
+                    $texto = number_format($satoAcum, 2);
+                }
+            }
+ 
+            $pdf->Cell($colW[$idx + 1], $rowHeight, $texto, 1, 0, 'C', true);
+        }
+ 
+        // TOTAL General Acumulado
+        $pdf->SetXY($x + 119, $acumY);
+        $satoAccGeneral = 0.0;
+        $textoAccGeneral = '';
+ 
+        if ($acumTiempoArribaGeneral > 0) {
+            $satoAccGeneral = ($acumParosGeneral * $acumMinutosGeneral) / $acumTiempoArribaGeneral;
+            if ($satoAccGeneral > 0) {
+                $textoAccGeneral = number_format($satoAccGeneral, 2);
+            }
+        }
+ 
+        $pdf->Cell($colW[12], $rowHeight, $textoAccGeneral, 1, 0, 'C', true);
+    }
+}
 
 function pintarCuerpoClavesMaquinas(
     FPDF $pdf,
@@ -2480,13 +2796,13 @@ $tabla4_x = $x + 134;
 $tabla4_y = $tabla1_y + 33;
 $pdf->SetTextColor(30, 144, 227);
 $pdf->SetFont('Arial', 'B', 8);
-$pdf->SetXY($tabla4_x + 57, $tabla4_y - 12);
+$pdf->SetXY($tabla4_x + 57, $tabla4_y - 15);
 $pdf->Write(10, mb_convert_encoding("RECHAZOS", 'ISO-8859-1', 'UTF-8'));
-pintarEncabezadoTurnos($pdf, $tabla4_x, $tabla4_y - 2);
+pintarEncabezadoTurnos($pdf, $tabla4_x, $tabla4_y - 5);
 pintarCuerpoCortesRechazos(
     $pdf,
     $tabla4_x,
-    $tabla4_y - 4,
+    $tabla4_y - 7,
     $dataCRD,
     $mapaNombres,
     'Rechazos',
@@ -2526,13 +2842,13 @@ $tabla6_x = $x + 134;
 $tabla6_y = $tabla1_y + 62;
 $pdf->SetTextColor(30, 144, 227);
 $pdf->SetFont('Arial', 'B', 8);
-$pdf->SetXY($tabla6_x + 53, $tabla6_y - 12);
+$pdf->SetXY($tabla6_x + 53, $tabla6_y - 15);
 $pdf->Write(10, mb_convert_encoding("% MERMA TOTAL", 'ISO-8859-1', 'UTF-8'));
-pintarEncabezadoTurnos($pdf, $tabla6_x, $tabla6_y - 2);
+pintarEncabezadoTurnos($pdf, $tabla6_x, $tabla6_y - 5);
 pintarMermaMaquinasTotal(
     $pdf,
     $tabla6_x,
-    $tabla6_y - 4,
+    $tabla6_y - 7,
     $dataCRD,
     $mapaNombres,
     'Cortes',             // denominador
@@ -2574,13 +2890,13 @@ $tabla8_x = $x + 134;
 $tabla8_y = $tabla1_y + 100;
 $pdf->SetTextColor(30, 144, 227);
 $pdf->SetFont('Arial', 'B', 8);
-$pdf->SetXY($tabla8_x + 38, $tabla8_y - 12);
+$pdf->SetXY($tabla8_x + 38, $tabla8_y - 22);
 $pdf->Write(10, mb_convert_encoding("% MERMA EMPAQUE (PIEZAS / USTD)", 'ISO-8859-1', 'UTF-8'));
-pintarEncabezadoTurnos($pdf, $tabla8_x, $tabla8_y - 2);
+pintarEncabezadoTurnos($pdf, $tabla8_x, $tabla8_y - 12);
 pintarMermaEmpaque(
     $pdf,
     $tabla8_x,
-    $tabla8_y - 4,
+    $tabla8_y - 14,
     $dataCRD,
     $mapaNombres,
     'Cortes',             // denominador
@@ -2622,13 +2938,13 @@ $tabla10_x = $x + 134;
 $tabla10_y = $tabla1_y + 130;
 $pdf->SetTextColor(30, 144, 227);
 $pdf->SetFont('Arial', 'B', 8);
-$pdf->SetXY($tabla10_x + 45, $tabla10_y - 12);
+$pdf->SetXY($tabla10_x + 60, $tabla10_y - 25);
 $pdf->Write(10, mb_convert_encoding("OEE", 'ISO-8859-1', 'UTF-8'));
-pintarEncabezadoTurnos($pdf, $tabla10_x, $tabla10_y - 2);
+pintarEncabezadoTurnos($pdf, $tabla10_x, $tabla10_y - 16);
 pintarOEEMaquinas(
     $pdf,
     $tabla10_x,
-    $tabla10_y - 4,
+    $tabla10_y - 18,
     $dataCRD,
     $mapaNombres,
     'Cortes',             // denominador
@@ -2645,6 +2961,29 @@ pintarOEEMaquinas(
     'TiempoAbajo',
     'HorasTrabajadas'
 );
+
+//------------------------------------------ TABLA 12: SATO -----------------------------------------------
+$tabla12_x = $x + 134;
+$tabla12_y = $tabla1_y + 156;
+$pdf->SetTextColor(30, 144, 227);
+$pdf->SetFont('Arial', 'B', 8);
+$pdf->SetXY($tabla12_x + 60, $tabla12_y - 25);
+$pdf->Write(10, mb_convert_encoding("SATO", 'ISO-8859-1', 'UTF-8'));
+pintarEncabezadoTurnos($pdf, $tabla12_x, $tabla12_y - 16);
+pintarSATOMaquinas(
+    $pdf,
+    $tabla12_x,
+    $tabla12_y - 18,
+    $dataSD,                    // Datos del día (3 turnos)
+    $mapaNombres,
+    'ParosMaquinaTurno',
+    'MinutosTurno',
+    'TiempoArriba',
+    false,                      // No necesario, ignorado
+    $dataSatoPeriodo,           // ← Esto activa TOTAL ACC
+    'ParosMaquinaTurno'
+);
+
 $pdf->AddPage('P', 'Letter');
 //------------------------------------------ TABLA 11: CLAVES DE PRODUCCIÓN ----------------------------------------------------
 $tabla11_x = $x - 7;

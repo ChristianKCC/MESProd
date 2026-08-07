@@ -453,6 +453,36 @@ export class BitPresentaciones {
       const respuesta = await respuestaraw.json();
 
       if (!respuesta.presentaciones) {
+        console.log("No hay presentaciones para cargar, limpiando tablas...");
+        
+        // ✅ LIMPIAR TODAS LAS 3 TABLAS - CON VALIDACIÓN
+        for (let notbl = 1; notbl <= 3; notbl++) {
+          const selectId = "presentacion" + notbl + "Hook";
+          const btnId = "savePresentacion" + notbl + "Hook";
+          const domTable = `tblpresentacionsub${notbl}Hook`;
+          
+          // Validar y limpiar selector
+          const select = document.getElementById(selectId);
+          if (select) {
+            select.value = "";
+            select.disabled = false;
+          }
+          
+          // Validar y habilitar botón
+          const btn = document.getElementById(btnId);
+          if (btn) {
+            btn.disabled = false;
+          }
+          
+          // Validar y limpiar tabla
+          const table = document.getElementById(domTable);
+          if (table) {
+            table.innerHTML = `
+              <tr>
+                <td colspan="5" class="text-center text-muted">No hay etiquetas</td>
+              </tr>`;
+          }
+        }
         return;
       }
 
@@ -463,16 +493,22 @@ export class BitPresentaciones {
       // presentaciones es un objeto: { "3422046": {NoTabla: 1, accion: "creado"}, ... }
 
       for (const [clave, info] of Object.entries(respuesta.presentaciones)) {
-        const noTabla = info.NoTabla;
+    const noTabla = info.NoTabla;
+    const idHE = info.idHE;  // ← OBTENER
 
-        if (noTabla && noTabla >= 1 && noTabla <= 3) {
-          // Cargar la tabla correspondiente
-          const domTable = `tblpresentacionsub${noTabla}Hook`;
-          await this.tblPresentacionSubHook(folio, noTabla, domTable, clave);
-          
-          noTablaConDatos.push(noTabla);
+    if (noTabla && noTabla >= 1 && noTabla <= 3) {
+        const domTable = `tblpresentacionsub${noTabla}Hook`;
+        await this.tblPresentacionSubHook(folio, noTabla, domTable, clave);
+        
+        // ← GUARDAR ETIQUETAS EN HISTÓRICO
+        if (idHE) {
+            await this.guardarEtiquetasHook(folio, clave, idHE);
         }
-      }
+        
+        noTablaConDatos.push(noTabla);
+        console.log(`Tabla ${noTabla} cargada con clave ${clave}`);
+    }
+}
 
       // NUEVO: Limpiar las tablas que NO tienen datos en este turno
       for (let notbl = 1; notbl <= 3; notbl++) {
@@ -496,6 +532,31 @@ export class BitPresentaciones {
       console.error("Error en cargarPresentacionesAutomatico:", error);
     }
   }
+
+  async guardarEtiquetasHook(folio, clave, idEncabezadoHook) {
+  const data = new FormData();
+  data.append("folio", folio);
+  data.append("clave", clave);
+  data.append("idEncabezadoHook", idEncabezadoHook);
+ 
+  try {
+    const respuestaraw = await fetch("php/presentacion.php?guardarEtiquetasHook", {
+      method: "POST",
+      body: data,
+    });
+ 
+    if (!respuestaraw.ok) {
+      console.error("Error al guardar etiquetas:", respuestaraw.status);
+      return;
+    }
+ 
+    const respuesta = await respuestaraw.json();
+    console.log(`Etiquetas guardadas: ${respuesta.guardadas}, Duplicadas: ${respuesta.duplicadas}`);
+ 
+  } catch (error) {
+    console.error("Error en guardarEtiquetasHook:", error);
+  }
+}
 
   agregarFilaHook(idHE) {
     Swal.fire({
@@ -1120,7 +1181,7 @@ export class BitPresentaciones {
       totalML = Math.round((totalML + row.MetrosLineales) * 1000) / 1000;
 
       // Acumulativo de metros lineales en decímetros (ML / 100)
-      accML = Math.round((accML + row.MetrosLineales / 100) * 1000) / 1000;
+      accML = Math.round((accML + row.MetrosLineales / 1000) * 1000) / 1000;
 
       // MM2 = (MetrosLineales * factor) / 1000
       const mmc = (row.MetrosLineales * row.factor) / 1000;

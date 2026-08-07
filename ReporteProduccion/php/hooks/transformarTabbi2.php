@@ -192,6 +192,15 @@ function transformarTabbi(array $datos, string $fecha): array
             $totalMaq = inicializarTotalTabbi($fechas);
 
             foreach ($data['productos'] as &$producto) {
+                // v2: colapsar claves → totales a nivel PRODUCTO
+                // PdfGenerator2 espera $producto['dias'], $producto['acum'],
+                // $producto['prom'] directamente (sin nivel 'claves'), igual
+                // que la estructura que producen los transformadores de
+                // SOAR/Spooler. Se suman los días y acumulados de todas las
+                // claves del producto.
+                $prodDias = array_fill_keys($fechas, 0);
+                $prodAcum = 0;
+
                 foreach ($producto['claves'] as &$info) {
                     $info['prom'] = $diasTrabajados > 0
                         ? round($info['acum'] / $diasTrabajados, 3)
@@ -199,26 +208,43 @@ function transformarTabbi(array $datos, string $fecha): array
 
                     foreach ($fechas as $f) {
                         $totalMaq['dias'][$f] = round(($totalMaq['dias'][$f] ?? 0) + ($info['dias'][$f] ?? 0), 3);
+                        $prodDias[$f]         = round($prodDias[$f] + ($info['dias'][$f] ?? 0), 3);
                     }
                     $totalMaq['acum'] += $info['acum'] ?? 0;
+                    $prodAcum         += $info['acum'] ?? 0;
 
                     unset($info['_ultimaFecha'], $info['_ultimoTurno']);
                 }
                 unset($info);
 
-                // Filtrar claves sin datos en los 7 días
-                $producto['claves'] = array_filter(
+                // Filtrar claves: mantener si tienen acumulado del mes, aunque los 7 días no muestren registro
+                // Esto asegura que MOJAVE aparezca si tiene producción en el mes, aunque esté fuera del rango de 7 días
+                $clavesVisibles = array_filter(
                     $producto['claves'],
-                    fn($info) => array_sum(array_map(fn($v) => (float)($v ?? 0), $info['dias'])) > 0
+                    fn($info) => ($info['acum'] ?? 0) > 0
                 );
+
+                // Reemplazar estructura del producto por la v2 (plana)
+                $producto = [
+                    'dias'    => $prodDias,
+                    'acum'    => round($prodAcum, 3),
+                    'prom'    => $diasTrabajados > 0 ? round($prodAcum / $diasTrabajados, 3) : 0,
+                    '_claves' => $clavesVisibles, // solo para decidir visibilidad
+                ];
             }
             unset($producto);
 
-            // Eliminar productos sin claves
+            // Eliminar productos sin claves visibles (sin acumulado del mes)
             $data['productos'] = array_filter(
                 $data['productos'],
-                fn($p) => !empty($p['claves'])
+                fn($p) => !empty($p['_claves'])
             );
+
+            // Limpiar campo interno de visibilidad
+            foreach ($data['productos'] as &$pTmp) {
+                unset($pTmp['_claves']);
+            }
+            unset($pTmp);
 
             // Acum total de la máquina = suma de MetrosCuadrados del mes desde turnos
             $turnosAcumMC = array_filter($turnosGlobales, fn($t) => $t['Fecha'] >= $inicioMes);
