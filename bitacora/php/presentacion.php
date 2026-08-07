@@ -937,6 +937,7 @@ class BitacoraElectronica
         }
 
         // PASO 3: Buscar etiquetas en tblMXPRBitacoraEtiquetasImpresion
+        // Excluye los rollos que ya fueron confirmados como merma (esMerma = 1)
         $query = "SELECT e.NumeroRollo, 
                      e.MetrosLineales, 
                      e.Clave, 
@@ -947,9 +948,15 @@ class BitacoraElectronica
               FROM tblMXPRBitacoraEtiquetasImpresion e
               INNER JOIN TLX002MXDB.dbo.tblValeEClaves tblVEC 
                   ON tblVEC.NoClave = CAST(e.Clave AS VARCHAR(10))
+              LEFT JOIN tblMXPR_Hook_Merma m
+                  ON m.folio = e.IdEncabezadoBitacora
+                 AND m.turno = e.Turno
+                 AND m.NumeroRollo = e.NumeroRollo
+                 AND m.esMerma = 1
               WHERE e.IdEncabezadoBitacora = ? 
                 AND e.Clave = ?
                 AND e.Turno = ?
+                AND m.id IS NULL
               ORDER BY e.FechaCaptura ASC";
 
         $result = sqlsrv_query($conn, $query, array($folio, $clave, $turno));
@@ -1278,6 +1285,212 @@ class BitacoraElectronica
             'duplicadas' => $cantidadDuplicadas
         ]);
     }
+    // -------------------------------------------------------
+    // MERMA HOOK
+    // Obtiene todos los rollos con ML < 1900 del folio/turno,
+    // de las 3 claves activas, excluyendo los ya en merma.
+    // -------------------------------------------------------
+    function obtenerRollosMermaHook()
+    {
+        $folio  = $_POST['folio']  ?? null;
+
+        if (!$folio) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Parámetro folio requerido']);
+            return;
+        }
+
+        $Conecta = new ClassConexion();
+        $conn    = $Conecta->conexion("TLX004MXDB");
+
+        // Obtener turno del folio
+        $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora WHERE IdEncabezadoBItacora = ?";
+        $resTurno   = sqlsrv_query($conn, $queryTurno, array($folio));
+        if ($resTurno === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener turno']);
+            return;
+        }
+        $rowTurno = sqlsrv_fetch_array($resTurno, SQLSRV_FETCH_ASSOC);
+        if (!$rowTurno) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Folio no encontrado']);
+            return;
+        }
+        $turno = $rowTurno['Turno'];
+
+        // Obtener las claves activas del folio (hasta 3 tablas Hook)
+        $queryClaves = "SELECT clave FROM tblMXPR_Produccion_Hook_Enc WHERE folio = ?";
+        $resClaves   = sqlsrv_query($conn, $queryClaves, array($folio));
+        if ($resClaves === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener claves Hook']);
+            return;
+        }
+
+        $claves = [];
+        while ($r = sqlsrv_fetch_array($resClaves, SQLSRV_FETCH_ASSOC)) {
+            $claves[] = $r['clave'];
+        }
+
+        if (empty($claves)) {
+            // No hay presentaciones activas, retornar arreglo vacío
+            echo json_encode([]);
+            return;
+        }
+
+        // Armar placeholders dinámicos para IN (?)
+        $placeholders = implode(',', array_fill(0, count($claves), '?'));
+
+        // Consultar rollos < 1900 ML de esas claves,
+        // que NO estén ya guardados como merma (esMerma = 1)
+        $query = "SELECT 
+                    e.NumeroRollo,
+                    e.MetrosLineales,
+                    e.Clave,
+                    e.Turno,
+                    e.IdEncabezadoBitacora,
+                    tblVEC.factor,
+                    ISNULL(m.esMerma, 0) AS esMerma
+                  FROM tblMXPRBitacoraEtiquetasImpresion e
+                  INNER JOIN TLX002MXDB.dbo.tblValeEClaves tblVEC
+                      ON tblVEC.NoClave = CAST(e.Clave AS VARCHAR(10))
+                  LEFT JOIN tblMXPR_Hook_Merma m
+                      ON m.folio = e.IdEncabezadoBitacora
+                     AND m.turno = e.Turno
+                     AND m.NumeroRollo = e.NumeroRollo
+                  WHERE e.IdEncabezadoBitacora = ?
+                    AND e.Turno = ?
+                    AND e.Clave IN ($placeholders)
+                    AND e.MetrosLineales < 1900
+                  ORDER BY e.Clave ASC, e.FechaCaptura ASC";
+
+        $params = array_merge([$folio, $turno], $claves);
+        $result = sqlsrv_query($conn, $query, $params);
+
+        if ($result === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al consultar rollos', 'details' => sqlsrv_errors()]);
+            return;
+        }
+
+        $array = [];
+        while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            $mmc = (floatval($row['MetrosLineales']) * floatval($row['factor'])) / 1000;
+            $array[] = [
+                'NumeroRollo'   => intval($row['NumeroRollo']),
+                'MetrosLineales'=> floatval($row['MetrosLineales']),
+                'Clave'         => $row['Clave'],
+                'mmc'           => round($mmc, 3),
+                'esMerma'       => intval($row['esMerma']),
+            ];
+        }
+
+        http_response_code(200);
+        echo json_encode($array);
+    }
+
+    // -------------------------------------------------------
+    // Guarda la selección de merma:
+    //   - rollos con esMerma=1 → INSERT/UPDATE en tblMXPR_Hook_Merma
+    //   - rollos con esMerma=0 → los elimina de la tabla de merma
+    //     (regresan a su presentación normal automáticamente porque
+    //      obtenerEtiquetasHook no filtra por merma)
+    // Body esperado (JSON):
+    //   { folio, rollos: [{NumeroRollo, Clave, MetrosLineales, esMerma}] }
+    // -------------------------------------------------------
+    function guardarMermaHook()
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $folio  = $input['folio']  ?? null;
+        $rollos = $input['rollos'] ?? [];
+
+        if (!$folio || empty($rollos)) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Parámetros folio y rollos requeridos']);
+            return;
+        }
+
+        $Conecta = new ClassConexion();
+        $conn    = $Conecta->conexion("TLX004MXDB");
+
+        // Obtener turno
+        $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora WHERE IdEncabezadoBItacora = ?";
+        $resTurno   = sqlsrv_query($conn, $queryTurno, array($folio));
+        if ($resTurno === false) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al obtener turno']);
+            return;
+        }
+        $rowTurno = sqlsrv_fetch_array($resTurno, SQLSRV_FETCH_ASSOC);
+        if (!$rowTurno) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Folio no encontrado']);
+            return;
+        }
+        $turno = $rowTurno['Turno'];
+
+        $guardados  = 0;
+        $regresados = 0;
+        $errores    = [];
+
+        foreach ($rollos as $r) {
+            $noRollo = intval($r['NumeroRollo']);
+            $clave   = $r['Clave'];
+            $ml      = floatval($r['MetrosLineales']);
+            $esMerma = intval($r['esMerma']);
+
+            if ($esMerma === 1) {
+                // MERGE: insertar o actualizar como merma
+                $qMerge = "IF EXISTS (
+                                SELECT 1 FROM tblMXPR_Hook_Merma
+                                WHERE folio = ? AND turno = ? AND NumeroRollo = ?
+                           )
+                           UPDATE tblMXPR_Hook_Merma
+                              SET esMerma = 1, fechaGuardado = GETDATE()
+                            WHERE folio = ? AND turno = ? AND NumeroRollo = ?
+                           ELSE
+                           INSERT INTO tblMXPR_Hook_Merma
+                               (folio, turno, NumeroRollo, MetrosLineales, Clave, esMerma, fechaGuardado)
+                           VALUES (?, ?, ?, ?, ?, 1, GETDATE())";
+
+                $params = [$folio, $turno, $noRollo,
+                           $folio, $turno, $noRollo,
+                           $folio, $turno, $noRollo, $ml, $clave];
+
+                $stmt = sqlsrv_query($conn, $qMerge, $params);
+                if ($stmt === false) {
+                    $errores[] = "Error rollo $noRollo: " . print_r(sqlsrv_errors(), true);
+                } else {
+                    $guardados++;
+                }
+            } else {
+                // REGRESAR: eliminar de merma si existe
+                $qDel = "DELETE FROM tblMXPR_Hook_Merma
+                          WHERE folio = ? AND turno = ? AND NumeroRollo = ?";
+                $stmt = sqlsrv_query($conn, $qDel, [$folio, $turno, $noRollo]);
+                if ($stmt === false) {
+                    $errores[] = "Error al regresar rollo $noRollo: " . print_r(sqlsrv_errors(), true);
+                } else {
+                    $regresados++;
+                }
+            }
+        }
+
+        if (!empty($errores)) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'errores' => $errores]);
+        } else {
+            http_response_code(200);
+            echo json_encode([
+                'status'     => 'ok',
+                'guardados'  => $guardados,
+                'regresados' => $regresados,
+            ]);
+        }
+    }
+
 }
 
 // instantiate once and reuse       
@@ -1335,4 +1548,8 @@ if (isset($_GET["savePresentacion"])) {
     $BitacoraElectronica->DeletePresentacionHook();
 } else if (isset($_GET["guardarEtiquetasHook"])) {
     $BitacoraElectronica->guardarEtiquetasHook();
+} else if (isset($_GET["obtenerRollosMermaHook"])) {
+    $BitacoraElectronica->obtenerRollosMermaHook();
+} else if (isset($_GET["guardarMermaHook"])) {
+    $BitacoraElectronica->guardarMermaHook();
 }

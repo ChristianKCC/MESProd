@@ -1226,6 +1226,237 @@ export class BitPresentaciones {
     document.getElementById(domtbl).innerHTML = body;
   }
 
+  // -------------------------------------------------------
+  // MERMA HOOK
+  // Carga todos los rollos < 1900 ML del folio (de las 3 claves)
+  // y renderiza la tabla de merma con checkboxes.
+  // -------------------------------------------------------
+  async cargarTablaMermaHook(folio, silencioso = false) {
+    const tbody = document.getElementById("tblMermaHookBody");
+    const resumen = document.getElementById("mermaHookResumen");
+    if (!tbody) return;
+
+    if (!folio) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Sin folio activo</td></tr>`;
+      return;
+    }
+
+    // Solo mostrar spinner en la carga inicial, no en el refresh automático
+    if (!silencioso) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center"><span class="spinner-border spinner-border-sm"></span> Cargando...</td></tr>`;
+    }
+
+    const data = new FormData();
+    data.append("folio", folio);
+
+    try {
+      const res = await fetch("php/presentacion.php?obtenerRollosMermaHook", {
+        method: "POST",
+        body: data,
+      });
+
+      if (!res.ok) {
+        if (!silencioso)
+          tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">Error al cargar rollos</td></tr>`;
+        return;
+      }
+
+      const rollos = await res.json();
+
+      if (!Array.isArray(rollos) || rollos.length === 0) {
+        // En refresh silencioso: solo actualizar si la tabla estaba vacía antes
+        if (!silencioso || tbody.querySelector(".chk-merma") === null) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No hay rollos con ML &lt; 1900 en este turno</td></tr>`;
+          if (resumen) resumen.textContent = "";
+        }
+        return;
+      }
+
+      // En refresh silencioso: comparar rollos actuales vs nuevos por número de rollo
+      // Si no hay cambio en la cantidad, no re-renderizar para no perder los checks del usuario
+      if (silencioso) {
+        const rollosActuales = Array.from(tbody.querySelectorAll("tr[data-rollo]"))
+          .map((tr) => parseInt(tr.dataset.rollo));
+        const rollosNuevos = rollos.map((r) => r.NumeroRollo);
+        const mismos =
+          rollosActuales.length === rollosNuevos.length &&
+          rollosNuevos.every((n) => rollosActuales.includes(n));
+        if (mismos) return; // Sin cambios — no tocar el DOM
+      }
+
+      // Preservar estado de checks antes de re-renderizar
+      const checksAnteriores = {};
+      tbody.querySelectorAll(".chk-merma").forEach((chk) => {
+        checksAnteriores[chk.dataset.rollo] = chk.checked;
+      });
+
+      let html = "";
+      rollos.forEach((r) => {
+        const bloqueado = r.esMerma === 1;
+
+        // Si ya es merma confirmada → bloqueado y siempre checked
+        // Si no → respetar el check previo del usuario en pantalla
+        const checkedPrev = bloqueado
+          ? true
+          : checksAnteriores.hasOwnProperty(r.NumeroRollo)
+            ? checksAnteriores[r.NumeroRollo]
+            : false;
+
+        const checked   = checkedPrev ? "checked" : "";
+        const disabled  = bloqueado ? "disabled" : "";
+        const rowClass  = bloqueado
+          ? "table-danger"         // rojo = merma confirmada, no editable
+          : checkedPrev
+            ? "table-warning"      // amarillo = seleccionado pero aún no guardado
+            : "";
+
+        const badgeMerma = bloqueado
+          ? `<span class="badge bg-danger ms-1" title="Ya guardado como merma"><i class="fas fa-lock"></i></span>`
+          : "";
+
+        html += `
+          <tr class="${rowClass}" data-rollo="${r.NumeroRollo}" data-clave="${r.Clave}" data-ml="${r.MetrosLineales}">
+            <td>
+              <input type="checkbox" class="form-check-input chk-merma" ${checked} ${disabled}
+                     data-rollo="${r.NumeroRollo}" data-clave="${r.Clave}" data-ml="${r.MetrosLineales}"
+                     data-bloqueado="${bloqueado ? '1' : '0'}">
+            </td>
+            <td>${r.NumeroRollo} ${badgeMerma}</td>
+            <td>${r.MetrosLineales}</td>
+            <td>${r.mmc}</td>
+            <td><span class="badge ${r.Clave ? 'bg-primary' : 'bg-secondary'}">${r.Clave ?? "-"}</span></td>
+          </tr>`;
+      });
+
+      tbody.innerHTML = html;
+      this._actualizarResumenMerma();
+
+      // Actualizar resumen al marcar/desmarcar
+      tbody.querySelectorAll(".chk-merma").forEach((chk) => {
+        chk.addEventListener("change", () => {
+          const row = chk.closest("tr");
+          row.classList.toggle("table-warning", chk.checked);
+          this._actualizarResumenMerma();
+        });
+      });
+
+    } catch (err) {
+      console.error("Error cargarTablaMermaHook:", err);
+      if (!silencioso)
+        tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">Error inesperado</td></tr>`;
+    }
+  }
+
+  _actualizarResumenMerma() {
+    const resumen = document.getElementById("mermaHookResumen");
+    if (!resumen) return;
+
+    const todos    = document.querySelectorAll(".chk-merma:checked");
+    // Separar bloqueados (ya en BD) de pendientes (selección actual del usuario)
+    const bloqueados = Array.from(todos).filter((c) => c.dataset.bloqueado === "1");
+    const pendientes = Array.from(todos).filter((c) => c.dataset.bloqueado === "0");
+
+    const mlPendiente = pendientes.reduce((acc, c) => acc + parseFloat(c.dataset.ml || 0), 0);
+
+    let texto = "";
+    if (bloqueados.length > 0)
+      texto += `${bloqueados.length} en merma · `;
+    if (pendientes.length > 0)
+      texto += `${pendientes.length} seleccionado(s) — ${mlPendiente.toFixed(1)} ML`;
+    if (!texto)
+      texto = "Sin selección";
+
+    resumen.textContent = texto;
+  }
+
+  async guardarMermaHook(folio) {
+    const checks = document.querySelectorAll("#tblMermaHookBody .chk-merma");
+    if (checks.length === 0) return;
+
+    // Solo procesar rollos NO bloqueados (los bloqueados ya están en BD)
+    const rollos = Array.from(checks)
+      .filter((chk) => chk.dataset.bloqueado !== "1")
+      .map((chk) => ({
+        NumeroRollo   : parseInt(chk.dataset.rollo),
+        Clave         : chk.dataset.clave,
+        MetrosLineales: parseFloat(chk.dataset.ml),
+        esMerma       : chk.checked ? 1 : 0,
+      }));
+
+    // Si no hay nada editable que procesar, no hacer nada
+    if (rollos.length === 0) {
+      Swal.fire({
+        title: "Sin cambios",
+        text : "Todos los rollos ya están guardados como merma.",
+        icon : "info",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    const seleccionados = rollos.filter((r) => r.esMerma === 1).length;
+    const regresados    = rollos.filter((r) => r.esMerma === 0).length;
+
+    // No tiene sentido guardar si no hay ningún rollo marcado para merma
+    if (seleccionados === 0) {
+      Swal.fire({
+        title: "Sin selección",
+        text : "Selecciona al menos un rollo para enviar a merma.",
+        icon : "info",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    const confirm = await Swal.fire({
+      title: "¿Confirmar merma?",
+      html : `Se enviarán <b>${seleccionados}</b> rollo(s) a merma.<br>
+              ${regresados > 0 ? `<b>${regresados}</b> rollo(s) regresarán a sus presentaciones.` : ""}`,
+      icon : "warning",
+      showCancelButton  : true,
+      confirmButtonText : "Sí, guardar",
+      cancelButtonText  : "Cancelar",
+      confirmButtonColor: "#d33",
+      cancelButtonColor : "#6c757d",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await fetch("php/presentacion.php?guardarMermaHook", {
+        method : "POST",
+        headers: { "Content-Type": "application/json" },
+        body   : JSON.stringify({ folio, rollos }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.status === "error") {
+        Swal.fire("Error", "No se pudo guardar la merma", "error");
+        return;
+      }
+
+      Swal.fire({
+        title: "Guardado",
+        html : `<b>${result.guardados}</b> rollo(s) a merma<br>
+                <b>${result.regresados}</b> rollo(s) regresados a presentación`,
+        icon : "success",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+
+      // Recargar tabla de merma y las 3 tablas Hook
+      await this.cargarTablaMermaHook(folio);
+      await this.recargarTblPresentacionSubHook();
+
+    } catch (err) {
+      console.error("Error guardarMermaHook:", err);
+      Swal.fire("Error", "Error inesperado al guardar", "error");
+    }
+  }
+
   getCellValueHook(cell) {
     const folio = document.getElementById("folio").value;
     const row = cell.parentNode;

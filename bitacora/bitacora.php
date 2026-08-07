@@ -57,57 +57,69 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
             transition: none;
         }
     }
-     .tabla-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        .table {
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .table-header-kc {
-            background-color: #002B75 !important;
-            color: white !important;
-            font-weight: 600;
-            text-align: center;
-            border: none;
-            padding: 12px 8px;
-        }
-        .table thead tr:first-child th:first-child {
-            border-top-left-radius: 8px;
-        }
-        .table thead tr:first-child th:last-child {
-            border-top-right-radius: 8px;
-        }
-        .table-striped > tbody > tr:nth-of-type(odd) {
-            background-color: #f9f9f9;
-        }
-        .table-striped > tbody > tr:hover {
-            background-color: #e8f0ff;
-        }
-        tbody tr td {
-            vertical-align: middle;
-            padding: 12px 8px;
-            text-align: center;
-            border-color: #e0e0e0;
-        }
-        .row-total {
-            background-color: #e8e8e8 !important;
-            color: #333;
-            font-weight: 700;
-        }
-        .row-total td {
-            color: #333;
-            border-color: #e8e8e8;
-        }
-        .table tbody tr:last-child td:first-child {
-            border-bottom-left-radius: 8px;
-        }
-        .table tbody tr:last-child td:last-child {
-            border-bottom-right-radius: 8px;
-        }
+
+    .tabla-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .table {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table-header-kc {
+        background-color: #002B75 !important;
+        color: white !important;
+        font-weight: 600;
+        text-align: center;
+        border: none;
+        padding: 12px 8px;
+    }
+
+    .table thead tr:first-child th:first-child {
+        border-top-left-radius: 8px;
+    }
+
+    .table thead tr:first-child th:last-child {
+        border-top-right-radius: 8px;
+    }
+
+    .table-striped>tbody>tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+
+    .table-striped>tbody>tr:hover {
+        background-color: #e8f0ff;
+    }
+
+    tbody tr td {
+        vertical-align: middle;
+        padding: 12px 8px;
+        text-align: center;
+        border-color: #e0e0e0;
+    }
+
+    .row-total {
+        background-color: #e8e8e8 !important;
+        color: #333;
+        font-weight: 700;
+    }
+
+    .row-total td {
+        color: #333;
+        border-color: #e8e8e8;
+    }
+
+    .table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 8px;
+    }
+
+    .table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 8px;
+    }
 </style>
 
 <link rel="stylesheet" href="./css/estilosWR.css">
@@ -231,7 +243,16 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                 </div>
             </div>
         </div>
-
+        <div class="row">
+            <div class="col-6"><small>Horas trabajadas</small></div>
+            <div class="col-9">
+                <input type="number" id="horaNuevoParo" class="form-control form-control-sm" style="width: 25%;" step="0.5" min="0"
+                    max="8.5">
+            </div>
+            <div class="col-3" style="width: 25%;">
+                <button class="btn btn-sm bg-target" id="guardarHorasTrabajadas"><i class="fas fa-save"></i></button>
+            </div>
+        </div>
         <div class="row">
             <!-- Otras areas -->
             <div id="paginaAreas" class="col-10" style="width: 80%;">
@@ -549,9 +570,9 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
             </div>
             <!--  Fin Spooler -->
             <!-- Hookmesh-->
-            <div id="paginaHook" class="col-10" style="width: 80%;">
+            <div id="paginaHook" class="col-10 m-3 tabla-container" style="width: 98%;">
                 <div class="row">
-                    <div class="col-4" style="width: 32%;">
+                    <div class="col-3">
                         <div class="row">
                             <div class="col-9"><small>Presentacion</small><select class="form-control form-control-sm"
                                     id="presentacion1Hook"></select></div>
@@ -572,7 +593,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             </div>
                         </div>
                     </div>
-                    <div class="col-4" style="width: 32%;">
+                    <div class="col-3">
                         <div class="row">
                             <div class="col-9"><small>Presentacion</small><select class="form-control form-control-sm"
                                     id="presentacion2Hook"></select></div>
@@ -593,7 +614,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             </div>
                         </div>
                     </div>
-                    <div class="col-4" style="width: 32%;">
+                    <div class="col-3">
                         <div class="row">
                             <div class="col-9"><small>Presentacion</small><select class="form-control form-control-sm"
                                     id="presentacion3Hook"></select></div>
@@ -614,22 +635,58 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             </div>
                         </div>
                     </div>
+                    <!-- ================================================ -->
+                    <!-- TABLA DE MERMA HOOK                              -->
+                    <!-- Rollos con ML < 1900 de todas las presentaciones -->
+                    <!-- ================================================ -->
+
+                    <div class="col-3" id="seccionMermaHook">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="mb-0" style="color:#002B75;">
+                                    <i class="fas fa-recycle me-1"></i> Rollos candidatos a merma
+                                    <small class="text-muted ms-2" style="font-size:0.75rem;">(ML &lt; 1900)</small>
+                                </h6>
+                                <span id="mermaHookResumen" class="text-muted" style="font-size:0.82rem;"></span>
+                            </div>
+                            <div class="table-responsive" style="max-height: 260px;">
+                                <table class="table table-sm table-striped table-hover border mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="table-header-kc" style="width:40px;">
+                                                <i class="fas fa-check-square"></i>
+                                            </th>
+                                            <th class="table-header-kc"># Rollo</th>
+                                            <th class="table-header-kc">ML</th>
+                                            <th class="table-header-kc">MM²</th>
+                                            <th class="table-header-kc">Clave</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tblMermaHookBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                Carga un folio para ver los rollos
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-2 text-end">
+                                <button class="btn btn-sm btn-danger" id="btnGuardarMermaHook" disabled>
+                                    <i class="fas fa-save me-1"></i> Guardar merma
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
 
                 </div>
             </div>
 
+
+            <!-- FIN TABLA DE MERMA HOOK -->
+
             <div class="col-2" style="width: 15%;">
-                <div class="row">
-                    <div class="col-12"><small>Horas trabajadas</small></div>
-                    <div class="col-8">
-                        <input type="number" id="horaNuevoParo" class="form-control form-control-sm" step="0.5" min="0"
-                            max="8.5">
-                    </div>
-                    <div class="col-3">
-                        <button class="btn btn-sm bg-target" id="guardarHorasTrabajadas"><i
-                                class="fas fa-save"></i></button>
-                    </div>
-                </div>
                 <div class="row" id="golpesMaquinaBitacora">
                     <div class="table-responsive my-2" style="height: 280px;">
                         <table id="sumTable" class="table table-bordered">
@@ -674,28 +731,9 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                     </div>
                 </div>
             </div>
-            <div class="row" id="rechazosHook">
-                <div class="col-2 offset-10" id="rechazosHookSeccion">
-                    <div class="row">
-                        <div class="col-12"><small>Golpes Totales</small></div>
-                        <div class="col-8">
-                            <input type="number" id="golpesHook" class="form-control form-control-sm" min="0">
-                        </div>
-                        <div class="col-3">
-                            <button class="btn btn-sm bg-target" id="guardarRechazosHook"><i
-                                    class="fas fa-save"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
-
-
     </section>
-
-
-
 
     <!-- Modal Asistencias-->
     <div class="modal fade" id="asistenciasModal" tabindex="-1" aria-labelledby="asistenciasModalLabel"

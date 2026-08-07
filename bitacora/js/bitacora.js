@@ -358,9 +358,28 @@ class Bitacorastart {
         ),
       ),
     ]);
+
+    // Cargar tabla de merma (rollos < 1900 ML)
+    await Presentaciones.cargarTablaMermaHook(folio);
+
+    // Habilitar botón Guardar merma (solo si hay folio activo)
+    const btnMerma = document.getElementById("btnGuardarMermaHook");
+    if (btnMerma) {
+      btnMerma.disabled = false;
+      // Limpiar listener previo para evitar duplicados en recarga de turno
+      const btnMermaNew = btnMerma.cloneNode(true);
+      btnMerma.parentNode.replaceChild(btnMermaNew, btnMerma);
+      btnMermaNew.addEventListener("click", () => {
+        Presentaciones.guardarMermaHook(folio);
+      });
+    }
+
     // Refrescar tablas cada 10 segundos
+    // La merma usa modo silencioso: no parpadea y respeta los checks del usuario,
+    // pero sí detecta rollos nuevos que lleguen después de registrar la clave
     window.hookRefreshInterval = setInterval(() => {
       Presentaciones.cargarPresentacionesAutomatico(folio);
+      Presentaciones.cargarTablaMermaHook(folio, true);
     }, 10000); // 10 segundos
   }
 
@@ -955,7 +974,6 @@ Bitacorastart.abrirturno().then((ses) => {
 if(ses === 67){
   Bitacorastart.mainHook(folio);
     show("paginaHook");
-    show("rechazosHook");
     hide("pagina1telas");
     hide("paginaAreas");
     hide("rechazosAreas");
@@ -973,7 +991,6 @@ if(ses === 67){
     hide("golpesMaquinaBitacora");
     hide("paginaSpooler");
     hide("paginaWR");
-    hide("rechazosHook");
 } else if(ses === 87 || ses === 88 || ses === 89) {
     Bitacorastart.init();
     hide("paginaAreas");
@@ -984,7 +1001,6 @@ if(ses === 67){
     show("paginaSpooler");
     hide("paginaWR");
     hide("paginaHook");
-    hide("rechazosHook");
 } else if(ses === 136) {
     Bitacorastart.main(folio);
     hide("paginaAreas");
@@ -995,7 +1011,6 @@ if(ses === 67){
     hide("paginaSpooler");    
     show("paginaWR");
     hide("paginaHook");
-    hide("rechazosHook");
 } else {
     Bitacorastart.main(folio);
     show("paginaAreas");
@@ -1006,7 +1021,6 @@ if(ses === 67){
     hide("paginaSpooler");
     hide("paginaWR");
     hide("paginaHook");
-    hide("rechazosHook");
 }
 
 
@@ -2313,24 +2327,6 @@ document
     });
   });
 
-  document
-  .getElementById("guardarRechazosHook")
-  .addEventListener("click", (e) => {
-    e.preventDefault();
-    const folio = document.getElementById("folio").value;
-    const golpesHook = document.getElementById("golpesHook").value;
-    Bitacorastart.guardarKgRechazados(folio, golpesHook).then(() => {
-      Swal.fire({
-        icon: "success",
-        title: "Exito",
-        text: "Se han guardado los golpes correctamente.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    });
-  });
-
-
 
 // NUEVAS FUNCIONES SPOOLER
 
@@ -2348,4 +2344,3 @@ document
 // document.addEventListener("DOMContentLoaded", () => {
 //   cambiarPresentacion(1);
 // });
-
