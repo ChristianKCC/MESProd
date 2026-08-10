@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Certificados - Workflow Multi-Etapa</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .main-container {
+            padding: 2rem 0;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #dee2e6;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-bottom: -2px;
+        }
+
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-custom {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-in-progress { background-color: #cfe2ff; color: #084298; }
+        .status-approved { background-color: #d1e7dd; color: #0f5132; }
+        .status-rejected { background-color: #f8d7da; color: #842029; }
+        .status-complete { background-color: #d1e7dd; color: #0f5132; }
+
+        .table-responsive-custom {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        table td {
+            vertical-align: middle;
+            padding: 1rem;
+        }
+
+        table tbody tr {
+            border-bottom: 1px solid #dee2e6;
+            transition: background-color 0.2s ease;
+        }
+
+        table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            margin: 0.25rem;
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #212529;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 1rem;
+        }
+
+        .form-field-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-field-group label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-field-group input,
+        .form-field-group textarea,
+        .form-field-group select {
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-field-group input:focus,
+        .form-field-group textarea:focus,
+        .form-field-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .workflow-steps {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .step-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid #dee2e6;
+        }
+
+        .step-box.complete {
+            background-color: #d1e7dd;
+            border-color: var(--success-color);
+            color: #0f5132;
+        }
+
+        .step-box.pending {
+            background-color: #fff3cd;
+            border-color: var(--warning-color);
+            color: #856404;
+        }
+
+        .step-box.in-progress {
+            background-color: #cfe2ff;
+            border-color: var(--info-color);
+            color: #084298;
+        }
+
+        .step-box.locked {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #6c757d;
+            opacity: 0.6;
+        }
+
+        .step-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-status {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .modal-custom .modal-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+            color: white;
+        }
+
+        .modal-custom .modal-title {
+            font-weight: 600;
+        }
+
+        .approval-card {
+            background: white;
+            border-left: 4px solid var(--info-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .approval-info {
+            font-size: 0.95rem;
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+
+        .approval-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .certificate-preview {
+            background: #f9f6f1;
+            border: 1px solid #d4c9bb;
+            border-radius: 8px;
+            padding: 2rem;
+            font-family: 'Georgia', serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .certificate-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .certificate-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .certificate-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .certificate-content {
+            font-size: 0.95rem;
+        }
+
+        .certificate-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .certificate-label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .split-screen {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .split-screen {
+                grid-template-columns: 1fr;
+            }
+
+            .certificate-preview {
+                position: sticky;
+                top: 20px;
+            }
+        }
+
+        .alert-custom {
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid transparent;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .role-selector {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .role-selector-label {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .no-data i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .badge-estado {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container-lg">
+            <span class="navbar-brand">
+                <i class="fas fa-certificate"></i> Sistema de Certificados
+            </span>
+            <span class="navbar-text text-white ms-auto">
+                <i class="fas fa-user-circle"></i> <span id="current-user">Usuario</span>
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-lg main-container">
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <button class="tab-button active" onclick="switchTab('registros')">
+                <i class="fas fa-table"></i> Registros
+            </button>
+            <button class="tab-button" onclick="switchTab('mis-tareas')">
+                <i class="fas fa-tasks"></i> Mis Tareas
+            </button>
+            <button class="tab-button" onclick="switchTab('certificados')">
+                <i class="fas fa-file-pdf"></i> Certificados
+            </button>
+        </div>
+
+        <!-- TAB: REGISTROS -->
+        <div id="registros" class="tab-content active">
+            <div class="table-responsive-custom">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Fecha</th>
+                            <th>Categoría</th>
+                            <th>Producto</th>
+                            <th>Clave</th>
+                            <th>Descripción</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registros-table">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: MIS TAREAS -->
+        <div id="mis-tareas" class="tab-content">
+            <div class="role-selector">
+                <div class="role-selector-label">
+                    <i class="fas fa-user-tag"></i> Selecciona tu rol:
+                </div>
+                <select id="rol-select" class="form-select" onchange="cambiarRol()">
+                    <option value="inspeccion">👁️ Técnico - Inspección</option>
+                    <option value="fisicoquimico">🧪 Técnico - Lab. Fisicoquímico</option>
+                    <option value="microbiologia">🦠 Técnico - Lab. Microbiología</option>
+                    <option value="supervisor-inspeccion">✓ Supervisor - Inspección</option>
+                    <option value="supervisor-fisicoquimico">✓ Supervisor - Fisicoquímico</option>
+                    <option value="supervisor-microbiologia">✓ Supervisor - Microbiología</option>
+                    <option value="gerente-tecnico">📋 Gerente Técnico</option>
+                </select>
+            </div>
+            <div id="mis-tareas-content">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TAB: CERTIFICADOS -->
+        <div id="certificados" class="tab-content">
+            <div id="certificados-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Formularios -->
+    <div class="modal fade modal-custom" id="formularioModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="formularioTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="formularioContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="guardarFormularioBtn" onclick="guardarFormulario()">
+                        <i class="fas fa-save"></i> Guardar y Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Certificado Preview -->
+    <div class="modal fade modal-custom" id="certificadoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Preview del Certificado</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="certificadoPreview" class="certificate-preview"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="descargarPdfBtn" onclick="descargarPDF()">
+                        <i class="fas fa-download"></i> Descargar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // ==================== STATE MANAGEMENT ====================
+        const state = {
+            registros: [
+                { folio: 'FOL-2026-001', fecha: '2026-08-01', categoria: 'Bebidas', producto: 'Agua Purificada', clave: 'AGP-001', descripcion: 'Agua destilada premium', estatusInspeccion: 'pending', estatusFisico: 'pending', estatusMicro: 'pending', certificado: null },
+                { folio: 'FOL-2026-002', fecha: '2026-08-02', categoria: 'Alimentos', producto: 'Yogurt Natural', clave: 'YOG-001', descripcion: 'Yogurt con cultivos lácticos', estatusInspeccion: 'pending', estatusFisico: 'pending', estatusMicro: 'pending', certificado: null },
+                { folio: 'FOL-2026-003', fecha: '2026-08-03', categoria: 'Lácteos', producto: 'Queso Fresco', clave: 'QUE-001', descripcion: 'Queso fresco hecho a mano', estatusInspeccion: 'approved', estatusFisico: 'approved', estatusMicro: 'pending', certificado: null },
+            ],
+            formularios: {},
+            rolActual: 'inspeccion',
+            formularioActual: { idx: null, tipo: null, datos: {} }
+        };
+
+        // ==================== INICIALIZACIÓN ====================
+        function inicializar() {
+            state.registros.forEach((_, i) => {
+                state.formularios[i] = state.formularios[i] || {
+                    inspeccion: { supervisor: 'Dr. Juan Rodríguez', estado: 'pending', datos: null },
+                    fisicoquimico: { supervisor: 'Dra. María López', estado: 'pending', datos: null },
+                    microbiologia: { supervisor: 'Dr. Carlos Ruiz', estado: 'pending', datos: null },
+                };
+            });
+            renderRegistros();
+            cambiarRol();
+        }
+
+        // ==================== TAB NAVIGATION ====================
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            document.querySelector(`button[onclick="switchTab('${tab}')"]`).classList.add('active');
+            
+            if (tab === 'registros') renderRegistros();
+            if (tab === 'mis-tareas') renderMisTareas();
+            if (tab === 'certificados') renderCertificados();
+        }
+
+        // ==================== RENDER REGISTROS ====================
+        function renderRegistros() {
+            const table = document.getElementById('registros-table');
+            table.innerHTML = '';
+            
+            state.registros.forEach((reg, idx) => {
+                const completado = reg.estatusInspeccion === 'approved' && reg.estatusFisico === 'approved' && reg.estatusMicro === 'approved';
+                const microDisabled = reg.estatusInspeccion !== 'approved' || reg.estatusFisico !== 'approved';
+                
+                const getStatusIcon = (status) => {
+                    switch(status) {
+                        case 'pending': return '<i class="fas fa-circle-notch"></i>';
+                        case 'in-progress': return '<i class="fas fa-spinner fa-spin"></i>';
+                        case 'approved': return '<i class="fas fa-check-circle" style="color: #198754;"></i>';
+                        case 'rejected': return '<i class="fas fa-times-circle" style="color: #dc3545;"></i>';
+                        default: return '';
+                    }
+                };
+                
+                const statusHTML = `
+                    <div class="mb-2">
+                        <span class="badge-estado status-${reg.estatusInspeccion}">
+                            ${getStatusIcon(reg.estatusInspeccion)} 🔍 Inspección
+                        </span>
+                        <span class="badge-estado status-${reg.estatusFisico}">
+                            ${getStatusIcon(reg.estatusFisico)} 🧪 Físico-Q
+                        </span>
+                        <span class="badge-estado status-${reg.estatusMicro}">
+                            ${getStatusIcon(reg.estatusMicro)} 🦠 Micro
+                        </span>
+                        ${completado ? '<span class="badge-estado status-complete"><i class="fas fa-certificate"></i> CERTIFICADO</span>' : ''}
+                    </div>
+                `;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${reg.folio}</strong></td>
+                    <td>${reg.fecha}</td>
+                    <td>${reg.categoria}</td>
+                    <td>${reg.producto}</td>
+                    <td><code>${reg.clave}</code></td>
+                    <td><small>${reg.descripcion}</small></td>
+                    <td>${statusHTML}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary btn-action" onclick="abrirFormulario(${idx}, 'inspeccion')" ${reg.estatusInspeccion !== 'pending' ? 'disabled' : ''}>
+                            <i class="fas fa-edit"></i> Insp.
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary btn-action" onclick="abrirFormulario(${idx}, 'fisicoquimico')" ${reg.estatusFisico !== 'pending' ? 'disabled' : ''}>
+                            <i class="fas fa-edit"></i> Físico
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary btn-action" onclick="abrirFormulario(${idx}, 'microbiologia')" ${reg.estatusMicro !== 'pending' || microDisabled ? 'disabled' : ''}>
+                            <i class="fas fa-edit"></i> Micro
+                        </button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        // ==================== FORMULARIOS ====================
+        const camposFormulario = {
+            inspeccion: [
+                { name: 'condicion_envase', label: 'Condición de Envase', type: 'select', options: ['Íntegro', 'Dañado', 'Parcialmente dañado'] },
+                { name: 'temperatura_almacen', label: 'Temperatura de Almacén (°C)', type: 'number', step: '0.1' },
+                { name: 'etiquetado_completo', label: 'Etiquetado Completo', type: 'select', options: ['Sí', 'No'] },
+                { name: 'observaciones', label: 'Observaciones', type: 'textarea' }
+            ],
+            fisicoquimico: [
+                { name: 'ph_medido', label: 'pH Medido', type: 'number', step: '0.1' },
+                { name: 'densidad', label: 'Densidad (g/cm³)', type: 'number', step: '0.001' },
+                { name: 'humedad', label: 'Humedad (%)', type: 'number', step: '0.1' },
+                { name: 'dentro_especificacion', label: 'Resultados Dentro de Especificación', type: 'select', options: ['Sí', 'No'] },
+                { name: 'observaciones', label: 'Observaciones', type: 'textarea' }
+            ],
+            microbiologia: [
+                { name: 'mesofilos', label: 'Recuento Mesófilos (UFC/mL)', type: 'number' },
+                { name: 'coliformes', label: 'Coliformes Totales (UFC/mL)', type: 'number' },
+                { name: 'ecoli', label: 'E. coli (UFC/mL)', type: 'number' },
+                { name: 'cumple_especificaciones', label: 'Cumple Especificaciones', type: 'select', options: ['Sí', 'No'] },
+                { name: 'observaciones', label: 'Observaciones', type: 'textarea' }
+            ]
+        };
+
+        function abrirFormulario(idx, tipo) {
+            state.formularioActual = { idx, tipo, datos: {} };
+            const reg = state.registros[idx];
+            
+            const tituloMap = {
+                inspeccion: 'Formulario de Inspección Visual',
+                fisicoquimico: 'Formulario de Análisis Fisicoquímico',
+                microbiologia: 'Formulario de Análisis Microbiológico'
+            };
+            
+            document.getElementById('formularioTitle').textContent = tituloMap[tipo];
+            
+            let html = `
+                <div class="alert alert-info">
+                    <strong>Folio:</strong> ${reg.folio} | 
+                    <strong>Producto:</strong> ${reg.producto} | 
+                    <strong>Categoría:</strong> ${reg.categoria}
+                </div>
+                <form id="formularioForm">
+            `;
+            
+            camposFormulario[tipo].forEach(campo => {
+                html += `
+                    <div class="form-field-group">
+                        <label for="${campo.name}">${campo.label}</label>
+                `;
+                
+                if (campo.type === 'textarea') {
+                    html += `<textarea class="form-control" id="${campo.name}" name="${campo.name}" rows="4"></textarea>`;
+                } else if (campo.type === 'select') {
+                    html += `<select class="form-select" id="${campo.name}" name="${campo.name}">
+                        <option value="">-- Selecciona --</option>`;
+                    campo.options.forEach(opt => {
+                        html += `<option value="${opt}">${opt}</option>`;
+                    });
+                    html += `</select>`;
+                } else {
+                    html += `<input type="${campo.type}" class="form-control" id="${campo.name}" name="${campo.name}" step="${campo.step || '1'}" />`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            html += `</form>`;
+            
+            document.getElementById('formularioContent').innerHTML = html;
+            
+            const modal = new bootstrap.Modal(document.getElementById('formularioModal'));
+            modal.show();
+        }
+
+        function guardarFormulario() {
+            const { idx, tipo } = state.formularioActual;
+            const form = document.getElementById('formularioForm');
+            const datos = new FormData(form);
+            
+            state.formularioActual.datos = Object.fromEntries(datos);
+            state.formularios[idx][tipo].datos = state.formularioActual.datos;
+            state.formularios[idx][tipo].estado = 'in-progress';
+            
+            if (tipo === 'inspeccion') state.registros[idx].estatusInspeccion = 'in-progress';
+            if (tipo === 'fisicoquimico') state.registros[idx].estatusFisico = 'in-progress';
+            if (tipo === 'microbiologia') state.registros[idx].estatusMicro = 'in-progress';
+            
+            mostrarNotificacion('success', `✅ Formulario enviado al supervisor ${state.formularios[idx][tipo].supervisor}`);
+            
+            bootstrap.Modal.getInstance(document.getElementById('formularioModal')).hide();
+            renderRegistros();
+            renderMisTareas();
+        }
+
+        // ==================== MIS TAREAS ====================
+        function cambiarRol() {
+            state.rolActual = document.getElementById('rol-select').value;
+            document.getElementById('current-user').textContent = document.getElementById('rol-select').options[document.getElementById('rol-select').selectedIndex].text;
+            renderMisTareas();
+        }
+
+        function renderMisTareas() {
+            const container = document.getElementById('mis-tareas-content');
+            container.innerHTML = '';
+            
+            const rol = state.rolActual;
+            
+            if (rol.startsWith('supervisor-')) {
+                renderTareasAprobacion();
+            } else if (rol === 'gerente-tecnico') {
+                renderTareasGerente();
+            } else {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Como técnico, tus tareas aparecen en la pestaña <strong>Registros</strong></p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderTareasAprobacion() {
+            const container = document.getElementById('mis-tareas-content');
+            const tipoRol = state.rolActual.replace('supervisor-', '');
+            const tareas = [];
+            
+            state.registros.forEach((reg, idx) => {
+                if (tipoRol === 'inspeccion' && reg.estatusInspeccion === 'in-progress') tareas.push({ idx, tipo: tipoRol, folio: reg.folio, producto: reg.producto });
+                if (tipoRol === 'fisicoquimico' && reg.estatusFisico === 'in-progress') tareas.push({ idx, tipo: tipoRol, folio: reg.folio, producto: reg.producto });
+                if (tipoRol === 'microbiologia' && reg.estatusMicro === 'in-progress') tareas.push({ idx, tipo: tipoRol, folio: reg.folio, producto: reg.producto });
+            });
+            
+            if (tareas.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No hay solicitudes pendientes de aprobación</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tareas.forEach(tarea => {
+                const form = state.formularios[tarea.idx][tarea.tipo];
+                const html = `
+                    <div class="approval-card">
+                        <div class="approval-info">
+                            <strong>Folio:</strong> ${tarea.folio} <br>
+                            <strong>Producto:</strong> ${tarea.producto} <br>
+                            <strong>Laboratorio:</strong> ${tarea.tipo.replace('_', ' ').toUpperCase()} <br>
+                            <strong>Supervisor Asignado:</strong> ${form.supervisor}
+                        </div>
+                        <div class="approval-buttons">
+                            <button class="btn btn-sm btn-success" onclick="aprobarFormulario(${tarea.idx}, '${tarea.tipo}')">
+                                <i class="fas fa-check"></i> Aprobar
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="rechazarFormulario(${tarea.idx}, '${tarea.tipo}')">
+                                <i class="fas fa-times"></i> Rechazar
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="verDetallesFormulario(${tarea.idx}, '${tarea.tipo}')">
+                                <i class="fas fa-eye"></i> Ver Detalles
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function renderTareasGerente() {
+            const container = document.getElementById('mis-tareas-content');
+            const certificados = [];
+            
+            state.registros.forEach((reg, idx) => {
+                if (reg.estatusInspeccion === 'approved' && reg.estatusFisico === 'approved' && reg.estatusMicro === 'approved' && !reg.certificado) {
+                    certificados.push({ idx, folio: reg.folio, producto: reg.producto });
+                }
+            });
+            
+            if (certificados.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No hay certificados pendientes de confirmación</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            certificados.forEach(cert => {
+                const reg = state.registros[cert.idx];
+                const html = `
+                    <div class="approval-card">
+                        <div class="approval-info">
+                            <strong>Folio:</strong> ${cert.folio} <br>
+                            <strong>Producto:</strong> ${cert.producto} <br>
+                            <i class="fas fa-check-circle" style="color: #198754;"></i> Inspección: Aprobada <br>
+                            <i class="fas fa-check-circle" style="color: #198754;"></i> Fisicoquímico: Aprobado <br>
+                            <i class="fas fa-check-circle" style="color: #198754;"></i> Microbiología: Aprobado
+                        </div>
+                        <div class="approval-buttons">
+                            <button class="btn btn-sm btn-primary" onclick="previsualizarCertificado(${cert.idx})">
+                                <i class="fas fa-eye"></i> Previsualizar
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="confirmarCertificado(${cert.idx})">
+                                <i class="fas fa-certificate"></i> Confirmar Certificado
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function verDetallesFormulario(idx, tipo) {
+            const form = state.formularios[idx][tipo];
+            const datos = form.datos || {};
+            
+            let html = '<div class="table-responsive"><table class="table table-sm"><tbody>';
+            Object.entries(datos).forEach(([key, value]) => {
+                const label = key.replace(/_/g, ' ').toUpperCase();
+                html += `<tr><td><strong>${label}:</strong></td><td>${value}</td></tr>`;
+            });
+            html += '</tbody></table></div>';
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-info mt-3';
+            alertDiv.innerHTML = `<strong>Datos Registrados:</strong> ${html}`;
+            
+            const container = document.getElementById('mis-tareas-content');
+            container.innerHTML += alertDiv.outerHTML;
+        }
+
+        function aprobarFormulario(idx, tipo) {
+            if (tipo === 'inspeccion') state.registros[idx].estatusInspeccion = 'approved';
+            if (tipo === 'fisicoquimico') state.registros[idx].estatusFisico = 'approved';
+            if (tipo === 'microbiologia') state.registros[idx].estatusMicro = 'approved';
+            
+            state.formularios[idx][tipo].estado = 'approved';
+            mostrarNotificacion('success', `✅ Formulario ${tipo} aprobado`);
+            renderMisTareas();
+            renderRegistros();
+        }
+
+        function rechazarFormulario(idx, tipo) {
+            if (tipo === 'inspeccion') state.registros[idx].estatusInspeccion = 'pending';
+            if (tipo === 'fisicoquimico') state.registros[idx].estatusFisico = 'pending';
+            if (tipo === 'microbiologia') state.registros[idx].estatusMicro = 'pending';
+            
+            state.formularios[idx][tipo].estado = 'pending';
+            state.formularios[idx][tipo].datos = null;
+            mostrarNotificacion('warning', `❌ Formulario ${tipo} rechazado. Requiere correcciones.`);
+            renderMisTareas();
+            renderRegistros();
+        }
+
+        // ==================== CERTIFICADOS ====================
+        function previsualizarCertificado(idx) {
+            const reg = state.registros[idx];
+            const html = generarCertificadoHTML(reg, idx);
+            document.getElementById('certificadoPreview').innerHTML = html;
+            
+            const modal = new bootstrap.Modal(document.getElementById('certificadoModal'));
+            modal.show();
+        }
+
+        function generarCertificadoHTML(reg, idx) {
+            return `
+                <div class="certificate-header">
+                    <div class="certificate-title">CERTIFICADO DE CONFORMIDAD</div>
+                    <div class="certificate-subtitle">Análisis Completo de Calidad</div>
+                </div>
+                
+                <div class="certificate-content">
+                    <div class="certificate-section">
+                        <div class="certificate-label">Información del Producto:</div>
+                        <div>Folio: ${reg.folio}</div>
+                        <div>Fecha de Análisis: ${new Date().toLocaleDateString('es-ES')}</div>
+                        <div>Producto: ${reg.producto}</div>
+                        <div>Categoría: ${reg.categoria}</div>
+                        <div>Clave: ${reg.clave}</div>
+                        <div>Descripción: ${reg.descripcion}</div>
+                    </div>
+                    
+                    <div class="certificate-section">
+                        <div class="certificate-label">Resultados de Análisis:</div>
+                        <div style="margin-top: 0.5rem;">
+                            <div><span style="color: #198754;">✓</span> <strong>Inspección Visual:</strong> APROBADO</div>
+                            <div><span style="color: #198754;">✓</span> <strong>Análisis Fisicoquímico:</strong> APROBADO</div>
+                            <div><span style="color: #198754;">✓</span> <strong>Análisis Microbiológico:</strong> APROBADO</div>
+                        </div>
+                    </div>
+                    
+                    <div class="certificate-section">
+                        <div class="certificate-label">Conclusión:</div>
+                        <div style="margin-top: 0.5rem;">El producto cumple satisfactoriamente con todos los parámetros establecidos en la normativa vigente y es apto para distribución y consumo.</div>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #999;">
+                        <div><strong>Emitido por:</strong> Gerente Técnico</div>
+                        <div><strong>Fecha de Confirmación:</strong> ${new Date().toLocaleDateString('es-ES')}</div>
+                        <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">Documento generado digitalmente</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function descargarPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('certificadoPreview');
+            const pdf = new jsPDF();
+            
+            const html2pdf = window.html2pdf.default;
+            html2pdf()
+                .set({ html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } })
+                .from(element)
+                .save('certificado.pdf');
+        }
+
+        function confirmarCertificado(idx) {
+            const reg = state.registros[idx];
+            reg.certificado = { fecha: new Date().toISOString(), confirmado: true };
+            
+            mostrarNotificacion('success', `✅ Certificado confirmado para ${reg.folio}`);
+            renderCertificados();
+            renderMisTareas();
+            renderRegistros();
+        }
+
+        function renderCertificados() {
+            const container = document.getElementById('certificados-list');
+            container.innerHTML = '';
+            
+            const certificados = state.registros.filter(r => r.certificado);
+            
+            if (certificados.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-file-pdf"></i>
+                        <p>No hay certificados generados aún</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            certificados.forEach((reg, idx) => {
+                const fechaGeneracion = new Date(reg.certificado.fecha).toLocaleDateString('es-ES');
+                const html = `
+                    <div class="card-custom mb-3">
+                        <div style="padding: 1.5rem;">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h6 class="mb-1"><i class="fas fa-certificate" style="color: #198754;"></i> ${reg.folio}</h6>
+                                    <p class="mb-2"><strong>${reg.producto}</strong></p>
+                                    <small class="text-muted">Generado: ${fechaGeneracion} | Categoría: ${reg.categoria}</small>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-sm btn-outline-primary me-2" onclick="previsualizarCertificado(${idx})">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="descargarPDFDirect('${reg.folio}')">
+                                        <i class="fas fa-download"></i> PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function descargarPDFDirect(folio) {
+            const reg = state.registros.find(r => r.folio === folio);
+            if (reg && reg.certificado) {
+                const html = generarCertificadoHTML(reg, state.registros.indexOf(reg));
+                const element = document.createElement('div');
+                element.innerHTML = html;
+                
+                const html2pdf = window.html2pdf.default;
+                html2pdf()
+                    .set({ html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } })
+                    .from(element)
+                    .save(`certificado-${folio}.pdf`);
+            }
+        }
+
+        // ==================== UTILIDADES ====================
+        function mostrarNotificacion(tipo, mensaje) {
+            const Toast = bootstrap.Toast || window.bootstrap.Toast;
+            
+            const toastHTML = `
+                <div class="toast-notification">
+                    <div class="alert alert-${tipo === 'success' ? 'success' : tipo === 'warning' ? 'warning' : 'info'} alert-custom mb-0" role="alert">
+                        ${mensaje}
+                    </div>
+                </div>
+            `;
+            
+            const container = document.createElement('div');
+            container.innerHTML = toastHTML;
+            document.body.appendChild(container.firstElementChild);
+            
+            setTimeout(() => {
+                container.firstElementChild?.remove();
+            }, 3000);
+        }
+
+        // ==================== STARTUP ====================
+        document.addEventListener('DOMContentLoaded', inicializar);
+    </script>
+</body>
+</html>

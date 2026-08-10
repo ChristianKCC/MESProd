@@ -429,8 +429,8 @@ function mostrarTabla() {
             <td>${element.NombreMaquina}</td>
             <td>${element.cortes}</td>
             <td>${element.rechazos}</td>
-            <td>${element.tiempoAbajo}</td>
-            <td>${element.tiempoArriba}</td>
+            <td>${(Number(element.tiempoAbajo).toFixed(2))}</td>
+            <td>${(Number(element.tiempoArriba).toFixed(2))}</td>
             <td>${mermaMaquina} %</td>
             <td>${element.parosMaquina}</td>
             <td>

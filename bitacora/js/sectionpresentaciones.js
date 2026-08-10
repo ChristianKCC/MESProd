@@ -413,27 +413,6 @@ export class BitPresentaciones {
   }
 
   // Funciones de HookMesh
-  async savePresentacionHook(folio, presentacion, turnoen, notbl) {
-    const data = new FormData();
-    data.append("folio", folio);
-    data.append("presentacion", presentacion);
-    data.append("turnoen", turnoen);
-    data.append("notbl", notbl);
-
-    const respuestaraw = await fetch("php/presentacion.php?saveHook", {
-      method: "POST",
-      body: data,
-    });
-    respuestaraw.status === 200 &&
-      swal.fire("Listo", "La acción se completo correctamente", "success");
-    respuestaraw.status === 500 &&
-      swal.fire(
-        "ERROR",
-        "Hay problema al guardar en la base de datos",
-        "error",
-      );
-  }
-
   async cargarPresentacionesAutomatico(folio) {
     const data = new FormData();
     data.append("folio", folio);
@@ -558,46 +537,6 @@ export class BitPresentaciones {
   }
 }
 
-  agregarFilaHook(idHE) {
-    Swal.fire({
-      title: "Agregar nueva fila",
-      text: "¿Deseas crear una nueva fila?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Sí, agregar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#28a745",
-      cancelButtonColor: "#d33",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.saveDataHook(idHE);
-      }
-    });
-  }
-
-  async saveDataHook(idHE) {
-    const data = new FormData();
-    data.append("idHE", idHE);
-
-    const res = await fetch("php/presentacion.php?insertarFilaHook", {
-      method: "POST",
-      body: data,
-    });
-
-    if (res.status === 200) {
-      swal.fire("Listo", "La acción se completó correctamente", "success");
-      this.recargarTblPresentacionSubHook();
-    }
-
-    if (res.status === 500) {
-      swal.fire(
-        "ERROR",
-        "Hay problema al guardar en la base de datos",
-        "error",
-      );
-    }
-  }
-
   async DeletePresentacionHook(folio, notbl) {
     const data = new FormData();
     data.append("folio", folio);
@@ -636,30 +575,7 @@ export class BitPresentaciones {
       }
     }
   }
-
-  async saveDataHookAdditional(id, rollos, ml, mc, accml, accmc) {
-    const data = new FormData();
-    data.append("id", id);
-    data.append("rollos", rollos);
-    data.append("ml", ml);
-    data.append("mc", mc);
-    data.append("accml", accml);
-    data.append("accmc", accmc);
-
-    const res = await fetch("php/presentacion.php?updateDataHook", {
-      method: "POST",
-      body: data,
-    });
-
-    res.ok
-      ? null
-      : swal.fire(
-          "ERROR",
-          "Hay un problema al actualizar la información",
-          "error",
-        );
-  }
-
+  
   // FUNCION A REVISAR
   async tblPresentacionSub(folio, notbl, domtbl) {
     const data = new FormData();
@@ -1425,7 +1341,7 @@ export class BitPresentaciones {
     if (!confirm.isConfirmed) return;
 
     try {
-      const res = await fetch("php/presentacion.php?guardarMermaHook", {
+      const res = await fetch("api/hook.php?guardarMermaHook", {
         method : "POST",
         headers: { "Content-Type": "application/json" },
         body   : JSON.stringify({ folio, rollos }),
@@ -1455,34 +1371,6 @@ export class BitPresentaciones {
       console.error("Error guardarMermaHook:", err);
       Swal.fire("Error", "Error inesperado al guardar", "error");
     }
-  }
-
-  getCellValueHook(cell) {
-    const folio = document.getElementById("folio").value;
-    const row = cell.parentNode;
-    const rowId = row.getAttribute("data-id");
-    const cells = row.querySelectorAll("td");
-
-    const rollos = parseFloat(cells[1].innerText) || 0;
-    const ML = parseFloat(cells[2].innerText) || 0;
-    const MC = parseFloat(cells[3].innerText) || 0;
-    const accMML = parseFloat(cells[4].innerText) || 0;
-    const accMC = parseFloat(cells[5].innerText) || 0;
-
-    this.saveDataHookAdditional(rowId, rollos, ML, MC, accMML, accMC).then(
-      () => {
-        const table = cell.closest("table");
-
-        table.id === "tablapresentacion1Hook" &&
-          this.tblPresentacionSubHook(folio, 1, "tblpresentacionsub1Hook");
-
-        table.id === "tablapresentacion2Hook" &&
-          this.tblPresentacionSubHook(folio, 2, "tblpresentacionsub2Hook");
-
-        table.id === "tablapresentacion3Hook" &&
-          this.tblPresentacionSubHook(folio, 3, "tblpresentacionsub3Hook");
-      },
-    );
   }
 
   // Realiza la sumatoria de las celdas de las filas
@@ -1634,14 +1522,6 @@ window.agregarRollo = (idRollo) => {
   bitPresentaciones.agregarRollo(idRollo);
 };
 
-window.agregarFilaHook = (idHE) => {
-  bitPresentaciones.agregarFilaHook(idHE);
-};
-
-window.getCellValueHook = (e) => {
-  setTimeout(() => bitPresentaciones.getCellValueHook(e), 0);
-};
-
 window.handleKeyDownTelas = function (e, cell) {
   if (e.key === "Enter") {
     e.preventDefault();
@@ -1649,12 +1529,6 @@ window.handleKeyDownTelas = function (e, cell) {
   }
 };
 
-window.handleKeyDownHook = function (e, cell) {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    cell.blur();
-  }
-};
 
 function calcularBajada(respuesta, acckg, accml) {
   const bobinas = Number(respuesta[0].bobinas) || 0;

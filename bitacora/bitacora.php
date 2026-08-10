@@ -134,7 +134,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
     </div>
 
 
-    <section id="pagina1" class="section">
+    <section id="pagina1" class="section tabla-container">
 
         <!-- Asistencias -->
         <div class="row">
@@ -243,19 +243,26 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-6"><small>Horas trabajadas</small></div>
-            <div class="col-9">
-                <input type="number" id="horaNuevoParo" class="form-control form-control-sm" style="width: 25%;" step="0.5" min="0"
-                    max="8.5">
-            </div>
-            <div class="col-3" style="width: 25%;">
-                <button class="btn btn-sm bg-target" id="guardarHorasTrabajadas"><i class="fas fa-save"></i></button>
+        <div class="col-3">
+            <div class="row">
+                <div class="col-6"><small>Horas trabajadas</small></div>
+                <div class="row">
+                    <div class="col-9">
+                        <input type="number" id="horaNuevoParo" class="form-control form-control-sm"
+                            step="0.5" min="0" max="8.5">
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-sm bg-target" id="guardarHorasTrabajadas"><i
+                                class="fas fa-save"></i></button>
+                    </div>
+                </div>
+
             </div>
         </div>
+
         <div class="row">
             <!-- Otras areas -->
-            <div id="paginaAreas" class="col-10" style="width: 80%;">
+            <div id="paginaAreas" class="col-11" style="width: 80%;">
                 <div class="row">
                     <div class="col-3" style="width: 25%;">
                         <div class="row">
@@ -268,11 +275,11 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion1" class="table table-bordered">
                                     <thead class="table-dark">
-                                        <th>Hora</th>
-                                        <th>CajasR</th>
-                                        <th>Piezas</th>
-                                        <th>AcumR</th>
-                                        <th>USTD</th>
+                                        <th class="table-header-kc">Hora</th>
+                                        <th class="table-header-kc">CajasR</th>
+                                        <th class="table-header-kc">Piezas</th>
+                                        <th class="table-header-kc">AcumR</th>
+                                        <th class="table-header-kc">USTD</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub1">
                                     </tbody>
@@ -291,11 +298,11 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion2" class="table table-bordered">
                                     <thead class="table-dark">
-                                        <th>Hora</th>
-                                        <th>CajasR</th>
-                                        <th>Piezas</th>
-                                        <th>AcumR</th>
-                                        <th>USTD</th>
+                                        <th class="table-header-kc">Hora</th>
+                                        <th class="table-header-kc">CajasR</th>
+                                        <th class="table-header-kc">Piezas</th>
+                                        <th class="table-header-kc">AcumR</th>
+                                        <th class="table-header-kc">USTD</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub2">
                                     </tbody>
@@ -314,11 +321,11 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion3" class="table table-bordered">
                                     <thead class="table-dark">
-                                        <th>Hora</th>
-                                        <th>CajasR</th>
-                                        <th>Piezas</th>
-                                        <th>AcumR</th>
-                                        <th>USTD</th>
+                                        <th class="table-header-kc">Hora</th>
+                                        <th class="table-header-kc">CajasR</th>
+                                        <th class="table-header-kc">Piezas</th>
+                                        <th class="table-header-kc">AcumR</th>
+                                        <th class="table-header-kc">USTD</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub3">
                                     </tbody>
@@ -337,11 +344,11 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion4" class="table table-bordered">
                                     <thead class="table-dark">
-                                        <th>Hora</th>
-                                        <th>CajasR</th>
-                                        <th>Piezas</th>
-                                        <th>AcumR</th>
-                                        <th>USTD</th>
+                                        <th class="table-header-kc">Hora</th>
+                                        <th class="table-header-kc">CajasR</th>
+                                        <th class="table-header-kc">Piezas</th>
+                                        <th class="table-header-kc">AcumR</th>
+                                        <th class="table-header-kc">USTD</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub4">
                                     </tbody>
@@ -570,7 +577,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
             </div>
             <!--  Fin Spooler -->
             <!-- Hookmesh-->
-            <div id="paginaHook" class="col-10 m-3 tabla-container" style="width: 98%;">
+            <div id="paginaHook" class="col-10" style="width: 98%;">
                 <div class="row">
                     <div class="col-3">
                         <div class="row">
@@ -580,12 +587,12 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion1Hook" class="table table-striped table-hover border">
-                                    <thead>
-                                        <th class="table-header-kc">#Rollo</th>
-                                        <th class="table-header-kc">ML</th>
-                                        <th class="table-header-kc">MM2</th>
-                                        <th class="table-header-kc">Acum ML</th>
-                                        <th class="table-header-kc">Acum MM2</th>
+                                    <thead class="table-header-kc">
+                                        <th>#Rollo</th>
+                                        <th>ML</th>
+                                        <th>MM2</th>
+                                        <th>Acum ML</th>
+                                        <th>Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub1Hook">
                                     </tbody>
@@ -601,12 +608,12 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                                         class="fas fa-trash"></i></button></div>
                             <div class="table-responsive my-2" style="height: 300px;">
                                 <table id="tablapresentacion2Hook" class="table table-striped table-hover border">
-                                    <thead class="table-dark">
-                                        <th class="table-header-kc">#Rollo</th>
-                                        <th class="table-header-kc">ML</th>
-                                        <th class="table-header-kc">MM2</th>
-                                        <th class="table-header-kc">Acum ML</th>
-                                        <th class="table-header-kc">Acum MM2</th>
+                                    <thead class="table-header-kc">
+                                        <th>#Rollo</th>
+                                        <th>ML</th>
+                                        <th>MM2</th>
+                                        <th>Acum ML</th>
+                                        <th>Acum MM2</th>
                                     </thead>
                                     <tbody id="tblpresentacionsub2Hook">
                                     </tbody>
@@ -686,13 +693,13 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
 
             <!-- FIN TABLA DE MERMA HOOK -->
 
-            <div class="col-2" style="width: 15%;">
+            <div class="col-1" style="width: 20%;">
                 <div class="row" id="golpesMaquinaBitacora">
                     <div class="table-responsive my-2" style="height: 280px;">
                         <table id="sumTable" class="table table-bordered">
-                            <thead class="table-dark">
-                                <th>Golpes</th>
-                                <th>Merma</th>
+                            <thead>
+                                <th class="table-header-kc">Golpes</th>
+                                <th class="table-header-kc">Merma</th>
                             </thead>
                             <tbody id="tblgolpesmermatotal">
                             </tbody>
@@ -827,7 +834,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
         </div>
     </div>
 
-    <section id="pagina2" class="section">
+    <section id="pagina2" class="section tabla-container">
         <!--Seccion TiemposNuevo-->
         <div class="row" id="tiemposNuevaSeccion">
             <div class="row">
@@ -836,9 +843,9 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                         <div class="row">
                             <h4 class="tittlecont">Control de tiempos</h4>
                         </div>
-                        <div class="table-responsive border my-2" style="height: 300px;">
-                            <table class="table table-bordered">
-                                <thead class="table-dark">
+                        <div class="table-responsive my-2" style="height: 300px;">
+                            <table class="table table-striped table-hover border">
+                                <thead class="table-header-kc">
                                     <th>Fecha</th>
                                     <th>Hora</th>
                                     <th>Seccion</th>
@@ -943,9 +950,9 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
                             <div class="col-1"><br><button class="btn btn-sm bg-target" id="guardarctrltiempos"><i
                                         class="fa-solid fa-floppy-disk"></i> Guardar</button></div>
                         </div>
-                        <div class="table-responsive border my-2" style="height: 300px;">
-                            <table class="table table-bordered">
-                                <thead class="table-dark">
+                        <div class="table-responsive my-2" style="height: 300px;">
+                            <table class="table table-striped table-hover border">
+                                <thead class="table-header-kc">
                                     <th>De</th>
                                     <th>A</th>
                                     <th>Operacion</th>
@@ -1057,9 +1064,9 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
 
             </div>
         </form>
-        <div class="table-responsive border my-2" style="height: 200px;">
-            <table class="table table-bordered">
-                <thead class="table-dark">
+        <div class="table-responsive my-2" style="height: 200px;">
+            <table class="table table-striped table-hover border">
+                <thead class="table-header-kc">
                     <th>Folio</th>
                     <th>Seguridad</th>
                     <th>Calidad</th>
@@ -1079,7 +1086,7 @@ require_once(__DIR__ . "/../WR/utils/utils.php");
 
 
     <!-- Seccion paros automaticos -->
-    <section id="sectionctrolTiempos" class="section px-2">
+    <section id="sectionctrolTiempos" class="section tabla-container">
         <h4 class="tittlecont">Paros de máquina</h4>
         <!-- <div class="col-2">
             <button type="button" class="btn btn-sm bg-target" data-bs-toggle="modal" data-bs-target="#modalNuevoParo">

@@ -67,8 +67,7 @@ if (isset($_GET["clavesTraz"])) {
 } else if (isset($_GET["GetSlcPresentaciones"])) {
     Catalogos::getDataSlcDB("TLX002MXDB", "SELECT clave,CONCAT(clave, ' - ', nombre) FROM tblBitPresentaciones WHERE maquina=" . $_SESSION["idmaquina"] . " ORDER BY nombre ASC");
 } else if (isset($_GET["GetClavesValesE"])) {
-    Catalogos::getDataSlcDB("TLX002MXDB", "SELECT DISTINCT tblValeConClavClasMat.NoClave, CONCAT(tblValeConClavClasMat.NoClave , ' - ' ,tblValeEClaves.Descripcion_Articulo) as texto FROM tblValeConClavClasMat
-INNER JOIN tblValeEClaves ON tblValeEClaves.NoClave = tblValeConClavClasMat.NoClave WHERE tblValeConClavClasMat.NoMaquina=" . $_SESSION["idmaquina"] . " ORDER BY NoCLave ASC");
+    Catalogos::getDataSlcDB("TLX004MXDB", "SELECT DISTINCT NoClave, CONCAT(NoClave , ' - ' ,Descripcion_Articulo) as texto FROM vwMXPRClaveMaquina WHERE maquina=" . $_SESSION["idmaquina"] . " ORDER BY NoCLave ASC");
 } else if (isset($_GET["GetValesEEstados"])) {
     Catalogos::getDataSlcDB("TLX002MXDB", "SELECT * FROM tblValeEEstados");
 } else if (isset($_GET["GetClasexClave"])) {
