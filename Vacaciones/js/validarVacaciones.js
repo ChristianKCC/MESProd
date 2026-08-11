@@ -158,6 +158,7 @@ class Vacaciones {
       let row = `
                 <tr>
                     <td>${folio.id}</td>
+                    <td>${folio.Vc_fechaSolicitud}</td>
                     <td>${folio.noemp}</td>
                     <td>${folio.nombre}</td>
                     <td>${folio.departamento}</td>

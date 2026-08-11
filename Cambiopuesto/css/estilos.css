@@ -1,0 +1,43 @@
+:root{
+  --cp-primary:#0d6efd; --cp-ink:#1f2937; --cp-muted:#6b7280;
+  --cp-line:#e5e7eb; --cp-bg:#f8fafc; --cp-card:#ffffff;
+}
+.cp-wrap{ background:var(--cp-bg); border-radius:16px; padding:1.25rem; }
+.cp-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  background:linear-gradient(120deg,#0d6efd 0%,#3b82f6 100%);
+  color:#fff; border-radius:14px; padding:.9rem 1.2rem; margin-bottom:1rem;
+  box-shadow:0 6px 18px rgba(13,110,253,.18);
+}
+.cp-topbar .tittlecont{ color:#fff!important; margin:0; font-weight:700; letter-spacing:.2px; }
+.cp-topbar .cp-meta{ text-align:right; font-size:.8rem; line-height:1.35; opacity:.95; }
+.cp-topbar .cp-meta b{ font-weight:700; }
+
+.cp-card{
+  background:var(--cp-card); border:1px solid var(--cp-line);
+  border-radius:14px; padding:1rem 1.1rem; margin-bottom:1rem;
+  box-shadow:0 2px 10px rgba(17,24,39,.04);
+}
+.cp-section-head{ display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem; }
+.cp-step{
+  width:26px; height:26px; border-radius:50%; flex:0 0 26px;
+  background:var(--cp-primary); color:#fff; font-weight:700; font-size:.85rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.cp-section-head h6{ margin:0; font-weight:700; color:var(--cp-ink); }
+.cp-section-head small{ color:var(--cp-muted); }
+
+.cp-card small.form-lbl{ color:var(--cp-muted); font-weight:600; font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.3px; }
+.cp-card .form-control-sm, .cp-card .form-select-sm{ border-radius:9px; }
+.cp-actions{ display:flex; flex-wrap:wrap; gap:.5rem; }
+.cp-actions .btn{ border-radius:9px; }
+
+.cp-dias{ background:#fbfdff; border:1px dashed var(--cp-line)!important; border-radius:12px; }
+.cp-dias .form-check{ padding:.15rem .25rem .15rem 1.9rem; border-radius:8px; }
+.cp-dias .form-check:hover{ background:#eef4ff; }
+.cp-dias .form-check-input:checked ~ .form-check-label{ font-weight:700; color:var(--cp-primary); }
+
+.cp-guardar-box{ display:flex; flex-direction:column; gap:.6rem; justify-content:center; height:100%; }
+.cp-table thead th{ position:sticky; top:0; }
+.badge-vacante{ background:#64748b; }

@@ -8,56 +8,8 @@ require_once(__DIR__ . "/../config.php");
 // Obtener IBM de la sesión
 $ibmSession = $_SESSION["ibm"];
 
-// function obtenerSupervisoresIBM(): array {
-//     if (!file_exists(CSV_FILE_SIND)) {
-//         error_log("CSV de supervisores no encontrado en: " . CSV_FILE_SIND);
-//         return [];
-//     }
-
-//     $handle = fopen(CSV_FILE_SIND, "r");
-//     if (!$handle) {
-//         error_log("No se pudo abrir el CSV de supervisores");
-//         return [];
-//     }
-
-//     // Quitar BOM si existe
-//     $bom = fread($handle, 3);
-//     if ($bom !== "\xEF\xBB\xBF") rewind($handle);
-
-//     $headers = fgetcsv($handle, 0, CSV_SEPARATOR);
-//     if (!$headers) { fclose($handle); return []; }
-
-//     // Lista de columnas de supervisores (ya definidas en guard.php)
-//     $supervisorCols = [
-//         COL_IBM_DEL_SUPERVISOR1_SIND,
-//         COL_IBM_DEL_SUPERVISOR2_SIND,
-//         COL_IBM_DEL_SUPERVISOR3_SIND,
-//         COL_IBM_DEL_SUPERVISOR4_SIND,
-//         COL_IBM_DEL_SUPERVISOR5_SIND,
-//         COL_IBM_DEL_SUPERVISOR6_SIND,
-//     ];
-
-//     $supervisores = [];
-
-//     while (($line = fgetcsv($handle, 0, CSV_SEPARATOR)) !== false) {
-//         if (array_filter($line) === []) continue;
-
-//         $row = array_combine($headers, array_pad($line, count($headers), ''));
-
-//         foreach ($supervisorCols as $col) {
-//             $valor = trim($row[$col] ?? '');
-//             if ($valor !== '') {
-//                 $supervisores[] = $valor;
-//             }
-//         }
-//     }
-//     fclose($handle);
-
-//     // Devolver solo valores únicos
-//     return array_values(array_unique($supervisores));
-// }
-
-function obtenerSupervisoresIBM(): array {
+function obtenerSupervisoresIBM(): array
+{
     if (!file_exists(CSV_FILE_SIND)) {
         error_log("CSV de supervisores no encontrado en: " . CSV_FILE_SIND);
         return [];
@@ -71,10 +23,14 @@ function obtenerSupervisoresIBM(): array {
 
     // Quitar BOM si existe
     $bom = fread($handle, 3);
-    if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+    if ($bom !== "\xEF\xBB\xBF")
+        rewind($handle);
 
     $headers = fgetcsv($handle, 0, CSV_SEPARATOR);
-    if (!$headers) { fclose($handle); return []; }
+    if (!$headers) {
+        fclose($handle);
+        return [];
+    }
 
     // Columnas de supervisores
     $supervisorCols = [
@@ -89,7 +45,8 @@ function obtenerSupervisoresIBM(): array {
     $supervisores = [];
 
     while (($line = fgetcsv($handle, 0, CSV_SEPARATOR)) !== false) {
-        if (array_filter($line) === []) continue;
+        if (array_filter($line) === [])
+            continue;
 
         $row = array_combine($headers, array_pad($line, count($headers), ''));
 
@@ -112,74 +69,11 @@ function obtenerSupervisoresIBM(): array {
     return array_values(array_unique($todos));
 }
 
-// Función para calcular antigüedad
-// function calcularAntiguedad(string $fechaStr): string {
-//     $fechaStr = trim($fechaStr);
-//     if (!$fechaStr || $fechaStr === '-') return '-';
-
-//     // Normalizar separadores
-//     $fechaStr = str_replace('-', '/', $fechaStr);
-//     $partes = explode('/', $fechaStr);
-//     if (count($partes) !== 3) return $fechaStr;
-
-//     // Detectar formato: si primer segmento tiene 4 dígitos es YYYY/MM/DD, si no es MM/DD/YYYY
-//     if (strlen($partes[0]) === 4) {
-//         [$anio, $mes, $dia] = $partes;
-//     } else {
-//         [$mes, $dia, $anio] = $partes;
-//     }
-
-//     // Usar DateTime::diff para cálculo exacto (respeta bisiestos y meses variables)
-//     $ingreso = DateTime::createFromFormat('Y-m-d', "$anio-$mes-$dia");
-//     if (!$ingreso) return $fechaStr;
-
-//     $diff = $ingreso->diff(new DateTime());
-//     $anios = $diff->y;
-//     $meses = $diff->m;
-
-//     if ($anios === 0) return "$meses mes(es)";
-//     if ($meses === 0) return "$anios año(s)";
-//     return "$anios año(s) y $meses mes(es)";
-// }
-
-// // Agrega esta función en vacacionesLogistica.php
-// function normalizarFechaISO(string $fechaStr): string {
-//     $fechaStr = trim($fechaStr);
-//     if (!$fechaStr || $fechaStr === '-') return '';
-
-//     $fechaStr = str_replace('-', '/', $fechaStr);
-//     $partes = explode('/', $fechaStr);
-//     if (count($partes) !== 3) return $fechaStr;
-
-//     // Forzar siempre formato US: MM/DD/YYYY
-//     [$mes, $dia, $anio] = $partes;
-
-//     return sprintf('%04d-%02d-%02d', (int)$anio, (int)$mes, (int)$dia);
-// }
-
-// Normaliza cualquier fecha a ISO (YYYY-MM-DD)
-// function normalizarFechaISO(string $fechaStr): string {
-//     $fechaStr = trim($fechaStr);
-//     if (!$fechaStr || $fechaStr === '-') return '';
-
-//     error_log(" normalizarFechaISO: entrada = [$fechaStr]");
-
-//     $formatos = ['m/d/Y', 'd/m/Y', 'Y-m-d'];
-//     foreach ($formatos as $fmt) {
-//         $fecha = DateTime::createFromFormat($fmt, $fechaStr);
-//         if ($fecha && $fecha->format($fmt) === $fechaStr) {
-//             $iso = $fecha->format('Y-m-d');
-//             error_log("interpretado como $fmt = $iso");
-//             return $iso;
-//         }
-//     }
-
-//     error_log("normalizarFechaISO: no se pudo interpretar [$fechaStr]");
-//     return '';
-// }
-function normalizarFechaISO(string $fechaStr): string {
+function normalizarFechaISO(string $fechaStr): string
+{
     $fechaStr = trim($fechaStr);
-    if (!$fechaStr || $fechaStr === '-') return '';
+    if (!$fechaStr || $fechaStr === '-')
+        return '';
 
     error_log("normalizarFechaISO: entrada = [$fechaStr]");
 
@@ -203,7 +97,8 @@ function normalizarFechaISO(string $fechaStr): string {
     return '';
 }
 
-function calcularAntiguedad(string $fechaISO): string {
+function calcularAntiguedad(string $fechaISO): string
+{
     if (!$fechaISO) {
         error_log("calcularAntiguedad: fecha vacía");
         return '-';
@@ -220,16 +115,20 @@ function calcularAntiguedad(string $fechaISO): string {
 
     $anios = $diff->y;
     $meses = $diff->m;
-    $dias  = $diff->d;
+    $dias = $diff->d;
 
     // Construir resultado exacto
     $resultado = [];
-    if ($anios > 0) $resultado[] = "$anios año(s)";
-    if ($meses > 0) $resultado[] = "$meses mes(es)";
-    if ($dias > 0) $resultado[] = "$dias día(s)";
+    if ($anios > 0)
+        $resultado[] = "$anios año(s)";
+    if ($meses > 0)
+        $resultado[] = "$meses mes(es)";
+    if ($dias > 0)
+        $resultado[] = "$dias día(s)";
 
     $texto = implode(" ", $resultado);
-    if ($texto === "") $texto = "0 días";
+    if ($texto === "")
+        $texto = "0 días";
 
     error_log("calcularAntiguedad: fechaISO = [$fechaISO], resultado = [$texto]");
 
@@ -239,19 +138,27 @@ function calcularAntiguedad(string $fechaISO): string {
 
 
 // Función para buscar empleado en CSV
-function buscarEmpleado(string $ibm): ?array {
-    if (!file_exists(CSV_FILE)) return null;
+function buscarEmpleado(string $ibm): ?array
+{
+    if (!file_exists(CSV_FILE))
+        return null;
     $handle = fopen(CSV_FILE, "r");
-    if (!$handle) return null;
+    if (!$handle)
+        return null;
 
     $bom = fread($handle, 3);
-    if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+    if ($bom !== "\xEF\xBB\xBF")
+        rewind($handle);
 
     $headers = fgetcsv($handle, 0, CSV_SEPARATOR);
-    if (!$headers) { fclose($handle); return null; }
+    if (!$headers) {
+        fclose($handle);
+        return null;
+    }
 
     while (($line = fgetcsv($handle, 0, CSV_SEPARATOR)) !== false) {
-        if (array_filter($line) === []) continue;
+        if (array_filter($line) === [])
+            continue;
         $row = array_combine($headers, array_pad($line, count($headers), ''));
         if (strtolower(trim($row[COL_IBM] ?? '')) === strtolower(trim($ibm))) {
             fclose($handle);
@@ -263,10 +170,11 @@ function buscarEmpleado(string $ibm): ?array {
 }
 
 // Funcion de calculo de siguiente aniversario
-function calcularAniversario(string $fechaIngreso): string {
+function calcularAniversario(string $fechaIngreso): string
+{
     try {
         $fecha = new DateTime($fechaIngreso);
-        $anioActual = (int)date("Y");
+        $anioActual = (int) date("Y");
         $proximo = DateTime::createFromFormat("Y-m-d", $anioActual . "-" . $fecha->format("m") . "-" . $fecha->format("d"));
         return $proximo->format("d/m/Y");
     } catch (Exception $e) {
@@ -275,16 +183,23 @@ function calcularAniversario(string $fechaIngreso): string {
 }
 
 // Funcion de busqueda de supervisor en csv
-function buscarSupervisor(string $ibm): ?array {
-    if (!file_exists(CSV_FILE_SIND)) return null;
+function buscarSupervisor(string $ibm): ?array
+{
+    if (!file_exists(CSV_FILE_SIND))
+        return null;
     $handle = fopen(CSV_FILE_SIND, "r");
-    if (!$handle) return null;
+    if (!$handle)
+        return null;
 
     $bom = fread($handle, 3);
-    if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+    if ($bom !== "\xEF\xBB\xBF")
+        rewind($handle);
 
     $headers = fgetcsv($handle, 0, CSV_SEPARATOR);
-    if (!$headers) { fclose($handle); return null; }
+    if (!$headers) {
+        fclose($handle);
+        return null;
+    }
 
     // Lista de columnas de supervisores
     $supervisorCols = [
@@ -297,7 +212,8 @@ function buscarSupervisor(string $ibm): ?array {
     ];
 
     while (($line = fgetcsv($handle, 0, CSV_SEPARATOR)) !== false) {
-        if (array_filter($line) === []) continue;
+        if (array_filter($line) === [])
+            continue;
         $row = array_combine($headers, array_pad($line, count($headers), ''));
 
         foreach ($supervisorCols as $col) {
@@ -312,14 +228,16 @@ function buscarSupervisor(string $ibm): ?array {
 }
 
 // Normalizacion de datos para el nombre
-function normalizarNombre(string $nombre): array {
+function normalizarNombre(string $nombre): array
+{
     $nombre = strtoupper(str_replace(',', ' ', trim($nombre)));
     $nombre = preg_replace('/\s+/', ' ', $nombre);
     return explode(' ', $nombre);
 }
 
 // Funcion de busqueda entre nombres
-function nombresCoinciden(string $buscado, string $csv): bool {
+function nombresCoinciden(string $buscado, string $csv): bool
+{
     $palabrasBuscadas = normalizarNombre($buscado);
     $palabrasCsv = normalizarNombre($csv);
 
@@ -327,16 +245,23 @@ function nombresCoinciden(string $buscado, string $csv): bool {
 }
 
 // Validacion de supervisor
-function validarSupervisor(string $ibmEmpleado = '', string $nombreEmpleado = '', string $ibmSupervisorSesion): bool {
-    if (!file_exists(CSV_FILE_SIND)) return false;
+function validarSupervisor(string $ibmEmpleado = '', string $nombreEmpleado = '', string $ibmSupervisorSesion): bool
+{
+    if (!file_exists(CSV_FILE_SIND))
+        return false;
     $handle = fopen(CSV_FILE_SIND, "r");
-    if (!$handle) return false;
+    if (!$handle)
+        return false;
 
     $bom = fread($handle, 3);
-    if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+    if ($bom !== "\xEF\xBB\xBF")
+        rewind($handle);
 
     $headers = fgetcsv($handle, 0, CSV_SEPARATOR);
-    if (!$headers) { fclose($handle); return false; }
+    if (!$headers) {
+        fclose($handle);
+        return false;
+    }
 
     // Lista de columnas de supervisores
     $supervisorCols = [
@@ -349,7 +274,8 @@ function validarSupervisor(string $ibmEmpleado = '', string $nombreEmpleado = ''
     ];
 
     while (($line = fgetcsv($handle, 0, CSV_SEPARATOR)) !== false) {
-        if (array_filter($line) === []) continue;
+        if (array_filter($line) === [])
+            continue;
         $row = array_combine($headers, array_pad($line, count($headers), ''));
 
         $coincide = false;
@@ -384,23 +310,31 @@ function validarSupervisor(string $ibmEmpleado = '', string $nombreEmpleado = ''
 }
 
 // Busqueda de empleados por medio del supervisor
-function busquedaEmpledoxSupervisor(string $ibm = '', string $nombre = ''): ?array {
-    if (!file_exists(CSV_FILE)) return null;
+function busquedaEmpledoxSupervisor(string $ibm = '', string $nombre = ''): ?array
+{
+    if (!file_exists(CSV_FILE))
+        return null;
     $handle = fopen(CSV_FILE, "r");
-    if (!$handle) return null;
+    if (!$handle)
+        return null;
 
     // Quitar BOM de encabezados
     $bom = fread($handle, 3);
-    if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+    if ($bom !== "\xEF\xBB\xBF")
+        rewind($handle);
 
     $headers = fgetcsv($handle, 0, CSV_SEPARATOR);
-    if (!$headers) { fclose($handle); return null; }
-    $headers = array_map(function($h) {
+    if (!$headers) {
+        fclose($handle);
+        return null;
+    }
+    $headers = array_map(function ($h) {
         return preg_replace('/^\xEF\xBB\xBF/', '', trim($h));
     }, $headers);
 
     while (($line = fgetcsv($handle, 0, CSV_SEPARATOR)) !== false) {
-        if (array_filter($line) === []) continue;
+        if (array_filter($line) === [])
+            continue;
         $row = array_combine($headers, array_pad($line, count($headers), ''));
 
         // Comparar por IBM
@@ -416,7 +350,7 @@ function busquedaEmpledoxSupervisor(string $ibm = '', string $nombre = ''): ?arr
                 return $row;
             }
         }
-        
+
     }
     fclose($handle);
     return null;
@@ -430,10 +364,13 @@ $csvSupervisorExiste = file_exists(CSV_FILE_SIND);
 $supervisor = $csvSupervisorExiste ? buscarSupervisor($ibmSession) : null;
 
 // Helper para mostrar datos
-function col(?array $row, string $key): string {
-    if (!$row) return 'Empleado no encontrado';
+function col(?array $row, string $key): string
+{
+    if (!$row)
+        return 'Empleado no encontrado';
     $valor = trim($row[$key] ?? '');
-    if ($key === COL_NOMBRE) $valor = str_replace(',', ' ', $valor);
+    if ($key === COL_NOMBRE)
+        $valor = str_replace(',', ' ', $valor);
     return htmlspecialchars($valor);
 }
 
@@ -441,28 +378,6 @@ function col(?array $row, string $key): string {
 // Ruta del historial
 define('HISTORIAL_FILE', UPLOAD_DIR . "Historial_Solicitudes_Vacaciones.csv");
 
-/*
-// Calcular días disponibles considerando historial
-$diasDisponibles = (int)($empleado[COL_VAC] ?? 0);
-
-$historial = [];
-if (file_exists(HISTORIAL_FILE)) {
-    $handle = fopen(HISTORIAL_FILE, "r");
-    $headers = fgetcsv($handle);
-    while (($line = fgetcsv($handle)) !== false) {
-        if (trim($line[0]) === (string)$ibmSession) {
-            $historial[] = $line;
-            $estatus = trim($line[7]);
-            if (!in_array($estatus, ["Rechazado", "Pendiente"])) {
-                $diasDisponibles -= (int)$line[6];
-            }
-        }
-    }
-    fclose($handle);
-}
-
--------------------------------------------------------------------
-*/
 
 // Recuperar IBM actual: si viene de POST úsalo, si no usa la sesión
 $ibmActual = $_POST["ibm"] ?? $ibmSession;
@@ -471,28 +386,24 @@ $ibmActual = $_POST["ibm"] ?? $ibmSession;
 $empleado = $csvExiste ? buscarEmpleado($ibmActual) : null;
 
 // Calcular días disponibles con ese IBM
-$diasDisponibles = (int)($empleado[COL_VAC] ?? 0);
+$diasDisponibles = (int) ($empleado[COL_VAC] ?? 0);
 
 $historial = [];
 if (file_exists(HISTORIAL_FILE)) {
     $handle = fopen(HISTORIAL_FILE, "r");
     $headers = fgetcsv($handle);
     while (($line = fgetcsv($handle)) !== false) {
-        if (trim($line[0]) === (string)$ibmActual) {
+        if (trim($line[0]) === (string) $ibmActual) {
             $historial[] = $line;
             $estatus = trim($line[7]);
             if (!in_array($estatus, ["Rechazado", "Pendiente"])) {
-                $diasDisponibles -= (int)$line[6];
+                $diasDisponibles -= (int) $line[6];
             }
         }
     }
     fclose($handle);
 }
 
-
-/*
--------------------------------------------------------------------
-*/
 
 // Filtrar dias que ya han sido solicitados
 $eventosBloqueados = [];
@@ -503,7 +414,7 @@ foreach ($historial as $solicitud) {
         $eventosBloqueados[] = [
             "title" => "SOLICITUD PENDIENTE",
             "start" => date("Y-m-d", strtotime($solicitud[4])),
-            "end"   => date("Y-m-d", strtotime($solicitud[5] . ' +1 day')),
+            "end" => date("Y-m-d", strtotime($solicitud[5] . ' +1 day')),
             "display" => "background",
             "color" => "#cdd9ff"
         ];
@@ -511,11 +422,11 @@ foreach ($historial as $solicitud) {
         $eventosBloqueados[] = [
             "title" => "SOLICITUD APROBADA",
             "start" => date("Y-m-d", strtotime($solicitud[4])),
-            "end"   => date("Y-m-d", strtotime($solicitud[5] . ' +1 day')),
+            "end" => date("Y-m-d", strtotime($solicitud[5] . ' +1 day')),
             "display" => "background",
             "color" => "#d4edda"
         ];
     } elseif ($estatus === "Rechazado") {
         continue;
-    }    
+    }
 }

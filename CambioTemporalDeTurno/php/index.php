@@ -224,7 +224,7 @@ class CambioTemporalTurno
                         Ctt_ibmEmpleado,
                         Ctt_ibmAutoriza
                     FROM [TLX002MXDB].[dbo].[tblMXPRCambioTurnoTemporal]
-                    ORDER BY Ctt_id DESC";
+                    ORDER BY Ctt_fecha DESC";
             $params = [];
         } else {
             // Si no es admin, solo ve los registros que él creó
@@ -255,7 +255,7 @@ class CambioTemporalTurno
                         Ctt_ibmAutoriza
                     FROM [TLX002MXDB].[dbo].[tblMXPRCambioTurnoTemporal]
                     WHERE Ctt_ibmAutoriza = ?
-                    ORDER BY Ctt_id DESC";
+                    ORDER BY Ctt_fecha DESC";
             $params = [$ibmSesion];
         }
 

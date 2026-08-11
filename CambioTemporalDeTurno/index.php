@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $ibmSesion = $_SESSION["ibm"] ?? null;
 $listaSupervisores = obtenerSupervisoresIBM();
 // $ibmPermitidos = [60040, 58998, 22622, 51947, 55268, 53224];
-$ibmPermitidos = [60040, 58998, 22622, 51947, 55268, 53224, 55075, 53412, 27825, 30950, 59610,	55075, 28342];
+$ibmPermitidos = [60040, 58998, 22622, 51947, 55268, 53224, 55075, 53412, 27825, 30950, 59610, 55075, 28342];
 
 if (!$ibmSesion || (!in_array($ibmSesion, $listaSupervisores) && !in_array($ibmSesion, $ibmPermitidos))) {
     header("Location:../index/index.php");
@@ -21,7 +21,7 @@ require_once(__DIR__ . "/../index/header.php");
 
 <link rel="stylesheet" href="../Tiempoextra/css/estilosModal.css">
 <link rel="stylesheet" href="../Vacaciones/css/estilosDriverJs.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css" />
 <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
 
 <div class="container p-4">
@@ -39,9 +39,10 @@ require_once(__DIR__ . "/../index/header.php");
         <div class="col-20">
             <small class="alert alert-info">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                    class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16"
-                    role="img" aria-label="Info:">
-                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                    class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img"
+                    aria-label="Info:">
+                    <path
+                        d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                 </svg>
                 Desde aquí puedes registrar un Cambio Temporal de Turno sin necesidad de asociarlo a un tiempo extra.
             </small>
@@ -78,7 +79,7 @@ require_once(__DIR__ . "/../index/header.php");
 
                 <!-- IBM oculto del supervisor en sesión — se usará en el PDF para su firma -->
                 <input type="hidden" name="ibm_sesion" id="ibm_sesion"
-                       value="<?php echo htmlspecialchars($ibmSesion); ?>">
+                    value="<?php echo htmlspecialchars($ibmSesion); ?>">
 
                 <div class="doc-body">
 
@@ -87,22 +88,19 @@ require_once(__DIR__ . "/../index/header.php");
                         <div class="col-2">
                             <small>IBM Empleado</small>
                             <input type="number" id="ibm_empleado" name="ibm_empleado"
-                                   class="form-control form-control-sm"
-                                   placeholder="No. Emp">
+                                class="form-control form-control-sm" placeholder="No. Emp">
                         </div>
                         <div class="col">
                             <small>Nombre receptor</small>
                             <!-- Se llena automáticamente al escribir el IBM del empleado -->
-                            <input class="form-control form-control-sm" type="text"
-                                   name="nombre_receptor" id="nombre_receptor"
-                                   placeholder="Nombre recuperado" readonly>
+                            <input class="form-control form-control-sm" type="text" name="nombre_receptor"
+                                id="nombre_receptor" placeholder="Nombre recuperado" readonly>
                         </div>
                         <div class="col">
                             <small>Departamento</small>
                             <!-- Se llena automáticamente al escribir el IBM del empleado -->
-                            <input class="form-control form-control-sm" type="text"
-                                   name="Depto_m" id="Depto_m"
-                                   placeholder="Departamento recuperado" readonly>
+                            <input class="form-control form-control-sm" type="text" name="Depto_m" id="Depto_m"
+                                placeholder="Departamento recuperado" readonly>
                         </div>
                     </div>
 
@@ -125,7 +123,7 @@ require_once(__DIR__ . "/../index/header.php");
 
                     <div class="row">
                         <div class="campo grow">
-                            <span class="lbl"> Horario (de acuerdo a rol): </span>                                        
+                            <span class="lbl"> Horario (de acuerdo a rol): </span>
                             <!-- <input class="inp" type="text" name="horario_texto" id="horario_texto"
                                 placeholder="Primer turno..."> -->
                             <select name="horario_texto" id="horario_texto" class="inp">
@@ -133,18 +131,18 @@ require_once(__DIR__ . "/../index/header.php");
                                 <option value="turno1">Turno 1</option>
                                 <option value="turno2">Turno 2</option>
                                 <option value="turno3">Turno 3</option>
+                                <option value="turno1_12hrs">Turno 1 (12 hrs)</option>
                                 <option value="turno2_12hrs">Turno 2 (12 hrs)</option>
-                                <option value="turno3_12hrs">Turno 3 (12 hrs)</option>                                
+                                <option value="turno3_12hrs">Turno 3 (12 hrs)</option>
                                 <option value="mixto1">Mixto 1</option>
                                 <option value="mixto2">Mixto 2</option>
                                 <option value="mixto3">Mixto 3</option>
                                 <option value="mixto4">Mixto 4</option>
-                            </select>                            
+                            </select>
                         </div>
                         <div class="campo grow">
                             <span class="lbl">Tripulacion:</span>
-                            <input class="inp" type="text" name="rol" id="rol"
-                                placeholder="Tripulacion ...">
+                            <input class="inp" type="text" name="rol" id="rol" placeholder="Tripulacion ...">
                         </div>
                     </div>
 
@@ -172,18 +170,19 @@ require_once(__DIR__ . "/../index/header.php");
                                         <option value="turno1">Turno 1</option>
                                         <option value="turno2">Turno 2</option>
                                         <option value="turno3">Turno 3</option>
+                                        <option value="turno1_12hrs">Turno 1 (12 hrs)</option>
                                         <option value="turno2_12hrs">Turno 2 (12 hrs)</option>
                                         <option value="turno3_12hrs">Turno 3 (12 hrs)</option>
                                         <option value="mixto1">Mixto 1</option>
                                         <option value="mixto2">Mixto 2</option>
                                         <option value="mixto3">Mixto 3</option>
                                         <option value="mixto4">Mixto 4</option>
-                                    </select> 
+                                    </select>
                                 </div>
                                 <!-- <div class="campo grow">
                                     <span class="lbl">Hora:</span> -->
-                                    <input hidden class="inp" type="time" name="hora_presentacion"
-                                        id="hora_presentacion" value="00:00:00">
+                                <input hidden class="inp" type="time" name="hora_presentacion" id="hora_presentacion"
+                                    value="00:00:00">
                                 <!-- </div> -->
                             </div>
                         </div>
@@ -206,9 +205,9 @@ require_once(__DIR__ . "/../index/header.php");
                             <div class="h-col-title">Conductor:</div>
                             <div class="campo grow">
                                 <span class="lbl">De:</span> -->
-                                <input hidden class="inp" type="text" name="hasta_tripulacion"
-                                    id="hasta_tripulacion" placeholder="Ej: Nombre" value="-">
-                            <!-- </div>
+                        <input hidden class="inp" type="text" name="hasta_tripulacion" id="hasta_tripulacion"
+                            placeholder="Ej: Nombre" value="-">
+                        <!-- </div>
                         </div> -->
                     </div>
 
@@ -274,9 +273,10 @@ require_once(__DIR__ . "/../index/header.php");
     <div class="m-2 mt-4">
         <small class="alert alert-success d-inline-block mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16"
-                role="img" aria-label="Info:">
-                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img"
+                aria-label="Info:">
+                <path
+                    d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
             </svg>
             Registros de Cambios Temporales de Turno creados desde esta vista.
         </small>

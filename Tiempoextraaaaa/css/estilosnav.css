@@ -1,0 +1,45 @@
+.nav-tabs {
+  border-bottom: none; /* quitamos línea base */
+}
+
+.nav-tabs .nav-link {
+  color: #000;
+  font-weight: 500;
+  border: 1px solid #dee2e6;
+  border-radius: 1rem 1rem 0 0; /* más redondeado */
+  margin-right: 8px;
+  background-color: #f8f9fa; /* gris más notorio */
+  padding: 0.6rem 1.2rem;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.05); /* leve relieve */
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  background-color: #ffffff;
+  border: 1px solid #0d6efd;
+  border-bottom-color: transparent;
+  box-shadow: 0 -2px 8px rgba(13,110,253,0.2); /* glow azul */
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #0844d0;
+  background-color: #f8f9fa;
+  transform: translateY(-2px); /* efecto de levantar */
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.15);
+  text-decoration: none;
+}
+
+table td:last-child,
+table th:last-child {
+  white-space: nowrap;
+  width: 1%;
+}
+
+
+table td:last-child,
+table th:last-child {
+white-space: nowrap;
+width: 1%;
+}

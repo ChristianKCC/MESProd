@@ -1,0 +1,157 @@
+/* ── Toggle modo múltiple ─────────────────────────────────────────────────── */
+.toggle-modo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 4px 0;
+    padding: 6px 12px;
+    background: #2169d4;
+    border-radius: 8px;
+    color: white;
+    border: 1px solid #2169d4;
+}
+
+/* Switch base */
+.switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+
+/* Slider neutro */
+.slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #444;
+    transition: .3s; border-radius: 24px;
+}
+
+/* Botón interno */
+.slider:before {
+    position: absolute; content: ""; height: 18px; width: 18px;
+    left: 3px; bottom: 3px; background-color: white;
+    transition: .3s; border-radius: 50%;
+}
+
+/* Estado activo */
+input:checked + .slider {
+    background-color: #00c896; 
+}
+
+/* Estado inactivo */
+input:not(:checked) + .slider {
+    background-color: #e1616e;
+}
+
+/* Movimiento del botón */
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* ── Grid de cards ────────────────────────────────────────────────────────── */
+.cards-dias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 10px;
+    padding: 4px;
+}
+
+/* ── Card individual de día ───────────────────────────────────────────────── */
+.card-dia {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+    background: #fff;
+}
+.card-dia--activo {
+    border-color: #0d6efd;
+    box-shadow: 0 2px 8px rgba(13,110,253,.15);
+}
+.card-dia__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid #dee2e6;
+}
+.card-dia--activo .card-dia__header { background: #e7f1ff; }
+.card-dia__check input { width: 16px; height: 16px; cursor: pointer; }
+.card-dia__titulo { display: flex; align-items: baseline; gap: 4px; }
+.card-dia__body { padding: 10px 12px 12px; }
+
+/* ── Responsive ajustes ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .cards-dias-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Sub-bloques (varios registros por día, mostrados de a uno con paginador) ─ */
+.sub-bloques-container { display: block; }
+
+/* ── Cards colapsables (opcional, el chevron solo aplica si se usa colapso) ── */
+.card-dia__chevron {
+    margin-left: 10px;
+    color: #6c757d;
+    transition: transform .2s ease;
+    font-size: 12px;
+}
+.card-dia--colapsada .card-dia__chevron { transform: rotate(-90deg); }
+
+.card-dia__resumen {
+    font-style: italic;
+}
+
+/* Card colapsada: header más compacto */
+.card-dia--colapsada .card-dia__header { padding: 6px 12px; }
+
+/* Cuando hay muchas cards expandidas, dar un respiro visual */
+.card-dia__body { animation: fadeInBody .15s ease; }
+@keyframes fadeInBody {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Sub-bloques más compactos: campos en filas que aprovechan el ancho completo */
+@media (min-width: 768px) {
+    .sub-bloque .row > [class*="col-md-4"] { flex: 0 0 auto; width: 25%; }
+}
+
+/* ── Paginador de registros dentro de la card ─────────────────────────────── */
+.sub-paginador {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    background: #eef2f7;
+    border-radius: 6px;
+    border: 1px solid #dde3ea;
+}
+.sub-paginador__nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.sub-paginador__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+    min-width: 120px;
+    text-align: center;
+}
+.sub-paginador__prev,
+.sub-paginador__next {
+    border: 1px solid #ced4da;
+    padding: 2px 10px;
+}
+.sub-paginador__prev:disabled,
+.sub-paginador__next:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+.sub-paginador__acciones {
+    display: flex;
+    gap: 6px;
+}
+
+/* El contenedor de sub-bloques ya solo muestra uno a la vez (JS controla display) */
+.sub-bloque { border: none; padding: 0; background: transparent; }

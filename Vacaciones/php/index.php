@@ -21,7 +21,7 @@ class Empleados
                   INNER JOIN TLX009MXDB.dbo.tblPuestos p ON p.id = e.Puesto
                   INNER JOIN TLX009MXDB.dbo.tblDepartamentos d ON d.NoDepto = e.NombreDepartamento
                   WHERE e.NoEmp = ?";
-        
+
         $params = [$ibm];
         $result = sqlsrv_query($conn, $query, $params);
 
@@ -37,7 +37,7 @@ class Empleados
         echo $result === false ? json_encode("sqlerror") : json_encode($array);
     }
 
-    function guardarSolicitudVacaciones() 
+    function guardarSolicitudVacaciones()
     {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
@@ -46,16 +46,16 @@ class Empleados
         $nombre = $_POST["nombre"] ?? '';
         $puesto = $_POST["puesto"] ?? '';
         $fecha_ingreso = $_POST["fecha_ingreso"] ?? '';
-        $diasSolicitados = (int)($_POST["dias_solicitados"] ?? 0);
+        $diasSolicitados = (int) ($_POST["dias_solicitados"] ?? 0);
         $fechaDe = $_POST["vacaciones_de"] ?? '';
         $fechaHasta = $_POST["vacaciones_hasta"] ?? '';
-        $totalDias = (int)($_POST["total_dias"] ?? 0);
-        $solVacBy = (int)($_POST["solicitud_por"] ?? 0);
-        $diasByAntiguedad = (int)($_POST["dias_antiguedad"] ?? 0);
-        $priVacEq = (int)($_POST["prima_vacacional"] ?? 0);
-        $diasRF = (int)($_POST["dias_reposicion"] ?? 0);
-        $diasD = (int)($_POST["dias_descanso"] ?? '');
-        $noTarjeta = (int)($_POST["tarjeta"] ?? 0);
+        $totalDias = (int) ($_POST["total_dias"] ?? 0);
+        $solVacBy = (int) ($_POST["solicitud_por"] ?? 0);
+        $diasByAntiguedad = (int) ($_POST["dias_antiguedad"] ?? 0);
+        $priVacEq = (int) ($_POST["prima_vacacional"] ?? 0);
+        $diasRF = (int) ($_POST["dias_reposicion"] ?? 0);
+        $diasD = (int) ($_POST["dias_descanso"] ?? '');
+        $noTarjeta = (int) ($_POST["tarjeta"] ?? 0);
         $depto = $_POST["departamento"] ?? '';
         $antiguedad = $_POST["antiguedad_de"] ?? '';
         $diasHabAp = $_POST["dias_habiles_partir"] ?? '';
@@ -72,20 +72,15 @@ class Empleados
         $tipoSol = $_POST["tipo_solicitud"] ?? '';
 
         // 1. Buscar jefe inmediato
-        // $gerenteNum = "SELECT JefeInm FROM TLX032MXDB.dbo.tblEmpleados WHERE NoEmp = ?";
-        // $resGerNum = sqlsrv_query($conn, $gerenteNum, [$noTarjeta]);
-        // if ($resGerNum === false) {
-        //     echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
-        //     exit;
-        // }
-        // $rowGerNum = sqlsrv_fetch_array($resGerNum, SQLSRV_FETCH_ASSOC);
-        // $GerNum = $rowGerNum['JefeInm'];
-
         // Obtener al gerente
         // $GerNum = $this->buscarJefeInmediato($noTarjeta);
         $datosJefes = $this->buscarJefeInmediato($noTarjeta);
         $GerNum = $datosJefes["jefe"];
         $Superint = $datosJefes["superintendente"];
+
+        // Vacaciones  →  antes de $queryEnc = "INSERT INTO tblMXPRVacacionesEnc..."
+        $GerNum = $this->resolverJefeConDelegacion($GerNum);   // entra a Vc_autoriza
+        $Superint = $this->resolverJefeConDelegacion($Superint); // entra a Vc_noempSupIntendente
 
         if (!$GerNum) {
             error_log("No se encontró jefe inmediato para supervisor=" . $noTarjeta);
@@ -96,19 +91,28 @@ class Empleados
         error_log("Jefe inmediato encontrado=" . $GerNum);
         error_log("Superintendente=" . $Superint);
 
-        // 2. Insertar en tblMXPRVacacionesEnc
-        $queryEnc = "INSERT INTO 
-                    tblMXPRVacacionesEnc (
-                    Vc_ibm,
-                    Vc_autorizado, 
-                    Vc_autoriza, 
-                    Vc_terminado,
-                    Vc_revisado,
-                    Vc_tipo,
-                    Vc_noempSupIntendente)                    
-                    OUTPUT INSERTED.Vc_id
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $paramsEnc = [$noTarjeta, 0, $GerNum, 0, 0, $tipoSol, $Superint];
+        $queryEnc = "INSERT INTO tblMXPRVacacionesEnc (
+                Vc_ibm,
+                Vc_autorizado, 
+                Vc_autoriza, 
+                Vc_terminado,
+                Vc_revisado,
+                Vc_tipo,
+                Vc_noempSupIntendente,
+                Vc_fechaSolicitud)                    
+                OUTPUT INSERTED.Vc_id
+                
+                VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())";
+        $paramsEnc = [
+            $noTarjeta,
+            0,
+            $GerNum,
+            0,
+            0,
+            $tipoSol,
+            $Superint
+        ];
+
         $resEnc = sqlsrv_query($conn, $queryEnc, $paramsEnc);
         if ($resEnc === false) {
             echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
@@ -147,33 +151,35 @@ class Empleados
             Vcs_saldoPeriodo,
             Vcs_diasHabiles)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $paramsSub = [$nombre, 
-                      $vc_id, 
-                      $puesto, 
-                      $fecha_ingreso, 
-                      $solVacBy, 
-                      $fechaDe, 
-                      $fechaHasta, 
-                      $diasByAntiguedad,                       
-                      $diasSolicitados,
-                      $priVacEq, 
-                      $diasRF, 
-                      $diasD, 
-                      $totalDias,                      
-                      $noTarjeta,
-                      $depto,
-                      $antiguedad,
-                      $diasHabAp,
-                      $periodo,
-                      $impOne,
-                      $impTwo,
-                      $impThree,
-                      $impFour,
-                      $impFive,
-                      $observaciones,
-                      $fechasRF,
-                      $saldoPeriodo,
-                      $diasHabiles];
+        $paramsSub = [
+            $nombre,
+            $vc_id,
+            $puesto,
+            $fecha_ingreso,
+            $solVacBy,
+            $fechaDe,
+            $fechaHasta,
+            $diasByAntiguedad,
+            $diasSolicitados,
+            $priVacEq,
+            $diasRF,
+            $diasD,
+            $totalDias,
+            $noTarjeta,
+            $depto,
+            $antiguedad,
+            $diasHabAp,
+            $periodo,
+            $impOne,
+            $impTwo,
+            $impThree,
+            $impFour,
+            $impFive,
+            $observaciones,
+            $fechasRF,
+            $saldoPeriodo,
+            $diasHabiles
+        ];
         $resSub = sqlsrv_query($conn, $querySub, $paramsSub);
         if ($resSub === false) {
             echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
@@ -182,23 +188,26 @@ class Empleados
 
         // 4. Insertar días en tblMXPRCalendarioVacaciones
         $fechaInicio = new DateTime($_POST['vacaciones_de']);
-        $fechaFin    = new DateTime($_POST['vacaciones_hasta']);
-        $cursor      = clone $fechaInicio;
+        $fechaFin = new DateTime($_POST['vacaciones_hasta']);
+        $cursor = clone $fechaInicio;
 
         // 4. Insertar días en tblMXPRCalendarioVacaciones
         // Iterar sobre TODOS los campos del POST que empiecen con "dia_"
         // así capturamos cualquier día que el usuario haya marcado, sin depender del rango
         foreach ($_POST as $key => $campo) {
-            if (strpos($key, 'dia_') !== 0) continue; // solo campos dia_YYYY-MM-DD
-            if ($campo === '') continue;               // ignorar días sin tipo asignado
+            if (strpos($key, 'dia_') !== 0)
+                continue; // solo campos dia_YYYY-MM-DD
+            if ($campo === '')
+                continue;               // ignorar días sin tipo asignado
 
             $fechaStr = substr($key, 4); // quitar el prefijo "dia_"
 
             // Validar que sea una fecha real
             $fechaObj = DateTime::createFromFormat('Y-m-d', $fechaStr);
-            if (!$fechaObj || $fechaObj->format('Y-m-d') !== $fechaStr) continue;
+            if (!$fechaObj || $fechaObj->format('Y-m-d') !== $fechaStr)
+                continue;
 
-            $dia = (int)$fechaObj->format('d');
+            $dia = (int) $fechaObj->format('d');
 
             $queryDia = "INSERT INTO tblMXPRCalendarioVacaciones
                             (Cav_folio, Cav_dia, Cav_fecha, Cav_seleccionado, Cav_tipoDia)
@@ -209,8 +218,37 @@ class Empleados
 
         echo json_encode(["success" => true, "vc_id" => $vc_id]);
     }
-    
-    function buscarJefeInmediato(string $ibmSupervisor): array {
+
+    function resolverJefeConDelegacion($ibm)
+    {
+        if ($ibm === null || trim((string) $ibm) === '')
+            return $ibm;
+        $ibm = trim((string) $ibm);
+
+        $conn = (new ClassConexion())->conexion("TLX002MXDB"); // BD de la tabla
+        $sql = "SELECT TOP 1 IBMDelegado
+            FROM dbo.tblMXPRDelegaciones
+            WHERE IBMDelegante = ?
+              AND Activo = 1
+              AND CAST(GETDATE() AS DATE) BETWEEN FechaInicio AND FechaFin
+            ORDER BY FechaRegistro DESC";
+        $stmt = sqlsrv_query($conn, $sql, [$ibm]);
+
+        $efectivo = $ibm;
+        if ($stmt && ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC))) {
+            if (!empty($row['IBMDelegado'])) {
+                $efectivo = trim((string) $row['IBMDelegado']);
+                error_log("Delegación activa: $ibm -> $efectivo");
+            }
+        }
+        if ($stmt)
+            sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+        return $efectivo;
+    }
+
+    function buscarJefeInmediato(string $ibmSupervisor): array
+    {
         $resultado = ["jefe" => null, "superintendente" => null];
 
         if (!file_exists(CSV_NOMINAS_FILE)) {
@@ -224,19 +262,24 @@ class Empleados
         }
 
         $bom = fread($handle, 3);
-        if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+        if ($bom !== "\xEF\xBB\xBF")
+            rewind($handle);
 
         $headers = fgetcsv($handle, 0, CSV_SEPARATOR);
-        if (!$headers) { fclose($handle); return $resultado; }
+        if (!$headers) {
+            fclose($handle);
+            return $resultado;
+        }
 
-        $headers = array_map(function($h) {
+        $headers = array_map(function ($h) {
             return preg_replace('/^\xEF\xBB\xBF/', '', trim($h));
         }, $headers);
 
         error_log("Buscando supervisor IBM=" . $ibmSupervisor);
 
         while (($line = fgetcsv($handle, 0, CSV_SEPARATOR)) !== false) {
-            if (array_filter($line) === []) continue;
+            if (array_filter($line) === [])
+                continue;
 
             if (count($line) < count($headers)) {
                 $line = array_pad($line, count($headers), '');
@@ -245,11 +288,12 @@ class Empleados
             }
 
             $row = @array_combine($headers, $line);
-            if (!$row) continue;
+            if (!$row)
+                continue;
 
-            $num       = trim($row[COL_NUMERO] ?? '');
-            $idJefe    = trim($row[COL_ID_JEFE] ?? '');
-            $superint  = trim($row[COL_IBM] ?? '');
+            $num = trim($row[COL_NUMERO] ?? '');
+            $idJefe = trim($row[COL_ID_JEFE] ?? '');
+            $superint = trim($row[COL_IBM] ?? '');
 
             if ($num !== '' && $num === trim($ibmSupervisor)) {
                 if ($idJefe !== '') {
@@ -278,7 +322,8 @@ class Empleados
         return $resultado;
     }
 
-    function actualizarSolicitudVacaciones() {
+    function actualizarSolicitudVacaciones()
+    {
         header('Content-Type: application/json');
 
         $ClassConexion = new ClassConexion();
@@ -357,10 +402,33 @@ class Empleados
             WHERE Vcs_vc_id = ?";
 
         $paramsSub = [
-            $nombre, $puesto, $fecha_ingreso, $solVacBy, $fechaDe, $fechaHasta, $diasByAntiguedad,
-            $diasSolicitados, $priVacEq, $diasRF, $diasD, $totalDias, $noTarjeta, $depto, $antiguedad,
-            $diasHabAp, $periodo, $impOne, $impTwo, $impThree, $impFour, $impFive, $observaciones,
-            $fechasRF, $saldoPeriodo, $diasHabiles, $folio
+            $nombre,
+            $puesto,
+            $fecha_ingreso,
+            $solVacBy,
+            $fechaDe,
+            $fechaHasta,
+            $diasByAntiguedad,
+            $diasSolicitados,
+            $priVacEq,
+            $diasRF,
+            $diasD,
+            $totalDias,
+            $noTarjeta,
+            $depto,
+            $antiguedad,
+            $diasHabAp,
+            $periodo,
+            $impOne,
+            $impTwo,
+            $impThree,
+            $impFour,
+            $impFive,
+            $observaciones,
+            $fechasRF,
+            $saldoPeriodo,
+            $diasHabiles,
+            $folio
         ];
 
         $resSub = sqlsrv_query($conn, $querySub, $paramsSub);
@@ -368,7 +436,7 @@ class Empleados
             sqlsrv_rollback($conn);
             echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
             exit;
-        }            
+        }
 
         // Marcar como revisado en tblMXPRVacacionesEnc para que Relaciones Industriales coloque su firma
         $queryEnc = "UPDATE tblMXPRVacacionesEnc SET Vc_revisado = 1 WHERE Vc_id = ?";
@@ -378,45 +446,46 @@ class Empleados
             echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
             exit;
         }
-        
+
         // 2. Update calendario: eliminar y volver a insertar los seleccionados
-            $deleteCal = "DELETE FROM tblMXPRCalendarioVacaciones WHERE Cav_folio = ?";
-            $resDel = sqlsrv_query($conn, $deleteCal, [$folio]);
-            if ($resDel === false) {
-                sqlsrv_rollback($conn);
-                echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
-                exit;
-            }
+        $deleteCal = "DELETE FROM tblMXPRCalendarioVacaciones WHERE Cav_folio = ?";
+        $resDel = sqlsrv_query($conn, $deleteCal, [$folio]);
+        if ($resDel === false) {
+            sqlsrv_rollback($conn);
+            echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
+            exit;
+        }
 
-            // Recorrer todos los campos POST que empiecen con "dia_"
-            foreach ($_POST as $key => $value) {
-                if (strpos($key, 'dia_') === 0 && $value !== '') {
-                    $fechaStr = substr($key, 4); // quitar "dia_"
-                    try {
-                        $fechaObj = new DateTime($fechaStr);
-                        $diaNum   = (int)$fechaObj->format('d');
-                    } catch (Exception $e) {
-                        continue; // si la fecha no es válida, saltar
-                    }
+        // Recorrer todos los campos POST que empiecen con "dia_"
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'dia_') === 0 && $value !== '') {
+                $fechaStr = substr($key, 4); // quitar "dia_"
+                try {
+                    $fechaObj = new DateTime($fechaStr);
+                    $diaNum = (int) $fechaObj->format('d');
+                } catch (Exception $e) {
+                    continue; // si la fecha no es válida, saltar
+                }
 
-                    $queryDia = "INSERT INTO tblMXPRCalendarioVacaciones 
+                $queryDia = "INSERT INTO tblMXPRCalendarioVacaciones 
                                 (Cav_folio, Cav_dia, Cav_fecha, Cav_seleccionado, Cav_tipoDia)
                                 VALUES (?, ?, ?, ?, ?)";
-                    $paramsDia = [$folio, $diaNum, $fechaStr, 1, $value];
-                    $resDia = sqlsrv_query($conn, $queryDia, $paramsDia);
-                    if ($resDia === false) {
-                        sqlsrv_rollback($conn);
-                        echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
-                        exit;
-                    }
+                $paramsDia = [$folio, $diaNum, $fechaStr, 1, $value];
+                $resDia = sqlsrv_query($conn, $queryDia, $paramsDia);
+                if ($resDia === false) {
+                    sqlsrv_rollback($conn);
+                    echo json_encode(["success" => false, "error" => sqlsrv_errors()]);
+                    exit;
                 }
             }
+        }
 
-            sqlsrv_commit($conn);
-            echo json_encode(["success" => true, "vc_id" => $folio]);
+        sqlsrv_commit($conn);
+        echo json_encode(["success" => true, "vc_id" => $folio]);
     }
 
-    function eliminarVacacion() {
+    function eliminarVacacion()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -447,7 +516,8 @@ class Empleados
 
     // Funciones para la autorizacion de vacaciones    
 
-    function tblDeptosDinam() {
+    function tblDeptosDinam()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -475,7 +545,8 @@ class Empleados
         echo json_encode($array);
     }
 
-    function tblVacacionesEnc() {
+    function tblVacacionesEnc()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -501,7 +572,8 @@ class Empleados
                         enc.Vc_revisado,                        
                         enc.Vc_primaDomPagada,
                         enc.Vc_primaDomFecha,
-                        enc.Vc_primaDomSemana
+                        enc.Vc_primaDomSemana,
+                        enc.Vc_fechaSolicitud
                     FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
                     INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
                         ON sub.Vcs_vc_id = enc.Vc_id
@@ -521,7 +593,8 @@ class Empleados
                         enc.Vc_revisado,
                         enc.Vc_primaDomPagada,
                         enc.Vc_primaDomFecha,
-                        enc.Vc_primaDomSemana
+                        enc.Vc_primaDomSemana,
+                        enc.Vc_fechaSolicitud
                     FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
                     INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
                         ON sub.Vcs_vc_id = enc.Vc_id
@@ -531,7 +604,7 @@ class Empleados
 
         // Filtro por fecha
         if ($fechaFiltro) {
-            $query .= " AND sub.Vcs_de = ?";
+            $query .= " AND CAST(enc.Vc_fechaSolicitud AS DATE) = ?";
             $params[] = $fechaFiltro;
         }
 
@@ -568,182 +641,22 @@ class Empleados
                 "autorizado" => $row["autorizado"],
                 "firmaRI" => $row["firmaRI"],
                 "Vc_noempSupIntendente" => $row["Vc_noempSupIntendente"],
-                "Vc_autSupIn" => $row["Vc_autSupIn"],                
+                "Vc_autSupIn" => $row["Vc_autSupIn"],
                 "Vc_revisado" => $row["Vc_revisado"],
                 "Vc_primaDomPagada" => $row["Vc_primaDomPagada"],
                 "Vc_primaDomFecha" => $row["Vc_primaDomFecha"] instanceof DateTime ? $row["Vc_primaDomFecha"]->format("Y-m-d H:i:s") : null,
-                "Vc_primaDomSemana" => $row["Vc_primaDomSemana"]
+                "Vc_primaDomSemana" => $row["Vc_primaDomSemana"],
+                "Vc_fechaSolicitud" => $row["Vc_fechaSolicitud"] instanceof DateTime ? $row["Vc_fechaSolicitud"]->format("Y-m-d") : 'En recuperación'
             ];
         }
 
         echo json_encode($array);
-    }    
+    }
 
-    // Query para reportes desde vista de supervisor en epartadop de consulta
-    // function tblVacacionesEncSupervisor() {
-    //     $ClassConexion = new ClassConexion();
-    //     $conn = $ClassConexion->conexion("TLX002MXDB");
+    // Query para reportes desde vista de supervisor en el apartado de consulta
 
-    //     $ibm = $_SESSION['ibm'];
-    //     $admins = ['58998', '51947', '22622', '55268', '53224', '60040'];
-
-    //     $fechaFiltro = $_GET['fecha'] ?? null;
-    //     $estatusFiltro = $_GET['estatus'] ?? null;
-
-    //     $params = [];
-
-    //     if (in_array($ibm, $admins)) {
-    //         // Admin ve todo
-    //         $query = "SELECT enc.Vc_id AS id, enc.Vc_ibm AS noemp, sub.Vcs_nombre AS nombre,
-    //                         sub.Vcs_depto AS departamento, sub.Vcs_de AS fecha,
-    //                         enc.Vc_autorizado AS autorizado,
-    //                         enc.Vc_revisado AS revisado,
-    //                         enc.Vc_firmaRI AS firmaRI
-    //                 FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
-    //                 INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
-    //                     ON sub.Vcs_vc_id = enc.Vc_id
-    //                 WHERE 1=1";
-    //     } else {
-    //         $ibmsSubordinados = $this->obtenerEmpleadosDeSupervisor($ibm);
-    //         $ibmsSubordinados[] = $ibm;
-
-    //         if (empty($ibmsSubordinados)) {
-    //             echo json_encode([]);
-    //             return;
-    //         }
-
-    //         $placeholders = implode(',', array_fill(0, count($ibmsSubordinados), '?'));
-    //         $query = "SELECT enc.Vc_id AS id, enc.Vc_ibm AS noemp, sub.Vcs_nombre AS nombre,
-    //                         sub.Vcs_depto AS departamento, sub.Vcs_de AS fecha,
-    //                         enc.Vc_autorizado AS autorizado,
-    //                         enc.Vc_revisado AS revisado,
-    //                         enc.Vc_firmaRI AS firmaRI
-    //                 FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
-    //                 INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
-    //                     ON sub.Vcs_vc_id = enc.Vc_id
-    //                 WHERE enc.Vc_ibm IN ($placeholders)";
-    //         $params = $ibmsSubordinados;
-    //     }
-
-    //     if ($fechaFiltro) {
-    //         $query .= " AND sub.Vcs_de = ?";
-    //         $params[] = $fechaFiltro;
-    //     }
-
-    //     if ($estatusFiltro !== null && $estatusFiltro !== '') {
-    //         $query .= " AND enc.Vc_autorizado = ?";
-    //         $params[] = (int)$estatusFiltro;
-    //     }
-
-    //     $query .= " ORDER BY enc.Vc_id DESC";
-
-    //     $result = sqlsrv_query($conn, $query, $params);
-    //     $array = [];
-
-    //     while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
-    //         $array[] = [
-    //             "id" => $row["id"],
-    //             "noemp" => $row["noemp"],
-    //             "nombre" => $row["nombre"],
-    //             "departamento" => $row["departamento"],
-    //             "fecha" => $row["fecha"]->format("Y-m-d"),
-    //             "autorizado" => $row["autorizado"],
-    //             "revisado" => $row["revisado"],
-    //             "firmaRI" => $row["firmaRI"]
-    //         ];
-    //     }
-
-    //     echo json_encode($array);
-    // }
-
-    // function tblVacacionesEncSupervisor() {
-    //     $ClassConexion = new ClassConexion();
-    //     $conn = $ClassConexion->conexion("TLX002MXDB");
-
-    //     $ibm = $_SESSION['ibm'];
-    //     $admins = ['58998', '51947', '22622', '55268', '53224', '60040'];
-
-    //     $fechaFiltro = $_GET['fecha'] ?? null;
-    //     $estatusFiltro = $_GET['estatus'] ?? null;
-    //     $ibmFiltro = $_GET['ibmFiltro'] ?? null;
-
-    //     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    //     $pageSize = isset($_GET['pageSize']) ? (int)$_GET['pageSize'] : 10;
-    //     $offset = ($page - 1) * $pageSize;
-
-    //     $params = [];
-
-    //     if (in_array($ibm, $admins)) {
-    //         $query = "SELECT enc.Vc_id AS id, enc.Vc_ibm AS noemp, sub.Vcs_nombre AS nombre,
-    //                         sub.Vcs_depto AS departamento, sub.Vcs_de AS fecha,
-    //                         enc.Vc_autorizado AS autorizado,
-    //                         enc.Vc_revisado AS revisado,
-    //                         enc.Vc_firmaRI AS firmaRI
-    //                 FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
-    //                 INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
-    //                     ON sub.Vcs_vc_id = enc.Vc_id
-    //                 WHERE 1=1";
-    //     } else {
-    //         $ibmsSubordinados = $this->obtenerEmpleadosDeSupervisor($ibm);
-    //         $ibmsSubordinados[] = $ibm;
-
-    //         if (empty($ibmsSubordinados)) {
-    //             echo json_encode([]);
-    //             return;
-    //         }
-
-    //         $placeholders = implode(',', array_fill(0, count($ibmsSubordinados), '?'));
-    //         $query = "SELECT enc.Vc_id AS id, enc.Vc_ibm AS noemp, sub.Vcs_nombre AS nombre,
-    //                         sub.Vcs_depto AS departamento, sub.Vcs_de AS fecha,
-    //                         enc.Vc_autorizado AS autorizado,
-    //                         enc.Vc_revisado AS revisado,
-    //                         enc.Vc_firmaRI AS firmaRI
-    //                 FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
-    //                 INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
-    //                     ON sub.Vcs_vc_id = enc.Vc_id
-    //                 WHERE enc.Vc_ibm IN ($placeholders)";
-    //         $params = $ibmsSubordinados;
-    //     }
-
-    //     if ($fechaFiltro) {
-    //         $query .= " AND sub.Vcs_de = ?";
-    //         $params[] = $fechaFiltro;
-    //     }
-
-    //     if ($ibmFiltro) {
-    //         $query .= " AND enc.Vc_ibm = ?";
-    //         $params[] = $ibmFiltro;
-    //     }
-
-    //     if ($estatusFiltro !== null && $estatusFiltro !== '') {
-    //         $query .= " AND enc.Vc_autorizado = ?";
-    //         $params[] = (int)$estatusFiltro;
-    //     }
-
-    //     $query .= " ORDER BY enc.Vc_id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    //     $params[] = $offset;
-    //     $params[] = $pageSize;
-
-    //     $result = sqlsrv_query($conn, $query, $params);
-    //     $array = [];
-
-    //     while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
-    //         $array[] = [
-    //             "id" => $row["id"],
-    //             "noemp" => $row["noemp"],
-    //             "nombre" => $row["nombre"],
-    //             "departamento" => $row["departamento"],
-    //             "fecha" => $row["fecha"]->format("Y-m-d"),
-    //             "autorizado" => $row["autorizado"],
-    //             "revisado" => $row["revisado"],
-    //             "firmaRI" => $row["firmaRI"]
-    //         ];
-    //     }
-
-    //     echo json_encode($array);
-    // }
-
-    function tblVacacionesEncSupervisor() {
+    function tblVacacionesEncSupervisor()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -754,8 +667,8 @@ class Empleados
         $estatusFiltro = $_GET['estatus'] ?? null;
         $ibmFiltro = $_GET['ibmFiltro'] ?? null;
 
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $pageSize = isset($_GET['pageSize']) ? (int)$_GET['pageSize'] : 10;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $pageSize = isset($_GET['pageSize']) ? (int) $_GET['pageSize'] : 10;
         $offset = ($page - 1) * $pageSize;
 
         $params = [];
@@ -766,21 +679,37 @@ class Empleados
                         INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
                         ON sub.Vcs_vc_id = enc.Vc_id
                         WHERE 1=1";
-        } else {
-            $ibmsSubordinados = $this->obtenerEmpleadosDeSupervisor($ibm);
-            $ibmsSubordinados[] = $ibm;
+            // } else {
+            //     $ibmsSubordinados = $this->obtenerEmpleadosDeSupervisor($ibm);
+            //     $ibmsSubordinados[] = $ibm;
 
-            if (empty($ibmsSubordinados)) {
+            //     if (empty($ibmsSubordinados)) {
+            //         echo json_encode(["total" => 0, "data" => []]);
+            //         return;
+            //     }
+
+            //     $placeholders = implode(',', array_fill(0, count($ibmsSubordinados), '?'));
+            //     $baseQuery = "FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
+            //                 INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
+            //                 ON sub.Vcs_vc_id = enc.Vc_id
+            //                 WHERE enc.Vc_ibm IN ($placeholders)";
+            //     $params = $ibmsSubordinados;
+            // }
+
+        } else {
+            $canon = $this->resolverDeptos($this->departamentosDelSupervisor($ibm));
+            $deptos = $canon['nombres'];
+            if (empty($deptos)) {
                 echo json_encode(["total" => 0, "data" => []]);
                 return;
             }
-
-            $placeholders = implode(',', array_fill(0, count($ibmsSubordinados), '?'));
+            $placeholders = implode(',', array_fill(0, count($deptos), '?'));
             $baseQuery = "FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
-                        INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub 
+                        INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub
                         ON sub.Vcs_vc_id = enc.Vc_id
-                        WHERE enc.Vc_ibm IN ($placeholders)";
-            $params = $ibmsSubordinados;
+                        WHERE sub.Vcs_depto COLLATE Latin1_General_CI_AI IN ($placeholders)";
+            $params = $deptos;
+
         }
 
         // Filtros
@@ -796,7 +725,7 @@ class Empleados
 
         if ($estatusFiltro !== null && $estatusFiltro !== '') {
             $baseQuery .= " AND enc.Vc_autorizado = ?";
-            $params[] = (int)$estatusFiltro;
+            $params[] = (int) $estatusFiltro;
         }
 
         // Query total
@@ -836,7 +765,8 @@ class Empleados
     }
 
 
-    function obtenerEmpleadosDeSupervisor(string $ibmSupervisorSesion): array {
+    function obtenerEmpleadosDeSupervisor(string $ibmSupervisorSesion): array
+    {
         $empleados = [];
 
         // Ruta directa al CSV de sindicalizados
@@ -857,7 +787,8 @@ class Empleados
 
         $separator = ",";
         $bom = fread($handle, 3);
-        if ($bom !== "\xEF\xBB\xBF") rewind($handle);
+        if ($bom !== "\xEF\xBB\xBF")
+            rewind($handle);
 
         $headers = fgetcsv($handle, 0, $separator);
         if (!$headers) {
@@ -879,7 +810,8 @@ class Empleados
         $rowNum = 0;
         while (($line = fgetcsv($handle, 0, $separator)) !== false) {
             $rowNum++;
-            if (array_filter($line) === []) continue;
+            if (array_filter($line) === [])
+                continue;
             $row = array_combine($headers, array_pad($line, count($headers), ''));
 
             foreach ($supervisorCols as $col) {
@@ -901,7 +833,96 @@ class Empleados
         return $empleados;
     }
 
-    function tblVacacionesEncSupInt() {
+    function vac_normaliza($t)
+    {
+        $t = (string) $t;
+        if ($t !== '' && !mb_check_encoding($t, 'UTF-8'))
+            $t = mb_convert_encoding($t, 'UTF-8', 'Windows-1252');
+        $t = mb_strtolower(trim($t), 'UTF-8');
+        $t = strtr($t, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n', 'à' => 'a', 'è' => 'e', 'ì' => 'i', 'ò' => 'o', 'ù' => 'u']);
+        return preg_replace('/\s+/', ' ', $t);
+    }
+
+    // Departamentos del supervisor según el CSV de sindicalizados (columna DEPARTAMENTO)
+    function departamentosDelSupervisor(string $ibmSupervisorSesion): array
+    {
+        $departamentos = [];
+        $csvFile = dirname(__DIR__) . "/uploads/SINDICALIZADO_CON_LA_RELACION_DE_LOS_SUPERVISORES.csv";
+        if (!file_exists($csvFile))
+            return $departamentos;
+        $handle = fopen($csvFile, "r");
+        if (!$handle)
+            return $departamentos;
+
+        $separator = ",";
+        $bom = fread($handle, 3);
+        if ($bom !== "\xEF\xBB\xBF")
+            rewind($handle);
+        $headers = fgetcsv($handle, 0, $separator);
+        if (!$headers) {
+            fclose($handle);
+            return $departamentos;
+        }
+
+        $supervisorCols = [
+            'IBM DEL SUPERVISOR1',
+            'IBM DEL SUPERVISOR2',
+            'IBM DEL SUPERVISOR3',
+            'IBM DEL SUPERVISOR4',
+            'IBM DEL SUPERVISOR5',
+            'IBM DEL SUPERVISOR6'
+        ];
+        $objetivo = trim($ibmSupervisorSesion);
+
+        while (($line = fgetcsv($handle, 0, $separator)) !== false) {
+            if (array_filter($line) === [])
+                continue;
+            $row = array_combine($headers, array_pad($line, count($headers), ''));
+            foreach ($supervisorCols as $col) {
+                if (trim($row[$col] ?? '') === $objetivo) {
+                    $dep = trim($row['DEPARTAMENTO'] ?? '');
+                    if ($dep !== '')
+                        $departamentos[$dep] = true;
+                    break;
+                }
+            }
+        }
+        fclose($handle);
+        error_log(">>> Total departamentos encontrados: " . count($departamentos));
+        return array_keys($departamentos);
+
+    }
+
+    // Normaliza los nombres del CSV contra tblDepartamentos → nombre canónico + NoDepto
+    function resolverDeptos(array $nombresRaw): array
+    {
+        if (empty($nombresRaw))
+            return ['ids' => [], 'nombres' => []];
+        $conn = (new ClassConexion())->conexion("TLX009MXDB");
+        $cat = [];
+        $res = sqlsrv_query($conn, "SELECT NoDepto, NombreDepto FROM TLX009MXDB.dbo.tblDepartamentos");
+        if ($res !== false) {
+            while ($r = sqlsrv_fetch_array($res, SQLSRV_FETCH_ASSOC)) {
+                $cat[$this->vac_normaliza($r['NombreDepto'])] =
+                    ['id' => trim((string) $r['NoDepto']), 'nombre' => trim((string) $r['NombreDepto'])];
+            }
+        }
+        $ids = [];
+        $nombres = [];
+        foreach ($nombresRaw as $raw) {
+            $n = $this->vac_normaliza($raw);
+            if (isset($cat[$n])) {
+                $ids[] = $cat[$n]['id'];
+                $nombres[] = $cat[$n]['nombre'];
+            } else {
+                $nombres[] = trim($raw);
+            } // fallback: nombre del CSV tal cual
+        }
+        return ['ids' => array_values(array_unique($ids)), 'nombres' => array_values(array_unique($nombres))];
+    }
+
+    function tblVacacionesEncSupInt()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -910,6 +931,7 @@ class Empleados
 
         $fechaFiltro = $_GET['fecha'] ?? null;
         $estatusFiltro = $_GET['estatus'] ?? null;
+        $ibmFiltro = $_GET['ibm'] ?? null;
 
         if (in_array($ibm, $admins)) {
             $query = "SELECT 
@@ -944,7 +966,7 @@ class Empleados
                         ON sub.Vcs_vc_id = enc.Vc_id
                     WHERE enc.Vc_noempSupIntendente = ?";
             $params = [$ibm];
-        }        
+        }
 
         // Filtro por fecha
         if ($fechaFiltro) {
@@ -959,8 +981,13 @@ class Empleados
                 $query .= " AND (enc.Vc_autSupIn IS NULL OR enc.Vc_autSupIn = 0)";
             } else {
                 $query .= " AND enc.Vc_autSupIn = ?";
-                $params[] = (int)$estatusFiltro;
+                $params[] = (int) $estatusFiltro;
             }
+        }
+
+        if ($ibmFiltro) {
+            $query .= " AND enc.Vc_ibm = ?";
+            $params[] = $ibmFiltro;
         }
 
         $query .= " ORDER BY enc.Vc_id DESC";
@@ -985,7 +1012,8 @@ class Empleados
         echo json_encode($array);
     }
 
-    function tblVacacionesRIEnc() {
+    function tblVacacionesRIEnc()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -994,6 +1022,7 @@ class Empleados
 
         $fechaFiltro = $_GET['fecha'] ?? null;
         $estatusFiltro = $_GET['estatus'] ?? null;
+        $ibmFiltro = $_GET['ibm'] ?? null;
 
         if (in_array($ibm, $admins)) {
             $query = "SELECT 
@@ -1040,8 +1069,13 @@ class Empleados
                 $query .= " AND (enc.Vc_firmaRI IS NULL OR enc.Vc_firmaRI = 0)";
             } else {
                 $query .= " AND enc.Vc_firmaRI = ?";
-                $params[] = (int)$estatusFiltro;
+                $params[] = (int) $estatusFiltro;
             }
+        }
+
+        if ($ibmFiltro) {
+            $query .= " AND enc.Vc_ibm = ?";
+            $params[] = $ibmFiltro;
         }
 
         $query .= " ORDER BY enc.Vc_id DESC";
@@ -1066,7 +1100,8 @@ class Empleados
     }
 
 
-    function autorizaVac() {
+    function autorizaVac()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -1084,7 +1119,8 @@ class Empleados
     }
 
     // Funcion de autorización para superintendente
-    function autorizaVacSupInt() {
+    function autorizaVacSupInt()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -1101,7 +1137,8 @@ class Empleados
         echo json_encode($result === false ? "Errorsql" : "Listo");
     }
 
-    function reporteVacaciones() {
+    function reporteVacaciones()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -1152,38 +1189,112 @@ class Empleados
         $result = sqlsrv_query($conn, $query, $params);
         $array = [];
         while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
-        $queryDias = "SELECT Cav_fecha, Cav_tipoDia 
+            $queryDias = "SELECT Cav_fecha, Cav_tipoDia 
                 FROM tblMXPRCalendarioVacaciones 
                 WHERE Cav_folio = ?";
-        $resultDias = sqlsrv_query($conn, $queryDias, [$row["folio"]]);
-        $dias = [];
-        while ($d = sqlsrv_fetch_array($resultDias, SQLSRV_FETCH_ASSOC)) {
-            $dias[] = [
-                "fecha" => $d["Cav_fecha"]->format("Y-m-d"),
-                "tipo" => $d["Cav_tipoDia"]
-            ];
-        }           
+            $resultDias = sqlsrv_query($conn, $queryDias, [$row["folio"]]);
+            $dias = [];
+            while ($d = sqlsrv_fetch_array($resultDias, SQLSRV_FETCH_ASSOC)) {
+                $dias[] = [
+                    "fecha" => $d["Cav_fecha"]->format("Y-m-d"),
+                    "tipo" => $d["Cav_tipoDia"]
+                ];
+            }
 
-        $array[] = [
-            "folio" => $row["folio"],
-            "noemp" => $row["noemp"],
-            // "nombre" => $row["nombre"],
-            "nombre" => mb_convert_case(strtolower($row["nombre"]), MB_CASE_TITLE, "UTF-8"),
-            "puesto" => $row["puesto"],
-            "departamento" => $row["departamento"],
-            "del" => $row["del"]->format("Y-m-d"),
-            "hasta" => $row["hasta"]->format("Y-m-d"),
-            "diasPorAntiguedad" => $row["diasPorAntiguedad"],
-            "totalDias" => $row["totalDias"],
-            "autorizado" => $row["autorizado"],
-            "tipoSolicitud" => $row["tipoSolicitud"],
-            "diasCalendario" => $dias,
-            "Vc_firmaRI" => $row["Vc_firmaRI"],
-            "Vc_revisado" => $row["Vc_revisado"]
-        ];
+            $array[] = [
+                "folio" => $row["folio"],
+                "noemp" => $row["noemp"],
+                // "nombre" => $row["nombre"],
+                "nombre" => mb_convert_case(strtolower($row["nombre"]), MB_CASE_TITLE, "UTF-8"),
+                "puesto" => $row["puesto"],
+                "departamento" => $row["departamento"],
+                "del" => $row["del"]->format("Y-m-d"),
+                "hasta" => $row["hasta"]->format("Y-m-d"),
+                "diasPorAntiguedad" => $row["diasPorAntiguedad"],
+                "totalDias" => $row["totalDias"],
+                "autorizado" => $row["autorizado"],
+                "tipoSolicitud" => $row["tipoSolicitud"],
+                "diasCalendario" => $dias,
+                "Vc_firmaRI" => $row["Vc_firmaRI"],
+                "Vc_revisado" => $row["Vc_revisado"]
+            ];
 
         }
         echo json_encode($array);
+    }
+
+
+    function reporteVacacionesSupervisor()
+    {
+        $conn = (new ClassConexion())->conexion("TLX002MXDB");
+        $ibm = $_SESSION['ibm'];
+        $admins = ['58998', '51947', '22622', '55268', '53224', '60040'];
+        $fecha = $_GET['fecha'] ?? null;
+        $depto = $_GET['departamento'] ?? null;
+
+        $where = " WHERE 1=1 ";
+        $params = [];
+
+        if (!in_array($ibm, $admins)) {
+            $canon = $this->resolverDeptos($this->departamentosDelSupervisor($ibm));
+            $deptos = $canon['nombres'];
+            if (empty($deptos)) {
+                echo json_encode([]);
+                return;
+            }
+            $ph = implode(',', array_fill(0, count($deptos), '?'));
+            $where .= " AND sub.Vcs_depto COLLATE Latin1_General_CI_AI IN ($ph) ";
+            foreach ($deptos as $d)
+                $params[] = $d;
+        }
+        if ($depto) {
+            $where .= " AND sub.Vcs_depto COLLATE Latin1_General_CI_AI = ? ";
+            $params[] = $depto;
+        }
+        if ($fecha) {
+            $where .= " AND ? BETWEEN sub.Vcs_de AND sub.Vcs_hasta ";
+            $params[] = $fecha;
+        }
+
+        $q = "SELECT enc.Vc_id AS folio, enc.Vc_ibm AS noemp, sub.Vcs_nombre AS nombre,
+                 sub.Vcs_depto AS departamento, sub.Vcs_puesto AS puesto,
+                 sub.Vcs_de AS fde, sub.Vcs_hasta AS fa,
+                 enc.Vc_autorizado AS aut, enc.Vc_revisado AS rev, enc.Vc_firmaRI AS ri,
+                 enc.Vc_autoriza AS supIbm, supE.Nombre AS supNombre
+          FROM TLX002MXDB.dbo.tblMXPRVacacionesEnc enc
+          INNER JOIN TLX002MXDB.dbo.tblMXPRVacacionesSubEnc sub ON sub.Vcs_vc_id = enc.Vc_id
+          LEFT JOIN TLX032MXDB.dbo.tblEmpleados supE ON supE.NoEmp = enc.Vc_autoriza
+          $where
+          ORDER BY sub.Vcs_de DESC";
+        $result = sqlsrv_query($conn, $q, $params);
+
+        $arr = [];
+        if ($result !== false) {
+            while ($r = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+                $estatus = ($r['aut'] == 1 && $r['rev'] == 1 && $r['ri'] == 1) ? 'Aprobado'
+                    : (($r['aut'] == 2) ? 'Rechazado' : 'Pendiente');
+                $arr[] = [
+                    "folio" => $r["folio"],
+                    "noemp" => $r["noemp"],
+                    "nombre" => $r["nombre"],
+                    "departamento" => $r["departamento"],
+                    "puesto" => $r["puesto"],
+                    "de" => $r["fde"] ? $r["fde"]->format('Y-m-d') : '',
+                    "a" => $r["fa"] ? $r["fa"]->format('Y-m-d') : '',
+                    "estatus" => $estatus,
+                    "supervisor" => $r["supNombre"] ? ucwords(strtolower($r["supNombre"])) : $r["supIbm"]
+                ];
+            }
+        }
+        echo json_encode($arr);
+        sqlsrv_close($conn);
+    }
+
+    // Para poblar el select de departamentos del modal
+    function deptosSupervisorJson()
+    {
+        $canon = $this->resolverDeptos($this->departamentosDelSupervisor($_SESSION['ibm']));
+        echo json_encode($canon['nombres']);
     }
 
     function enviarSolicitudVacaciones()
@@ -1193,14 +1304,15 @@ class Empleados
 
         $query = "SELECT * 
                 FROM TLX002MXDB.dbo.tblMXPRVacacionesSubEnc";
-        
+
         $array = [];
         $result = sqlsrv_query($conn, $query);
 
         echo $result === false ? json_encode("sqlerror") : json_encode($array);
     }
 
-    function firmarVac() {
+    function firmarVac()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
@@ -1221,7 +1333,8 @@ class Empleados
         echo json_encode(["success" => true]);
     }
 
-    function diasSolicitados() {
+    function diasSolicitados()
+    {
         $folio = $_GET["folio"] ?? null;
         if (!$folio) {
             header('Content-Type: application/json; charset=utf-8');
@@ -1253,10 +1366,11 @@ class Empleados
 
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($array);
-        
+
     }
 
-    function datoshoraysalida(){
+    function datoshoraysalida()
+    {
         $noemp = $_GET["noemp"] ?? null;
         $fecha = $_GET["fechabien"] ?? null;
 
@@ -1287,15 +1401,16 @@ class Empleados
 
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($array);
-        
+
     }
 
 
-    function pagarPrimaDominical() {
+    function pagarPrimaDominical()
+    {
         $ClassConexion = new ClassConexion();
         $conn = $ClassConexion->conexion("TLX002MXDB");
 
-        $id     = $_GET['id'] ?? null;
+        $id = $_GET['id'] ?? null;
         $semana = trim($_GET['semana'] ?? '');
 
         if (!$id || $semana === '') {
@@ -1304,11 +1419,14 @@ class Empleados
         }
 
         // Solo se paga si ya fue validada por nóminas
-        $check = sqlsrv_query($conn,
-            "SELECT Vc_revisado FROM tblMXPRVacacionesEnc WHERE Vc_id = ?", [$id]);
+        $check = sqlsrv_query(
+            $conn,
+            "SELECT Vc_revisado FROM tblMXPRVacacionesEnc WHERE Vc_id = ?",
+            [$id]
+        );
         $rowChk = $check ? sqlsrv_fetch_array($check, SQLSRV_FETCH_ASSOC) : null;
 
-        if (!$rowChk || (int)$rowChk['Vc_revisado'] !== 1) {
+        if (!$rowChk || (int) $rowChk['Vc_revisado'] !== 1) {
             echo json_encode(["success" => false, "error" => "La solicitud aún no ha sido validada por nóminas"]);
             exit;
         }
@@ -1326,86 +1444,85 @@ class Empleados
             : ["success" => true]);
     }
 
+
 }
 
-function normalizeInt($val) {
-    if ($val === null) return null;
-    $v = trim((string)$val);
-    if ($v === '' || strtolower($v) === 'null') return null;
-    return (int)$v;
+function normalizeInt($val)
+{
+    if ($val === null)
+        return null;
+    $v = trim((string) $val);
+    if ($v === '' || strtolower($v) === 'null')
+        return null;
+    return (int) $v;
 }
 
-function normalizeString($val) {
-    if ($val === null) return '';
-    $v = trim((string)$val);
-    if (strtolower($v) === 'null') return '';
+function normalizeString($val)
+{
+    if ($val === null)
+        return '';
+    $v = trim((string) $val);
+    if (strtolower($v) === 'null')
+        return '';
     return $v;
 }
 
 if (isset($_GET["getDeptoPuesto"])) {
     $Empleados = new Empleados();
     $Empleados->getDeptoPuesto();
-} else if(isset($_GET["guardarSolicitudVacaciones"])) {
+} else if (isset($_GET["guardarSolicitudVacaciones"])) {
     $Empleados = new Empleados();
     $Empleados->guardarSolicitudVacaciones();
-} else if(isset($_GET["enviarSolicitudVacaciones"])) {
+} else if (isset($_GET["enviarSolicitudVacaciones"])) {
     $Empleados = new Empleados();
     $Empleados->enviarSolicitudVacaciones();
-}
-else if(isset($_GET["autorizaVac"])) {
+} else if (isset($_GET["autorizaVac"])) {
     $Empleados = new Empleados();
     $Empleados->autorizaVac();
-}
-else if(isset($_GET["autorizaVacSupInt"])) {
+} else if (isset($_GET["autorizaVacSupInt"])) {
     $Empleados = new Empleados();
     $Empleados->autorizaVacSupInt();
-}
-else if(isset($_GET["tblVacacionesEnc"])) {
+} else if (isset($_GET["tblVacacionesEnc"])) {
     $Empleados = new Empleados();
     $Empleados->tblVacacionesEnc();
-} else if(isset($_GET["tblVacacionesEncSupInt"])) {
+} else if (isset($_GET["tblVacacionesEncSupInt"])) {
     $Empleados = new Empleados();
     $Empleados->tblVacacionesEncSupInt();
-} else if(isset($_GET["tblVacacionesEncSupervisor"])) {
+} else if (isset($_GET["tblVacacionesEncSupervisor"])) {
     $Empleados = new Empleados();
     $Empleados->tblVacacionesEncSupervisor();
-}
-
-else if (isset($_GET["tblDeptosDinam"])) {
+} else if (isset($_GET["tblDeptosDinam"])) {
     $Empleados = new Empleados();
     $Empleados->tblDeptosDinam();
-}
-
-else if(isset($_GET["tblVacacionesRIEnc"])) {
+} else if (isset($_GET["tblVacacionesRIEnc"])) {
     $Empleados = new Empleados();
     $Empleados->tblVacacionesRIEnc();
-}
-else if(isset($_GET["reporteVacaciones"])) {
+} else if (isset($_GET["reporteVacacionesSupervisor"])) {
     $Empleados = new Empleados();
-    $Empleados->reporteVacaciones();
-}
-else if(isset($_GET["actualizarSolicitudVacaciones"])) {
+    $Empleados->reporteVacacionesSupervisor();
+} else if (isset($_GET["actualizarSolicitudVacaciones"])) {
     $Empleados = new Empleados();
     $Empleados->actualizarSolicitudVacaciones();
-}
-else if(isset($_GET["firmarVac"])) {
+} else if (isset($_GET["firmarVac"])) {
     $Empleados = new Empleados();
     $Empleados->firmarVac();
-}
-else if (isset($_GET["diasSolicitados"])) {
+} else if (isset($_GET["diasSolicitados"])) {
     $Empleados = new Empleados();
-    $Empleados ->diasSolicitados();
-    
-}
-else if (isset($_GET["datoshoraysalida"])) {
+    $Empleados->diasSolicitados();
+
+} else if (isset($_GET["datoshoraysalida"])) {
     $Empleados = new Empleados();
-    $Empleados ->datoshoraysalida();    
-}
-else if (isset($_GET["eliminarVacacion"])){
+    $Empleados->datoshoraysalida();
+} else if (isset($_GET["eliminarVacacion"])) {
     $Empleados = new Empleados();
-    $Empleados ->eliminarVacacion();
-}
-else if (isset($_GET["pagarPrimaDominical"])) {
+    $Empleados->eliminarVacacion();
+} else if (isset($_GET["pagarPrimaDominical"])) {
     $Empleados = new Empleados();
     $Empleados->pagarPrimaDominical();
+} else if (isset($_GET['deptosSupervisor'])) {
+    $Empleados = new Empleados();
+    $Empleados->deptosSupervisorJson();
+} else if (isset($_GET["reporteVacaciones"])) {
+    $Empleados = new Empleados();
+    $Empleados->reporteVacaciones();
 }
