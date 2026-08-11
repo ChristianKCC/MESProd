@@ -1,0 +1,201 @@
+:root {
+--kc-accent:#0b6dbf;
+--kc-accent-soft:#eef4fb;
+--line:#e1e7ef;
+--ink:#1f2933;
+--muted:#7b8794;
+}
+.wrap {
+  max-width:none;
+  width:100%;
+  margin:0;
+  padding:16px 24px 110px;
+}
+.page-head {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:12px;
+  margin-bottom:12px;
+}
+.page-head h1 {
+  font-size:1.35rem;
+  font-weight:700;
+  margin:0;
+}
+.page-head .sub {
+  color:var(--muted);
+  font-size:.85rem;
+}
+.nav-tabs {
+  border-bottom:2px solid var(--kc-accent);
+}
+.nav-tabs .nav-link {
+  color:var(--muted);
+  font-weight:600;
+  border:none;
+  font-size:.9rem;
+}
+.nav-tabs .nav-link.active {
+  color:var(--kc-accent);
+  border-bottom:3px solid var(--kc-accent);
+  background:transparent;
+}
+.grid {
+  display:grid;
+  /* columnas adaptativas: llena el ancho con las que quepan */
+  grid-template-columns:repeat(auto-fit, minmax(420px, 1fr));
+  gap:18px;
+  align-items:start;
+}
+.grid .span2 {  
+  grid-column:span 2;
+}
+
+@media (max-width: 900px){
+  .grid {
+    grid-template-columns:1fr;
+  }
+  .grid .span2 {
+    grid-column:1 / -1;
+  }
+}
+.tile {
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 1px 4px rgba(0, 0, 0, 0.08);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.tile-head {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 16px;
+  border-bottom:1px solid var(--line);
+}
+.tile-head h2 {
+  font-size:.8rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color:var(--kc-accent);
+  margin:0;
+}
+.step {
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:var(--kc-accent);
+  color:#fff;
+  display:grid;
+  place-items:center;
+  font-size:.78rem;
+  font-weight:700;
+  flex:none;
+}
+.tile-body {
+  padding:14px 16px;
+  flex:1;
+}
+.tlbl {
+  font-size:.66rem;
+  color:var(--muted);
+  margin-bottom:2px;
+  text-transform:uppercase;
+}
+.eqname {
+  font-weight:600;
+  font-size:.84rem;
+  white-space:nowrap;
+}
+.table-tight td, .table-tight th {
+  padding:.3rem .42rem;
+  vertical-align:middle;
+}
+.table-tight input.form-control-sm, .table-tight select.form-select-sm {
+  height:30px;
+}
+.total-cell input {
+  background:var(--kc-accent-soft);
+  font-weight:600;
+}
+.linked input {
+  background:#fff7e6;
+}
+.grp-title {
+  font-size:.7rem;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin:4px 0;
+}
+.badge-link {
+  font-size:.6rem;
+  font-weight:600;
+  color:#b06b00;
+  background:#fff2d6;
+  border-radius:4px;
+  padding:1px 5px;
+}
+.savebar {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid #d2dae4;
+  padding:10px 16px;
+  z-index:30;
+  box-shadow:0 -2px 6px rgba(16,42,67,.06);
+}
+.savebar .inner {
+  max-width:none;
+  margin:0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.savebar .hint {
+  font-size:.78rem;
+  color:var(--muted);
+}
+
+#tab3 .grid {
+  grid-template-columns:repeat(auto-fit, minmax(280px, 340px)) !important;
+  justify-content:start;
+}
+
+/* ---- Turno activo ---- */
+body[data-turno="1"] [data-t="1"],
+body[data-turno="2"] [data-t="2"],
+body[data-turno="3"] [data-t="3"] {
+  outline:2px solid var(--kc-accent); outline-offset:-2px; border-radius:6px;
+}
+
+/* Enfocar atenuando los otros turnos */
+body.enfocar[data-turno="1"] [data-t="2"], body.enfocar[data-turno="1"] [data-t="3"],
+body.enfocar[data-turno="2"] [data-t="1"], body.enfocar[data-turno="2"] [data-t="3"],
+body.enfocar[data-turno="3"] [data-t="1"], body.enfocar[data-turno="3"] [data-t="2"] {
+  opacity:.3;
+}
+
+/* Enfocar ocultando las tablas de Peso de Bolsas de otros turnos */
+body.enfocar[data-turno="1"] [data-turno-tile]:not([data-turno-tile="1"]),
+body.enfocar[data-turno="2"] [data-turno-tile]:not([data-turno-tile="2"]),
+body.enfocar[data-turno="3"] [data-turno-tile]:not([data-turno-tile="3"]) {
+  display:none;
+}
+
+.ro-turno {
+  background:#f3f3f3;
+}
+
+select.locked  {
+  background:#f3f3f3;
+  opacity:.7;
+}

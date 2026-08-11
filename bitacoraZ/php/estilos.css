@@ -1,0 +1,18 @@
+.body {
+  background: beige;
+
+  .form {
+    background: lightgrey;
+    font-size: 14px;
+
+    .btn {
+      background: darkgrey;
+      border: 1px solid black;
+    }
+
+    .input {
+      border: 1px solid black;
+      padding: 5px;
+    }
+  }
+}
