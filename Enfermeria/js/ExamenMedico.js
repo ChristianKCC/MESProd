@@ -16,7 +16,8 @@ const fechanaimiento = document.getElementById("fechanaimiento");
 const lugarnac = document.getElementById("lugarnac");
 const domicilio = document.getElementById("domicilio");
 const escolaridad = document.getElementById("escolaridad");
-const religion = document.getElementById("religion");
+// const religion = document.getElementById("religion");
+const edad = document.getElementById("edad");
 const tiposangre = document.getElementById("tiposangre");
 const fechaingreso = document.getElementById("fechaingreso");
 const problemasdesalud = document.getElementById("problemasdesalud");
@@ -184,6 +185,34 @@ const expoRuidos = document.getElementById("expoRuidos");
 const expoQuimicos = document.getElementById("expoQuimicos");
 const examenTipo = document.getElementById("examenTipo");
 
+const filtroNoemp = document.getElementById("filtroNoemp");
+const filtroDepartamento = document.getElementById("filtroDepartamento");
+const filtroFechaI = document.getElementById("filtroFechaI");
+const filtroFechaF = document.getElementById("filtroFechaF");
+
+Tools.llnarslc("CatalogoPersonal", "GetSlcDepsall", "filtroDepartamento", 0);
+
+document.getElementById("btnFiltrarExamen").addEventListener("click", (e) => {
+  e.preventDefault();
+  ExamenMObj.filtrarExamenM(
+    filtroNoemp.value.trim(),
+    filtroDepartamento.value,
+    filtroFechaI.value,
+    filtroFechaF.value,
+  ).then((data) => ExamenMObj.pintarTablaExamenM("tblExamenMedico", data, 1));
+});
+
+document
+  .getElementById("btnLimpiarFiltroExamen")
+  .addEventListener("click", (e) => {
+    e.preventDefault();
+    filtroNoemp.value = "";
+    filtroDepartamento.value = "";
+    filtroFechaI.value = "";
+    filtroFechaF.value = "";
+    ExamenMObj.tblExamenMSession("tblExamenMedico", 1);
+  });
+
 const idsCamposObligatorios = ["noemp"];
 
 Tools.llnarslc("CatalogoPersonal", "GetSlcDepsall", "departamento", 0);
@@ -191,7 +220,7 @@ Tools.llnarslc("CatalogoPersonal", "GetSlcPuestos", "puesto", 0);
 Tools.llnarslc("CatalogoPersonal", "GetSlcMaquinas", "maquina", 0);
 Tools.llnarslc("CatalogoPersonal", "GetSlcNvlEstudios", "escolaridad", 0);
 Tools.llnarslc("CatalogoPersonal", "GetSlcTipoSangre", "tiposangre", 0);
-Tools.llnarslc("CatalogoPersonal", "GetSlcReligion", "religion", 0);
+// Tools.llnarslc("CatalogoPersonal", "GetSlcReligion", "religion", 0);
 ExamenMObj.llenarSlcIMC("imcClasificacion", 0);
 Tools.llnarslc(
   "CatalogoEnfermeria",
@@ -215,11 +244,160 @@ document.getElementById("noemp").addEventListener("keyup", (e) => {
     });
 });
 
+// function mostrarPaso(numero) {
+//   document.querySelectorAll(".paso").forEach((p) => (p.style.display = "none"));
+//   document.getElementById("paso" + numero).style.display = "block";
+// }
+// window.mostrarPaso = (numero) => mostrarPaso(numero);
+
 function mostrarPaso(numero) {
-  document.querySelectorAll(".paso").forEach((p) => (p.style.display = "none"));
-  document.getElementById("paso" + numero).style.display = "block";
+  const triggerEl = document.querySelector(
+    '#tabExamen button[data-bs-target="#paso' + numero + '"]',
+  );
+  if (triggerEl) bootstrap.Tab.getOrCreateInstance(triggerEl).show();
 }
 window.mostrarPaso = (numero) => mostrarPaso(numero);
+
+function limpiarTabsError() {
+  document
+    .querySelectorAll("#tabExamen .nav-link")
+    .forEach((b) => b.classList.remove("tab-error"));
+}
+
+function marcarTabDeCampo(idCampo) {
+  const pane = document.getElementById(idCampo)?.closest(".tab-pane");
+  if (!pane) return;
+  const btn = document.querySelector(
+    '#tabExamen button[data-bs-target="#' + pane.id + '"]',
+  );
+  if (btn) btn.classList.add("tab-error");
+}
+
+// ---------- Audiograma en tiempo real ----------
+const AUDIO_FREQS = [
+  { d: "d1", i: "i1", hz: 500 },
+  { d: "d2", i: "i2", hz: 1000 },
+  { d: "d3", i: "i3", hz: 2000 },
+  { d: "d4", i: "i4", hz: 3000 },
+  { d: "d5", i: "i5", hz: 4000 },
+  { d: "d6", i: "i6", hz: 6000 },
+  { d: "d7", i: "i7", hz: 8000 },
+  // Para 125/250: agrega celdas nuevas y aquí { d:"dX", i:"iX", hz:125 }, etc.
+];
+
+function dibujarAudiograma() {
+  const canvas = document.getElementById("audiograma");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width,
+    H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const mL = 45,
+    mR = 90,
+    mT = 20,
+    mB = 30;
+  const plotW = W - mL - mR,
+    plotH = H - mT - mB;
+  const dbMin = -10,
+    dbMax = 120;
+  const yFor = (db) => mT + ((db - dbMin) / (dbMax - dbMin)) * plotH; // 0 arriba
+  const xFor = (idx) =>
+    mL +
+    (AUDIO_FREQS.length === 1
+      ? plotW / 2
+      : (idx / (AUDIO_FREQS.length - 1)) * plotW);
+
+  ctx.font = "10px sans-serif";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (let db = dbMin; db <= dbMax; db += 10) {
+    const y = yFor(db);
+    ctx.strokeStyle = "#e9ecef";
+    ctx.beginPath();
+    ctx.moveTo(mL, y);
+    ctx.lineTo(W - mR, y);
+    ctx.stroke();
+    ctx.fillStyle = "#6c757d";
+    ctx.fillText(db, mL - 5, y);
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  AUDIO_FREQS.forEach((f, idx) => {
+    const x = xFor(idx);
+    ctx.strokeStyle = "#e9ecef";
+    ctx.beginPath();
+    ctx.moveTo(x, mT);
+    ctx.lineTo(x, H - mB);
+    ctx.stroke();
+    ctx.fillStyle = "#6c757d";
+    ctx.fillText(f.hz, x, H - mB + 4);
+  });
+
+  const serie = (idKey, color, tipo) => {
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    let prev = null;
+    AUDIO_FREQS.forEach((f, idx) => {
+      const cell = document.getElementById(f[idKey]);
+      const val = cell ? parseFloat((cell.innerText || "").trim()) : NaN;
+      if (isNaN(val)) {
+        prev = null;
+        return;
+      }
+      const x = xFor(idx),
+        y = yFor(val);
+      if (prev) {
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      if (tipo === "O") {
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        ctx.moveTo(x - 5, y - 5);
+        ctx.lineTo(x + 5, y + 5);
+        ctx.moveTo(x + 5, y - 5);
+        ctx.lineTo(x - 5, y + 5);
+        ctx.stroke();
+      }
+      prev = { x, y };
+    });
+  };
+  serie("d", "#dc3545", "O"); // Derecho: rojo, O
+  serie("i", "#0d6efd", "X"); // Izquierdo: azul, X
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = 1;
+  ctx.fillStyle = "#dc3545";
+  ctx.fillText("O  Derecho", W - mR + 5, mT + 6);
+  ctx.fillStyle = "#0d6efd";
+  ctx.fillText("X  Izquierdo", W - mR + 5, mT + 22);
+}
+
+// Redibuja al escribir en las celdas de audiometría
+AUDIO_FREQS.forEach((f) => {
+  ["d", "i"].forEach((k) => {
+    const cell = document.getElementById(f[k]);
+    if (cell) cell.addEventListener("input", dibujarAudiograma);
+  });
+});
+dibujarAudiograma(); // dibujo inicial
+
+// Quita el rojo del tab en cuanto el usuario escribe en él
+document.getElementById("formExamenmedico").addEventListener("input", (e) => {
+  const pane = e.target.closest(".tab-pane");
+  if (!pane) return;
+  const btn = document.querySelector(
+    '#tabExamen button[data-bs-target="#' + pane.id + '"]',
+  );
+  if (btn) btn.classList.remove("tab-error");
+});
 
 let timerHandle = null;
 
@@ -241,26 +419,105 @@ document.getElementById("btnSign").addEventListener("click", () => {
   }
 });
 
+document
+  .getElementById("formExamenmedico")
+  .addEventListener("submit", function (e) {
+    e.preventDefault();
+  });
 
-document.getElementById("formExamenmedico").addEventListener("submit", function (e) {
-  e.preventDefault();
-});
+// document.getElementById("examenTipo").addEventListener("change", function (e) {
+//   e.preventDefault();
+//   const tipo = e.target.value;
+//   console.log(tipo);
 
+//   if (tipo == "1") {
+//     document.getElementById("datosIngreso").hidden = false;
+//   } else {
+//     document.getElementById("datosIngreso").hidden = true;
+//   }
+// });
 
 document.getElementById("examenTipo").addEventListener("change", function (e) {
   e.preventDefault();
-  const tipo = e.target.value;
-  console.log(tipo);
+  const esIngreso = e.target.value === "1";
+  document.getElementById("datosIngreso").hidden = !esIngreso;
 
-  if(tipo == "1"){
-    document.getElementById("datosIngreso").hidden = false;
+  if (esIngreso) {
+    noemp.value = "";
+    noemp.disabled = true; // aún no tiene NoEmp
+    nombre.disabled = false; // se captura a mano
   } else {
-    document.getElementById("datosIngreso").hidden = true;
+    noemp.disabled = false;
+    nombre.value = "";
+    nombre.disabled = true;
   }
-})
+  departamento.disabled = true;
+  puesto.disabled = true;
+});
 
 btnSaveExamen.addEventListener("click", (e) => {
   e.preventDefault();
+
+  // const esIngreso = examenTipo.value === "1";
+
+  // if (examenTipo.value === "") {
+  //   return swal.fire(
+  //     "Falta información",
+  //     "Selecciona el tipo de examen.",
+  //     "warning",
+  //   );
+  // }
+  // if (esIngreso && nombre.value.trim() === "") {
+  //   return swal.fire(
+  //     "Falta información",
+  //     "Captura el nombre del empleado de nuevo ingreso.",
+  //     "warning",
+  //   );
+  // }
+  // if (!esIngreso && noemp.value.trim() === "") {
+  //   return swal.fire(
+  //     "Falta información",
+  //     "Captura un número de empleado.",
+  //     "warning",
+  //   );
+  // }
+  // if (!esIngreso && nombre.value.trim() === "") {
+  //   return swal.fire(
+  //     "Número no válido",
+  //     "No se encontró un empleado con ese NoEmp.",
+  //     "warning",
+  //   );
+  // }
+  limpiarTabsError();
+  const esIngreso = examenTipo.value === "1";
+
+  const faltantes = [];
+  if (examenTipo.value === "") {
+    faltantes.push({ id: "examenTipo", msg: "Selecciona el tipo de examen." });
+  } else if (esIngreso) {
+    if (nombre.value.trim() === "")
+      faltantes.push({
+        id: "nombre",
+        msg: "Captura el nombre del empleado de nuevo ingreso.",
+      });
+  } else {
+    if (noemp.value.trim() === "")
+      faltantes.push({ id: "noemp", msg: "Captura un número de empleado." });
+    else if (nombre.value.trim() === "")
+      faltantes.push({
+        id: "noemp",
+        msg: "No se encontró un empleado con ese NoEmp.",
+      });
+  }
+
+  if (faltantes.length > 0) {
+    faltantes.forEach((f) => marcarTabDeCampo(f.id));
+    const pane = document.getElementById(faltantes[0].id)?.closest(".tab-pane");
+    if (pane) mostrarPaso(pane.id.replace("paso", ""));
+    swal.fire("Faltan datos", faltantes[0].msg, "warning");
+    return;
+  }
+
   tos = document.querySelector('input[name="Tos"]:checked');
   expectoracion = document.querySelector('input[name="expectoracion"]:checked');
   dolortoracico = document.querySelector('input[name="dolortoracico"]:checked');
@@ -310,10 +567,11 @@ btnSaveExamen.addEventListener("click", (e) => {
     puesto: puesto.value,
     maquina: maquina.value,
     fechanaimiento: fechanaimiento.value,
+    edad: edad.value,
     lugarnac: lugarnac.value,
     domicilio: domicilio.value,
     escolaridad: escolaridad.value,
-    religion: religion.value,
+    // religion: religion.value,
     tiposangre: tiposangre.value,
     fechaingreso: fechaingreso.value,
     fecharevision: fecharevision.value,
@@ -458,8 +716,12 @@ btnSaveExamen.addEventListener("click", (e) => {
     tipoExamen: examenTipo.value,
   };
 
-  Tools.validarCamposPorID(idsCamposObligatorios) !== false &&
+  const obligatorios = esIngreso ? ["nombre"] : ["noemp"];
+
+  Tools.validarCamposPorID(obligatorios) !== false &&
     ExamenMObj.saveExamen(examenData, folio.value).then(() => {
+      // Tools.validarCamposPorID(idsCamposObligatorios) !== false &&
+      //   ExamenMObj.saveExamen(examenData, folio.value).then(() => {
       ExamenMObj.tblExamenMSession("tblExamenMedico", 1);
       btnSaveExamen.classList.remove("btn-warning");
       btnSaveExamen.classList.add("bg-target");
@@ -468,7 +730,22 @@ btnSaveExamen.addEventListener("click", (e) => {
       const presionArterialEl = document.getElementById("presionArterial");
       if (presionArterialEl)
         presionArterialEl.className = "form-control form-control-sm";
+      // document.getElementById("formExamenmedico").reset();
+      // mostrarPaso(1);
+
       document.getElementById("formExamenmedico").reset();
+      AUDIO_FREQS.forEach((f) => {
+        const cd = document.getElementById(f.d),
+          ci = document.getElementById(f.i);
+        if (cd) cd.innerText = "";
+        if (ci) ci.innerText = "";
+      });
+      dibujarAudiograma();
+      const linkPdf = document.getElementById("archivopdf");
+      if (linkPdf) {
+        linkPdf.style.display = "none";
+        linkPdf.innerHTML = "";
+      }
       mostrarPaso(1);
     });
 });
@@ -508,9 +785,10 @@ window.editExamenM = (id) => {
     lugarnac.value = element[0].lugarnac;
     domicilio.value = element[0].domicilio;
     escolaridad.value = element[0].escolaridad;
-    religion.value = element[0].religion;
+    // religion.value = element[0].religion;
     tiposangre.value = element[0].sangre;
     fechaingreso.value = element[0].fechaing;
+    edad.value = element[0].edad;
     fecharevision.value = element[0].fecharevision;
     puestoAnterior.value = element[0].puestoAnterior;
     horarioAnterior.value = element[0].horarioAnterior;
@@ -556,7 +834,6 @@ window.editExamenM = (id) => {
       // Dibujar la imagen en el canvas
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
-  
 
     // Validacion para los radio buttons de aparatos y sistemas
     let valTos = parseInt(element[0].tos);
@@ -762,6 +1039,8 @@ window.editExamenM = (id) => {
     i6.innerText = element[0].i6;
     i7.innerText = element[0].i7;
 
+    dibujarAudiograma();
+
     DiagnosAudio.value = element[0].DiagnosAudio;
     diagnostivosano.value = element[0].diagSano;
     // conductiva.value = element[0].conductiva;
@@ -778,18 +1057,59 @@ window.editExamenM = (id) => {
     otocerosis.value = element[0].otocerosis;
     infeccionfaringea.value = element[0].indeccFaring;
     perforanciatimpanica.value = element[0].perfAtimp;
+    // const link = document.getElementById("archivopdf");
+    // console.log("Elemento link", link);
+    // if (element[0].ruta) {
+    //   const nombreArchivo = element[0].ruta.split("/").pop();
+    //   link.href = "Files/" + nombreArchivo;
+    //   link.style.display = "block";
+    // }
+
     const link = document.getElementById("archivopdf");
-    console.log("Elemento link", link);
-    if(element[0].ruta){
+    if (element[0].ruta && element[0].ruta !== "Sin archivo") {
       const nombreArchivo = element[0].ruta.split("/").pop();
       link.href = "Files/" + nombreArchivo;
-      link.style.display = "block";
+      link.innerHTML = '<i class="fa-solid fa-paperclip"></i> ' + nombreArchivo;
+      link.style.display = "inline-block";
+    } else {
+      link.style.display = "none";
     }
+
     mostrarPaso(1);
     btnSaveExamen.classList.remove("bg-target");
     btnSaveExamen.classList.add("btn-warning");
     btnSaveExamen.innerHTML =
       '<i class="fa-solid fa-pen-to-square"></i> Actualizar';
+  });
+};
+
+window.eliminarExamenM = (id) => {
+  Swal.fire({
+    title: "¿Eliminar registro?",
+    text: "Esta acción no se puede deshacer.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#dc3545",
+    customClass: {
+      actions: "d-flex gap-2 justify-content-center",
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      ExamenMObj.eliminarExamenM(id).then((resp) => {
+        if (resp.success) {
+          Swal.fire(
+            "Eliminado",
+            "El registro se eliminó correctamente.",
+            "success",
+          );
+          ExamenMObj.tblExamenMSession("tblExamenMedico", 1);
+        } else {
+          Swal.fire("Error", resp.error || "No se pudo eliminar.", "error");
+        }
+      });
+    }
   });
 };
 
@@ -829,9 +1149,22 @@ function clasificarIMC(imc) {
 }
 
 // Proceso para mostrar PDF de consentimiento
+// fechanaimiento.addEventListener("change", (e) => {
+//   e.preventDefault();
+//   document.getElementById("consentimiento").hidden = false;
+// });
+
 fechanaimiento.addEventListener("change", (e) => {
   e.preventDefault();
   document.getElementById("consentimiento").hidden = false;
+  if (fechanaimiento.value) {
+    const nac = new Date(fechanaimiento.value);
+    const hoy = new Date();
+    let años = hoy.getFullYear() - nac.getFullYear();
+    const m = hoy.getMonth() - nac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) años--;
+    if (!isNaN(años) && años >= 0) edad.value = años;
+  }
 });
 
 document.getElementById("consentimiento").addEventListener("click", (e) => {
@@ -925,6 +1258,11 @@ function actualizarPresionArterial() {
 document.getElementById("ta").addEventListener("change", (e) => {
   e.preventDefault();
   actualizarPresionArterial();
+});
+
+document.getElementById("btnExportarExamen").addEventListener("click", (e) => {
+  e.preventDefault();
+  window.location.href = "php/ExamenM.php?exportarExamenM";
 });
 
 // Intercepta asignaciones programáticas a ta.value (por ejemplo desde la función de editar)

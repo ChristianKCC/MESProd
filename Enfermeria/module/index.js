@@ -5,27 +5,27 @@ export class Incapacidades {
     return respromise;
   }
   async tblIncapacidad(dom, data, edit) {
-  // 1. Ordenar ascendente para calcular bien el acumulado
-  data.sort((a, b) => a.id - b.id);
+    // 1. Ordenar ascendente para calcular bien el acumulado
+    data.sort((a, b) => a.id - b.id);
 
-  // 2. Calcular acumulado de días por noemp
-  const acum = {};
-  data.forEach(element => {
-    acum[element.noemp] = (acum[element.noemp] || 0) + element.dias;
-    element.diasAcum = acum[element.noemp];
-  });
+    // 2. Calcular acumulado de días por noemp
+    const acum = {};
+    data.forEach((element) => {
+      acum[element.noemp] = (acum[element.noemp] || 0) + element.dias;
+      element.diasAcum = acum[element.noemp];
+    });
 
-  // 3. Invertir para mostrar del más reciente al más antiguo
-  data.sort((a, b) => b.id - a.id);
+    // 3. Invertir para mostrar del más reciente al más antiguo
+    data.sort((a, b) => b.id - a.id);
 
-  let body = "";
-  let val2 = "";
-  data.forEach((element) => {
-    val2 =
-      edit == 1
-        ? `<td><button onclick="editIncapacidad(${element.id})" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button></td>`
-        : "";
-    body += `
+    let body = "";
+    let val2 = "";
+    data.forEach((element) => {
+      val2 =
+        edit == 1
+          ? `<td><button onclick="editIncapacidad(${element.id})" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button></td>`
+          : "";
+      body += `
       <tr>
         <td>${element.noemp}</td>
         <td>${element.Nombre}</td>
@@ -46,9 +46,9 @@ export class Incapacidades {
         <td>${element.fechaentrega}</td>
         <td>${element.dx}</td>
       ${val2}</tr>`;
-  });
-  document.getElementById(dom).innerHTML = body;
-}
+    });
+    document.getElementById(dom).innerHTML = body;
+  }
   async ReporteIncapacidad(fechai, fechaf, departamento, maquina, noemp) {
     const data = new FormData();
     data.append("fechai", fechai);
@@ -307,44 +307,96 @@ export class ExamenMedico {
       swal.fire("ERROR!!", "Hay un problema en la base de datos", "error");
   }
 
-async tblExamenMSession(dom, edit) {
-  const datapromise = await fetch("php/ExamenM.php?tblExamenMedico");
-  const respromise = await datapromise.json();
-  let val2 = "";
-  let body = "";
-  respromise.forEach((element) => {
-    const pdfMap = {
-      1: "php/ExamenIngreso.php",
-      2: "php/Exampdf.php",
-      3: "php/ExamenEgreso.php"
-    };
-    const pdfUrl = pdfMap[element.tipoExamen] ?? "php/Exampdf.php";
+  // async tblExamenMSession(dom, edit) {
+  //   const datapromise = await fetch("php/ExamenM.php?tblExamenMedico");
+  //   const respromise = await datapromise.json();
+  //   let val2 = "";
+  //   let body = "";
+  //   respromise.forEach((element) => {
+  //     const pdfMap = {
+  //       1: "php/ExamenIngreso.php",
+  //       2: "php/Exampdf.php",
+  //       3: "php/ExamenEgreso.php",
+  //     };
+  //     const pdfUrl = pdfMap[element.tipoExamen] ?? "php/Exampdf.php";
 
-    val2 =
-      edit == 1
-        ? `<td>
-            <button onclick="editExamenM(${element.id})" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
-            <a class="btn btn-sm btn-danger" target="_blank" href="${pdfUrl}?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
-            <a class="btn btn-sm btn-danger" target="_blank" href="php/Consentimiento.php?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
-          </td>`
-        : "";
+  //     val2 =
+  //       edit == 1
+  //         ? `<td>
+  //           <button onclick="editExamenM(${element.id})" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+  //           <a class="btn btn-sm btn-danger" target="_blank" href="${pdfUrl}?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+  //           <a class="btn btn-sm btn-danger" target="_blank" href="php/Consentimiento.php?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+  //         </td>`
+  //         : "";
 
-    body += `
-    <tr>
-      <td hidden>${element.id}</td>
-      <td>${element.noemp}</td>
-      <td>${element.nombre}</td>
-      <td>${element.departamento}</td>
-      <td>${element.puesto}</td>
-      <td>${element.fecha}</td>
-      <td><center><img src="${element.firma}" style="max-width:100px;" alt="Firma" loading="lazy"/></center></td>
-          ${val2}
-    </tr>`;
-  });
-  document.getElementById(dom).innerHTML = body;
-}
+  //     body += `
+  //   <tr>
+  //     <td hidden>${element.id}</td>
+  //     <td>${element.noemp}</td>
+  //     <td>${element.nombre}</td>
+  //     <td>${element.departamento}</td>
+  //     <td>${element.puesto}</td>
+  //     <td>${element.fecha}</td>
+  //     <td><center><img src="${element.firma}" style="max-width:100px;" alt="Firma" loading="lazy"/></center></td>
+  //         ${val2}
+  //   </tr>`;
+  //   });
+  //   document.getElementById(dom).innerHTML = body;
+  // }
 
   // Datos para editar examen médico
+
+  async tblExamenMSession(dom, edit) {
+    const datapromise = await fetch("php/ExamenM.php?tblExamenMedico");
+    const respromise = await datapromise.json();
+    this.pintarTablaExamenM(dom, respromise, edit);
+  }
+
+  // pintarTablaExamenM(dom, data, edit) {
+  //   let body = "";
+  //   data.forEach((element) => {
+  //     const pdfMap = {
+  //       1: "php/ExamenIngreso.php",
+  //       2: "php/Exampdf.php",
+  //       3: "php/ExamenEgreso.php",
+  //     };
+  //     const pdfUrl = pdfMap[element.tipoExamen] ?? "php/Exampdf.php";
+  //     const val2 =
+  //       edit == 1
+  //         ? `<td>
+  //             <button onclick="editExamenM(${element.id})" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+  //             <a class="btn btn-sm btn-danger" target="_blank" href="${pdfUrl}?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+  //             <a class="btn btn-sm btn-danger" target="_blank" href="php/Consentimiento.php?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+  //           </td>`
+  //         : "";
+  //     body += `
+  //     <tr>
+  //       <td hidden>${element.id}</td>
+  //       <td>${element.noemp}</td>
+  //       <td>${element.nombre}</td>
+  //       <td>${element.departamento}</td>
+  //       <td>${element.puesto}</td>
+  //       <td>${element.fecha}</td>
+  //       <td><center><img src="${element.firma}" style="max-width:100px;" alt="Firma" loading="lazy"/></center></td>
+  //       ${val2}
+  //     </tr>`;
+  //   });
+  //   document.getElementById(dom).innerHTML = body;
+  // }
+
+  async filtrarExamenM(noemp, departamento, fechai, fechaf) {
+    const data = new FormData();
+    data.append("noemp", noemp);
+    data.append("departamento", departamento);
+    data.append("fechai", fechai);
+    data.append("fechaf", fechaf);
+    const datapromise = await fetch("php/ExamenM.php?filtrarExamenM", {
+      method: "POST",
+      body: data,
+    });
+    return await datapromise.json();
+  }
+
   async editExamenM(id) {
     const dataPromise = await fetch(
       "php/ExamenM.php?dataForEditExamenM&id=" + id,
@@ -427,5 +479,96 @@ async tblExamenMSession(dom, edit) {
     } catch (error) {
       console.error("Error:", error);
     }
+  }
+
+  // pintarTablaExamenM(dom, data, edit) {
+  //   const RUTA_FIRMAS = "../../../../Mes/KCMes/FirmaDigital/firmas/";
+  //   let body = "";
+  //   data.forEach((element) => {
+  //     const pdfMap = {
+  //       1: "php/ExamenIngreso.php",
+  //       2: "php/Exampdf.php",
+  //       3: "php/ExamenEgreso.php",
+  //     };
+  //     const pdfUrl = pdfMap[element.tipoExamen] ?? "php/Exampdf.php";
+
+  //     // Firma de conformidad: PNG por noemp; si no existe, se oculta la imagen
+  //     const firmaConf = element.noemp
+  //       ? `<img src="${RUTA_FIRMAS}${element.noemp}.png" style="max-width:100px;" alt="Firma conformidad" loading="lazy" onerror="this.style.display='none'"/>`
+  //       : "";
+
+  //     const val2 =
+  //       edit == 1
+  //         ? `<td>
+  //             <button onclick="editExamenM(${element.id})" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+  //             <a class="btn btn-sm btn-danger" target="_blank" href="${pdfUrl}?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+  //             <a class="btn btn-sm btn-danger" target="_blank" href="php/Consentimiento.php?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+  //             <button onclick="eliminarExamenM(${element.id})" class="btn btn-sm btn-dark"><i class="fas fa-trash"></i></button>
+  //           </td>`
+  //         : "";
+
+  //     body += `
+  //     <tr>
+  //       <td hidden>${element.id}</td>
+  //       <td>${element.noemp}</td>
+  //       <td>${element.nombre}</td>
+  //       <td>${element.departamento}</td>
+  //       <td>${element.puesto}</td>
+  //       <td>${element.fecha}</td>
+  //       <td><center>${firmaConf}</center></td>
+  //       ${val2}
+  //     </tr>`;
+  //   });
+  //   document.getElementById(dom).innerHTML = body;
+  // }
+
+  pintarTablaExamenM(dom, data, edit) {
+    const RUTA_FIRMAS = "../../../../Mes/KCMes/FirmaDigital/firmas/";
+    let body = "";
+    data.forEach((element) => {
+      const pdfMap = {
+        1: "php/ExamenIngreso.php",
+        2: "php/Exampdf.php",
+        3: "php/ExamenEgreso.php",
+      };
+      const pdfUrl = pdfMap[element.tipoExamen] ?? "php/Exampdf.php";
+
+      const firmaConf = element.noemp
+        ? `<img src="${RUTA_FIRMAS}${element.noemp}.png" style="max-width:100px;" alt="Firma conformidad" loading="lazy" onerror="this.style.display='none'"/>`
+        : "";
+
+      const val2 =
+        edit == 1
+          ? `<td>
+              <button onclick="editExamenM(${element.id})" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+              <a class="btn btn-sm btn-danger" target="_blank" href="${pdfUrl}?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+              <a class="btn btn-sm btn-danger" target="_blank" href="php/Consentimiento.php?id=${element.id}"><i class="fa-solid fa-file-pdf"></i></a>
+              <button onclick="eliminarExamenM(${element.id})" class="btn btn-sm btn-dark"><i class="fas fa-trash"></i></button>
+            </td>`
+          : "";
+
+      body += `
+      <tr>
+        <td hidden>${element.id}</td>
+        <td>${element.noemp}</td>
+        <td>${element.nombre}</td>
+        <td>${element.departamento}</td>
+        <td>${element.puesto}</td>
+        <td>${element.fecha}</td>        
+        <td><center>${firmaConf}</center></td>
+        ${val2}
+      </tr>`;
+    });
+    document.getElementById(dom).innerHTML = body;
+  }
+
+  async eliminarExamenM(id) {
+    const data = new FormData();
+    data.append("id", id);
+    const datapromise = await fetch("php/ExamenM.php?eliminarExamenM", {
+      method: "POST",
+      body: data,
+    });
+    return await datapromise.json();
   }
 }
