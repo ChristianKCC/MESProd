@@ -67,12 +67,16 @@
     border-radius: 20px;
 }
 
-/* ===== Mi espacio: tarjetas desplegables por clave ===== */
+/* ===== Mosaico de tarjetas (3 columnas) ===== */
 .cf-lista {
-    display: flex;
-    flex-direction: column;
-    gap: .7rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .9rem;
+    align-items: start;   /* cada tarjeta crece sola, sin estirar la fila */
 }
+
+/* El aviso de "sin rol" ocupa el ancho completo del mosaico */
+.cf-lista > .alert { grid-column: 1 / -1; }
 
 .cf-item {
     border: 1px solid #e3e7ef;
@@ -92,23 +96,22 @@
     box-shadow: 0 4px 14px rgba(0, 43, 117, .12);
 }
 
+/* ===== Encabezado de tarjeta: en columna, no en fila ===== */
 .cf-item-head {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: .85rem 1.1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .45rem;
+    padding: .85rem 1rem;
     cursor: pointer;
     user-select: none;
+    position: relative;
 }
 
-.cf-item-head:hover {
-    background: #f7f9ff;
-}
+.cf-item-head:hover { background: #f7f9ff; }
 
-.cf-item-folio {
-    font-weight: 600;
-    color: #1f2a44;
-}
+
+.cf-item-folio { font-weight: 600; color: #1f2a44; padding-right: 1.5rem; }
 
 .cf-item-clave {
     font-family: monospace;
@@ -121,17 +124,21 @@
 
 .cf-item-prod {
     color: #6b7a99;
-    font-size: .87rem;
-    flex: 1;
-    min-width: 0;
+    font-size: .82rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;      /* hasta 2 renglones, luego "…" */
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .cf-chevron {
     color: #9aa6bf;
     transition: transform .25s ease;
+    position: absolute;
+    top: .9rem;
+    right: 1rem;
 }
 
 .cf-item.abierto .cf-chevron {
@@ -184,26 +191,36 @@
 /* bloqueado */
 
 /* Cuerpo desplegable con difuminado */
+/* ===== Desplegable sin altura fija (nunca se corta) ===== */
 .cf-item-body {
-    max-height: 0;
+    display: grid;
+    grid-template-rows: 0fr;
     opacity: 0;
-    overflow: hidden;
-    transition: max-height .32s ease, opacity .28s ease, padding .32s ease;
-    padding: 0 1.1rem;
+    transition: grid-template-rows .32s ease, opacity .28s ease;
     border-top: 1px solid transparent;
 }
 
+.cf-item-body-inner {
+    overflow: hidden;
+    min-height: 0;
+    padding: 0 1rem;
+}
+
 .cf-item.abierto .cf-item-body {
-    max-height: 520px;
+    grid-template-rows: 1fr;
     opacity: 1;
-    padding: 1rem 1.1rem 1.1rem;
     border-top-color: #eef1f7;
 }
 
+.cf-item.abierto .cf-item-body-inner {
+    padding: .9rem 1rem 1rem;
+}
+
+/* Dentro de una tarjeta angosta, los 3 pasos van apilados */
 .cf-pasos {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: .8rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
 }
 
 .cf-paso {
@@ -277,11 +294,13 @@
 }
 
 .cf-acciones-cert {
-    margin-top: .9rem;
-    padding-top: .8rem;
+    margin-top: .8rem;
+    padding-top: .7rem;
     border-top: 1px dashed #dfe4ee;
     text-align: right;
 }
+
+.cf-acciones-cert .btn { white-space: normal; }
 
 .cf-vacio {
     padding: 2.5rem 1rem;
@@ -302,9 +321,8 @@
     overflow: hidden;
 }
 
-.modal-header {
-    background: linear-gradient(135deg, var(--kc-azul), var(--kc-azul-2));
-    color: #fff;
+.modal-header {    
+    color: #000;
 }
 
 .cf-solo-lectura input,
@@ -403,20 +421,62 @@
 
 .cert-firma {
     flex: 1;
-    text-align: center;
     display: flex;
     flex-direction: column;
+    align-items: center;   /* centra horizontalmente */
     justify-content: flex-end;
+    text-align: center;
 }
 
 .cert-firma img {
     max-height: 64px;
+    max-width: 150px;      /* controla lo angosto */
     margin-bottom: 2px;
+    object-fit: contain;
 }
 
 .cert-firma .cert-linea {
     border-top: 1px solid #333;
-    margin: 0 20px;
+    width: 80%;            /* la línea se centra y se ajusta al ancho */
     padding-top: 3px;
     font-size: 10.5px;
+    text-align: center;
 }
+
+
+/* ===== Historial de captura / autorización en las tarjetas ===== */
+.cf-historial {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    margin-top: .2rem;
+}
+
+.cf-hist-item {
+    display: flex;
+    gap: .4rem;
+    font-size: .75rem;
+    line-height: 1.3;
+    color: #6b7a99;
+}
+
+.cf-hist-item i {
+    margin-top: .15rem;
+    font-size: .7rem;
+}
+
+.cf-hist-cap i { color: #4d8bf0; }
+.cf-hist-aut i { color: #2e9e6b; }
+.cf-hist-rec i { color: #dc5a5a; }
+
+.cf-hist-item b {
+    color: #2b3550;
+    font-weight: 600;
+}
+
+.cf-hist-fecha {
+    color: #9aa6bf;
+}
+
+@media (max-width: 1200px) { .cf-lista { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px)  { .cf-lista { grid-template-columns: 1fr; } }

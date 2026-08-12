@@ -1,8 +1,8 @@
-// js/certificados.js — Certificados de Calidad (FORM-63297)
+// js/certificados.js — Certificados de Calidad (FORM-63297) — v5
 const CF_API = "php/certificados_api.php";
 const CF_PDF = "php/certificado_pdf.php";
 const CF_FIRMA_URL = (noemp) => `../../KCMes/FirmaDigital/firmas/${noemp}.png`;
-const CF_LOGO_URL = "../../KCMes/img/imglogoprosede.png"; // logo para el PDF
+const CF_LOGO_URL = "../../KCMes/img/imglogoprosede.png";
 
 let CF_PERFIL = { roles: [], nombre: "" };
 let CF_ESPACIO = []; // cache para el buscador
@@ -53,19 +53,13 @@ const CF_EST_CLS = {
   2: "cf-autorizado",
   3: "cf-rechazado",
 };
+const CF_PRE = {
+  inspeccion: "INS",
+  fisicoquimico: "FIS",
+  microbiologia: "MIC",
+};
 
 // ================= MI ESPACIO (tarjetas desplegables) =================
-// async function cfCargarEspacio() {
-//   const cont = cfQ("#listaEspacio");
-//   const r = await cfApi({ accion: "espacio" });
-//   if (!r.ok) {
-//     cont.innerHTML = cfVacio(r.error);
-//     return;
-//   }
-//   CF_ESPACIO = r.items || [];
-//   cfPintarEspacio(CF_ESPACIO);
-// }
-
 async function cfCargarEspacio() {
   const cont = cfQ("#listaEspacio");
   const r = await cfApi({ accion: "espacio" });
@@ -81,12 +75,39 @@ function cfVacio(txt) {
   return `<div class="cf-vacio"><i class="fa-regular fa-folder-open"></i>${cfEsc(txt)}</div>`;
 }
 
-// ================= INICIAR CERTIFICADO =================
+// Historial acumulado: captura y autorización conviven, no se reemplazan
+function cfHistorial(et) {
+  const filas = [];
+
+  if (et.capturo) {
+    filas.push(`<div class="cf-hist-item cf-hist-cap">
+        <i class="fa-solid fa-pen"></i>
+        <div>Capturó <b>${cfEsc(et.capturo)}</b>
+          ${et.fechaCaptura ? `<span class="cf-hist-fecha">· ${cfEsc(et.fechaCaptura)}</span>` : ""}
+        </div>
+      </div>`);
+  }
+
+  if (et.autorizo) {
+    const rechazada = et.estatus === 3;
+    filas.push(`<div class="cf-hist-item ${rechazada ? "cf-hist-rec" : "cf-hist-aut"}">
+        <i class="fa-solid ${rechazada ? "fa-circle-xmark" : "fa-circle-check"}"></i>
+        <div>${rechazada ? "Rechazó" : "Autorizó"} <b>${cfEsc(et.autorizo)}</b>
+          ${et.fechaAutoriza ? `<span class="cf-hist-fecha">· ${cfEsc(et.fechaAutoriza)}</span>` : ""}
+          ${rechazada && et.motivoRechazo ? `<br>Motivo: ${cfEsc(et.motivoRechazo)}` : ""}
+        </div>
+      </div>`);
+  }
+
+  return filas.length
+    ? `<div class="cf-historial">${filas.join("")}</div>`
+    : "";
+}
 
 function cfPintarEspacio(items, roles = [], ibm = "") {
   const cont = cfQ("#listaEspacio");
 
-  // Aviso claro cuando el IBM no está dado de alta en tblMXPRCertificadoPerfilFR
+  // Aviso cuando el IBM no está dado de alta en tblMXPRCertificadoPerfilFR
   let aviso = "";
   if (!roles.length) {
     aviso = `<div class="alert alert-warning py-2 mb-3">
@@ -106,6 +127,7 @@ function cfPintarEspacio(items, roles = [], ibm = "") {
     aviso +
     items
       .map((it) => {
+        // Mini semáforo de las 3 etapas
         const mini = ["inspeccion", "fisicoquimico", "microbiologia"]
           .map((e) => {
             const et = it.etapas[e];
@@ -119,84 +141,87 @@ function cfPintarEspacio(items, roles = [], ibm = "") {
           })
           .join("");
 
+        // Los 3 pasos dentro del desplegable
         const pasos = ["inspeccion", "fisicoquimico", "microbiologia"]
           .map((e) => {
             const et = it.etapas[e];
             if (!et.visible) {
               return `<div class="cf-paso bloq">
-            <div class="cf-paso-nom"><i class="fa-solid ${CF_ETAPA_ICO[e]}"></i> ${CF_ETAPA_TXT[e]}</div>
-            <span class="cf-badge cf-bloqueado"><i class="fa-solid fa-lock"></i> Sin visibilidad</span>
-          </div>`;
+                <div class="cf-paso-nom"><i class="fa-solid ${CF_ETAPA_ICO[e]}"></i> ${CF_ETAPA_TXT[e]}</div>
+                <span class="cf-badge cf-bloqueado"><i class="fa-solid fa-lock"></i> Sin visibilidad</span>
+              </div>`;
             }
+
             let badge,
-              info = "",
               btn = "";
             if (et.bloqueado) {
               badge = `<span class="cf-badge cf-bloqueado"><i class="fa-solid fa-lock"></i> Esperando etapas previas</span>`;
-              info = "Requiere Inspección y Fisicoquímico autorizados.";
             } else {
               badge = `<span class="cf-badge ${CF_EST_CLS[et.estatus]}">${CF_EST_TXT[et.estatus]}</span>`;
-              if (et.estatus === 3 && et.motivoRechazo)
-                info = `Motivo: ${cfEsc(et.motivoRechazo)}`;
-              else if (et.estatus === 1 && et.capturo)
-                info = `Capturó ${cfEsc(et.capturo)} · ${cfEsc(et.fechaCaptura || "")}`;
-              else if (et.estatus === 2 && et.autorizo)
-                info = `Autorizó ${cfEsc(et.autorizo)}`;
             }
+
+            const info = et.bloqueado
+              ? `<div class="cf-paso-info">Requiere Inspección y Fisicoquímico autorizados.</div>`
+              : cfHistorial(et);
+
             if (et.puedeCapturar && !et.bloqueado) {
               const txt = et.estatus === 3 ? "Corregir" : "Capturar";
               const color = et.estatus === 3 ? "btn-warning" : "btn-primary";
-              btn = `<button class="btn btn-sm ${color}" onclick="cfAbrirEtapa(${it.id}, '${e}')">${txt}</button>`;
+              btn = `<button class="btn btn-sm ${color}" onclick="cfAbrirEtapa(${it.id}, '${e}')"><i class="fa-solid fa-pen-to-square"></i> ${txt}</button>`;
             } else if (et.puedeAutorizar) {
-              btn = `<button class="btn btn-sm btn-success" onclick="cfAbrirEtapa(${it.id}, '${e}', true)">Revisar</button>`;
+              btn = `<button class="btn btn-sm btn-success" onclick="cfAbrirEtapa(${it.id}, '${e}', true)"><i class="fa-solid fa-clipboard-check"></i> Revisar</button>`;
             } else {
-              btn = `<button class="btn btn-sm btn-outline-secondary" onclick="cfAbrirEtapa(${it.id}, '${e}')">Ver</button>`;
+              btn = `<button class="btn btn-sm btn-outline-secondary" onclick="cfAbrirEtapa(${it.id}, '${e}')"><i class="fa-solid fa-eye"></i> Ver</button>`;
             }
+
             return `<div class="cf-paso ${et.bloqueado ? "bloq" : ""}">
-          <div class="cf-paso-nom"><i class="fa-solid ${CF_ETAPA_ICO[e]}"></i> ${CF_ETAPA_TXT[e]}</div>
-          ${badge}
-          ${info ? `<div class="cf-paso-info">${info}</div>` : ""}
-          <div>${btn}</div>
-        </div>`;
+              <div class="cf-paso-nom"><i class="fa-solid ${CF_ETAPA_ICO[e]}"></i> ${CF_ETAPA_TXT[e]}</div>
+              ${badge}
+              ${info}
+              <div>${btn}</div>
+            </div>`;
           })
           .join("");
 
+        // Acción a nivel certificado
         let accionCert = "";
         if (it.accionCert === "enviar_gt") {
           accionCert = `<div class="cf-acciones-cert">
-          <span class="cf-badge cf-autorizado me-2">3 etapas autorizadas</span>
-          <button class="btn btn-sm btn-dark" onclick="cfEnviarGT(${it.id})">Enviar certificado a Gerencia Técnica</button>
-        </div>`;
+            <span class="cf-badge cf-autorizado me-2">3 etapas autorizadas</span>
+            <button class="btn btn-sm btn-dark" onclick="cfEnviarGT(${it.id})">Enviar certificado a Gerencia Técnica</button>
+          </div>`;
         } else if (it.accionCert === "validacion") {
           accionCert = `<div class="cf-acciones-cert">
-          <span class="cf-badge cf-gt me-2">Validación final</span>
-          <button class="btn btn-sm btn-success" onclick="cfPreviewCert(${it.id}, true)">Revisar y firmar</button>
-        </div>`;
+            <span class="cf-badge cf-gt me-2">Validación final</span>
+            <button class="btn btn-sm btn-success" onclick="cfPreviewCert(${it.id}, true)">Revisar y firmar</button>
+          </div>`;
         }
 
-        // Marca discreta cuando el certificado no requiere nada de este usuario
         const sinAccion = it.tieneAccion
           ? ""
           : `<span class="cf-badge cf-bloqueado ms-auto me-2">Sin pendientes tuyos</span>`;
 
         return `<div class="cf-item" data-buscar="${cfEsc((it.folio + " " + it.clave + " " + it.producto).toLowerCase())}">
-        <div class="cf-item-head" onclick="this.parentElement.classList.toggle('abierto')">
-          <div class="cf-mini">${mini}</div>
-          <div class="cf-item-folio">${cfEsc(it.folio)}</div>
-          <div class="cf-item-clave">${cfEsc(it.clave)}</div>
-          <div class="cf-item-prod">${cfEsc(it.producto)}</div>
-          ${sinAccion}
-          <i class="fa-solid fa-chevron-down cf-chevron"></i>
+          <div class="cf-item-head" onclick="this.parentElement.classList.toggle('abierto')">
+            <div class="cf-mini">${mini}</div>
+            <div class="cf-item-folio">${cfEsc(it.folio)}</div>
+            <div class="cf-item-clave">${cfEsc(it.clave)}</div>
+            <div class="cf-item-prod">${cfEsc(it.producto)}</div>
+            ${sinAccion}
+            <i class="fa-solid fa-chevron-down cf-chevron"></i>
+          </div>
+          <div class="cf-item-body">
+          <div class="cf-item-body-inner">
+            <div class="cf-pasos">${pasos}</div>
+            ${accionCert}
+          </div>
         </div>
-        <div class="cf-item-body">
-          <div class="cf-pasos">${pasos}</div>
-          ${accionCert}
-        </div>
-      </div>`;
+        </div>`;
       })
       .join("");
 }
 
+// ================= INICIAR CERTIFICADO =================
 async function cfCargarFolios() {
   const tb = cfQ("#tblFolios");
   const r = await cfApi({ accion: "folios" });
@@ -228,17 +253,18 @@ async function cfIniciar(folio) {
     text: "Certificado iniciado. Las etapas ya pueden capturar.",
     icon: "success",
   });
-  // cfCargarFolios();
-  // cfCargarEspacio();
   cfRefrescarTodo();
 }
 
 // ================= FORMULARIOS POR ETAPA =================
 const CF_CAMPOS = {
-  inspeccion: (e, ro) => `
+  // fechaProd: fecha de producción del folio (respaldo si aún no se ha guardado)
+  inspeccion: (e, ro, fechaProd = "") => `
     <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
       <div class="col-md-6"><label class="form-label">Fecha de fabricación</label>
-        <input type="date" class="form-control" id="cf_fechaFabricacion" value="${cfEsc(cfFecha(e?.INS_fechaFabricacion))}"></div>
+        <input type="date" class="form-control" id="cf_fechaFabricacion"
+               value="${cfEsc(cfFecha(e?.INS_fechaFabricacion) || fechaProd)}">
+        <div class="form-text">Tomada de la fecha de producción del folio.</div></div>
       <div class="col-md-6"><label class="form-label">Fecha de caducidad (si aplica)</label>
         <input type="date" class="form-control" id="cf_fechaCaducidad" value="${cfEsc(cfFecha(e?.INS_fechaCaducidad))}"></div>
       <div class="col-md-4"><label class="form-label">Seguridad (AQL &lt;0.025)</label>${cfSel("cf_seguridad", e?.INS_seguridad)}</div>
@@ -247,6 +273,7 @@ const CF_CAMPOS = {
       <div class="col-12"><label class="form-label">Observaciones</label>
         <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.INS_observaciones || "")}</textarea></div>
     </div>`,
+
   fisicoquimico: (e, ro) => `
     <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
       <div class="col-md-4"><label class="form-label">Viscosidad (cps) — TTM-00557</label>
@@ -260,6 +287,7 @@ const CF_CAMPOS = {
       <div class="col-12"><label class="form-label">Observaciones</label>
         <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.FIS_observaciones || "")}</textarea></div>
     </div>`,
+
   microbiologia: (e, ro) => `
     <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
       <div class="col-md-4"><label class="form-label">TAMC (UFC/g, ≤100)</label>
@@ -284,6 +312,7 @@ function cfSel(id, val) {
     <option ${val === "No Cumple" ? "selected" : ""}>No Cumple</option>
   </select>`;
 }
+
 function cfFecha(v) {
   if (!v) return "";
   if (typeof v === "string") return v.substring(0, 10);
@@ -345,25 +374,41 @@ async function cfAbrirEtapa(id, etapa, autorizar = false) {
       Densidad ${esp.denMin}–${esp.denMax} (obj ${esp.denObj})<br>
       <small>Aspecto: ${cfEsc(esp.aspecto)} · Olor: ${cfEsc(esp.olor)}</small></div>`;
   }
-  body += CF_CAMPOS[etapa](e, !editable);
 
-  const pre = { inspeccion: "INS", fisicoquimico: "FIS", microbiologia: "MIC" }[
-    etapa
-  ];
+  // La fecha de producción del folio va como respaldo de la fecha de fabricación
+  body += CF_CAMPOS[etapa](e, !editable, r.fechaProduccion || "");
+
+  const pre = CF_PRE[etapa];
+
+  // Historial dentro del modal (captura + autorización)
+  const hist = [];
+  if (e[`${pre}_nombreCaptura`])
+    hist.push(
+      `<i class="fa-solid fa-pen me-1"></i> Capturó <b>${cfEsc(e[`${pre}_nombreCaptura`])}</b>`,
+    );
+  if (e[`${pre}_nombreAutoriza`])
+    hist.push(
+      `<i class="fa-solid fa-circle-check me-1"></i> ${+e[`${pre}_estatus`] === 3 ? "Rechazó" : "Autorizó"} <b>${cfEsc(e[`${pre}_nombreAutoriza`])}</b>`,
+    );
+  if (hist.length)
+    body += `<div class="alert alert-light border mt-3 py-2" style="font-size:.85rem;">
+      ${hist.join("<br>")}</div>`;
+
   if (+e[`${pre}_estatus`] === 2)
-    body += `<div class="alert alert-success mt-3 py-2">Autorizada por ${cfEsc(e[`${pre}_nombreAutoriza`] || "")} — solo lectura.</div>`;
+    body += `<div class="alert alert-success mt-2 py-2">Etapa autorizada — solo lectura.</div>`;
   if (+e[`${pre}_estatus`] === 3 && e[`${pre}_motivoRechazo`])
-    body += `<div class="alert alert-danger mt-3 py-2">Rechazo: ${cfEsc(e[`${pre}_motivoRechazo`])}</div>`;
+    body += `<div class="alert alert-danger mt-2 py-2">Motivo del rechazo: ${cfEsc(e[`${pre}_motivoRechazo`])}</div>`;
+
   cfQ("#etapaBody").innerHTML = body;
 
-  let footer = `<button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>`;
+  let footer = `<button class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-rectangle-xmark"></i> Cerrar</button>`;
   if (editable) {
-    footer += `<button class="btn btn-outline-primary" onclick="cfGuardar(${id}, '${etapa}', false)">Guardar borrador</button>
-               <button class="btn btn-primary" onclick="cfGuardar(${id}, '${etapa}', true)">Enviar a autorización</button>`;
+    footer += `<button class="btn btn-outline-primary" onclick="cfGuardar(${id}, '${etapa}', false)"><i class="fa-solid fa-floppy-disk"></i> Guardar borrador</button>
+               <button class="btn btn-primary" onclick="cfGuardar(${id}, '${etapa}', true)"><i class="fa-solid fa-paper-plane"></i> Enviar a autorización</button>`;
   }
   if (autorizar) {
-    footer += `<button class="btn btn-danger" onclick="cfAutorizar(${id}, '${etapa}', false)">Rechazar</button>
-               <button class="btn btn-success" onclick="cfAutorizar(${id}, '${etapa}', true)">Autorizar</button>`;
+    footer += `<button class="btn btn-danger" onclick="cfAutorizar(${id}, '${etapa}', false)"><i class="fa-solid fa-thumbs-down"></i> Rechazar</button>
+               <button class="btn btn-success" onclick="cfAutorizar(${id}, '${etapa}', true)"><i class="fa-solid fa-thumbs-up"></i> Autorizar</button>`;
   }
   cfQ("#etapaFooter").innerHTML = footer;
   bootstrap.Modal.getOrCreateInstance(cfQ("#modalEtapa")).show();
@@ -395,7 +440,6 @@ async function cfGuardar(id, etapa, enviar) {
     text: enviar ? "Enviado a autorización." : "Borrador guardado.",
     icon: "success",
   });
-  // cfCargarEspacio();
   cfRefrescarTodo();
 }
 
@@ -448,7 +492,6 @@ async function cfAutorizar(id, etapa, aprobar) {
     text: aprobar ? "Etapa autorizada." : "Etapa rechazada; regresa a captura.",
     icon: "success",
   });
-  // cfCargarEspacio();
   cfRefrescarTodo();
 }
 
@@ -468,7 +511,6 @@ async function cfEnviarGT(id) {
     text: "Certificado enviado a validación final.",
     icon: "success",
   });
-  // cfCargarEspacio();
   cfRefrescarTodo();
 }
 
@@ -492,6 +534,7 @@ async function cfCargarCerts() {
       APROBADO: "cf-autorizado",
       RECHAZADO: "cf-rechazado",
     })[s] || "cf-bloqueado";
+
   tb.innerHTML = r.items
     .map(
       (c) => `<tr>
@@ -501,8 +544,8 @@ async function cfCargarCerts() {
       <td>${cfEsc(c.gerente || "—")}<br><small>${cfEsc(c.fechaFirma || "")}</small></td>
       <td>${
         c.estatus === "APROBADO"
-          ? `<button class="btn btn-sm btn-outline-primary" onclick="cfPreviewCert(${c.id})">Ver</button>
-        <a class="btn btn-sm btn-primary" target="_blank" href="${CF_PDF}?id=${c.id}">PDF</a>`
+          ? `<button class="btn btn-sm btn-outline-primary" onclick="cfPreviewCert(${c.id})"><i class="fa-solid fa-eye"></i> Ver</button>
+             <a class="btn btn-sm btn-primary" target="_blank" href="${CF_PDF}?id=${c.id}"><i class="fa-regular fa-file-pdf"></i> PDF</a>`
           : "—"
       }</td>
     </tr>`,
@@ -515,6 +558,8 @@ async function cfPreviewCert(id, validarGT = false) {
   if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
 
   const { cert: c, ins, fis, mic, especs: esp } = r;
+
+  // Datos del catálogo (vwMXPRClaveMaquina), solo para el certificado
   const prodPDF = r.pdfProducto ?? c.CER_producto;
   const catPDF = r.pdfCategoria ?? c.CER_categoria;
   const presPDF = r.pdfPresentacion ?? c.CER_presentacion;
@@ -525,11 +570,6 @@ async function cfPreviewCert(id, validarGT = false) {
     c.CER_estatus === "APROBADO" && r.noempFirma
       ? `<img src="${CF_FIRMA_URL(r.noempFirma)}" alt="Firma" onerror="this.style.display='none'">`
       : "";
-
-  {
-    /* <td><b>Categoría del Producto</b></td><td>${f(c.CER_categoria)}</td>
-          <td><b>Nombre del Producto</b></td><td>${f(c.CER_producto)}</td></tr> */
-  }
 
   cfQ("#certHoja").innerHTML = `
     <div class="cert-top">
@@ -590,12 +630,16 @@ async function cfPreviewCert(id, validarGT = false) {
       <tr><td>Apariencia</td><td>&lt;4.0</td><td>${f(ins?.INS_apariencia)}</td></tr>
     </table>
 
-    <p style="font-size:11px;"><b>Conclusión:</b> ${
+    ${
+      c.CER_conclusion
+        ? `<p style="font-size:11px;"><b>Conclusión:</b> ${cfEsc(c.CER_conclusion)}</p>`
+        : ""
+    }
+    ${
       c.CER_observacionesGT
         ? `<p style="font-size:11px;"><b>Observaciones de Gerencia Técnica:</b> ${cfEsc(c.CER_observacionesGT)}</p>`
         : ""
-    }</p>
-
+    }
 
     <div class="cert-pie">
       <div class="cert-sello">
@@ -606,7 +650,7 @@ async function cfPreviewCert(id, validarGT = false) {
         <b style="font-size:10.5px;">KIMBERLY CLARK DE MÉXICO S.A.B DE C.V.</b>
         <div style="flex:1"></div>
         ${firmaImg}
-        <div class="cert-linea">${f(c.CER_nombreGerente || "")}<br>Nombre y Firma — Gerente Técnico</div>
+        <div class="cert-linea">${f(c.CER_nombreGerente || "")}<br>Gerencia Técnica</div>
       </div>
     </div>`;
 
@@ -615,48 +659,14 @@ async function cfPreviewCert(id, validarGT = false) {
     footer += `<button class="btn btn-danger" onclick="cfValidarGT(${id}, false)">Rechazar</button>
                <button class="btn btn-success" onclick="cfValidarGT(${id}, true)">Confirmar y firmar</button>`;
   } else if (c.CER_estatus === "APROBADO") {
-    // footer += `<button class="btn btn-primary" onclick="cfDescargarPDF('${cfEsc(c.CER_folio)}')">Descargar PDF</button>`;
     footer += `<a class="btn btn-primary" target="_blank" href="${CF_PDF}?id=${id}">
-                    <i class="fa-regular fa-file-pdf me-1"></i> Abrir PDF</a>`;
+                 <i class="fa-regular fa-file-pdf me-1"></i> Abrir PDF</a>`;
   }
   cfQ("#certFooter").innerHTML = footer;
   bootstrap.Modal.getOrCreateInstance(cfQ("#modalCert")).show();
 }
 
-// async function cfValidarGT(id, aprobar) {
-//   const modal = bootstrap.Modal.getInstance(cfQ("#modalCert"));
-//   let motivo = "";
-//   if (!aprobar) {
-//     modal?.hide();
-//     motivo = await cfPedirMotivo("Motivo de rechazo");
-//     if (!motivo) return;
-//   } else {
-//     const c = await cfSwal({
-//       title: "¿Confirmar certificado?",
-//       text: "Se colocará tu firma y el certificado quedará aprobado.",
-//       icon: "warning",
-//       showCancelButton: true,
-//       confirmButtonText: "Confirmar y firmar",
-//       cancelButtonText: "Cancelar",
-//     });
-//     if (!c.isConfirmed) return;
-//     modal?.hide();
-//   }
-//   const r = await cfApi({ accion: "validar_gt", id, aprobar, motivo });
-//   if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
-//   cfSwal({
-//     title: "Listo",
-//     text: aprobar
-//       ? "Certificado aprobado y firmado."
-//       : "Certificado rechazado.",
-//     icon: "success",
-//   });
-//   // cfCargarEspacio();
-//   // cfCargarCerts();
-//   cfRefrescarTodo();
-// }
-
-// -------- 3) cfValidarGT: el Gerente escribe la conclusión final --------
+// El Gerente escribe la conclusión/observaciones finales
 async function cfValidarGT(id, aprobar) {
   const modal = bootstrap.Modal.getInstance(cfQ("#modalCert"));
   let motivo = "";
@@ -708,19 +718,6 @@ async function cfValidarGT(id, aprobar) {
   cfRefrescarTodo();
 }
 
-// Funcion auxiliar anterior
-// function cfDescargarPDF(folio) {
-//   html2pdf()
-//     .set({
-//       margin: 8,
-//       filename: `Certificado_${folio}.pdf`,
-//       html2canvas: { scale: 2, useCORS: true },
-//       jsPDF: { orientation: "portrait", unit: "mm", format: "letter" },
-//     })
-//     .from(cfQ("#certHoja"))
-//     .save();
-// }
-
 // ================= BUSCADORES =================
 function cfFiltroTabla(inputId, tbodyId) {
   const inp = document.getElementById(inputId);
@@ -738,10 +735,6 @@ function cfFiltroTabla(inputId, tbodyId) {
 async function cfArranque() {
   const p = await cfApi({ accion: "perfil" });
   if (p.ok) CF_PERFIL = p;
-
-  // cfCargarEspacio();
-  // cfCargarFolios();
-  // cfCargarCerts();
 
   const be = document.getElementById("buscarEspacio");
   if (be)

@@ -27,11 +27,13 @@
         <!-- MI ESPACIO -->
         <div class="tab-pane fade show active" id="tabEspacio">
             <div class="cf-toolbar">
-                <div class="cf-card-title"><i class="fa-solid fa-inbox"></i> Pendientes por atender</div>
+                <div class="cf-card-title"><i class="fa-solid fa-inbox"></i> Certificaciones pendientes </div>
                 <div class="cf-buscar"><input type="text" class="form-control form-control-sm" id="buscarEspacio"
                         placeholder="Buscar folio, clave o producto…"></div>
             </div>
-            <div id="listaEspacio" class="cf-lista" style="max-height:520px; overflow-y:auto;"></div>
+
+            <div id="listaEspacio" class="cf-lista" style="max-height:640px; overflow-y:auto; padding-right:.3rem;">
+            </div>
         </div>
 
         <!-- INICIAR -->
@@ -42,9 +44,9 @@
                 <div class="cf-buscar"><input type="text" class="form-control form-control-sm" id="buscarFolios"
                         placeholder="Buscar folio o clave…"></div>
             </div>
-            <div class="table-responsive" style="max-height:420px;">
+            <div class="table-responsive" style="max-height:520px;">
                 <table class="table table-bordered align-middle">
-                    <thead class="table-dark">
+                    <thead class="table-dark text-center">
                         <tr>
                             <th>FECHA</th>
                             <th>MÁQUINA</th>
@@ -66,9 +68,9 @@
                 <div class="cf-buscar"><input type="text" class="form-control form-control-sm" id="buscarCerts"
                         placeholder="Buscar folio, clave o estatus…"></div>
             </div>
-            <div class="table-responsive" style="max-height:420px;">
+            <div class="table-responsive" style="max-height:820px;">
                 <table class="table table-bordered align-middle">
-                    <thead class="table-dark">
+                    <thead class="table-dark text-center">
                         <tr>
                             <th>FOLIO</th>
                             <th>CLAVE</th>

@@ -207,6 +207,95 @@ class CertPDF extends FPDF
             $this->Cell($anchos[$i], $h, $this->t($x), 1, 0, $aligns[$i] ?? 'C');
         $this->Ln();
     }
+
+    function NbLines($w, $txt)
+    {
+        $cw = &$this->CurrentFont['cw'];
+        if ($w == 0)
+            $w = $this->w - $this->rMargin - $this->x;
+        $wmax = ($w - 2 * $this->cMargin) * 1000 / $this->FontSize;
+        $s = str_replace("\r", '', (string) $txt);
+        $nb = strlen($s);
+        if ($nb > 0 && $s[$nb - 1] == "\n")
+            $nb--;
+        $sep = -1;
+        $i = 0;
+        $j = 0;
+        $l = 0;
+        $nl = 1;
+        while ($i < $nb) {
+            $ch = $s[$i];
+            if ($ch == "\n") {
+                $i++;
+                $sep = -1;
+                $j = $i;
+                $l = 0;
+                $nl++;
+                continue;
+            }
+            if ($ch == ' ')
+                $sep = $i;
+            $l += $cw[$ch] ?? 0;
+            if ($l > $wmax) {
+                if ($sep == -1) {
+                    if ($i == $j)
+                        $i++;
+                } else {
+                    $i = $sep + 1;
+                }
+                $sep = -1;
+                $j = $i;
+                $l = 0;
+                $nl++;
+            } else {
+                $i++;
+            }
+        }
+        return $nl;
+    }
+
+    function FilaGeneral($etq1, $val1, $etq2, $val2, $anchos, $hLinea = 4.5)
+    {
+        list($L1, $V1, $L2, $V2) = $anchos;
+
+        // Alto necesario = la celda que más líneas ocupe
+        $this->SetFont('Arial', '', 7.5);
+        $n = max(
+            $this->NbLines($V1, $val1),
+            $this->NbLines($V2, $val2),
+            $this->NbLines($L1, $etq1),
+            $this->NbLines($L2, $etq2),
+            1
+        );
+        $h = $n * $hLinea;
+
+        // Salto de página si no cabe
+        if ($this->GetY() + $h > $this->PageBreakTrigger)
+            $this->AddPage($this->CurOrientation);
+
+        $x = $this->GetX();
+        $y = $this->GetY();
+
+        $celda = function ($w, $txt, $bold) use (&$x, $y, $h, $hLinea) {
+            $this->SetXY($x, $y);
+            $this->SetFont('Arial', $bold ? 'B' : '', 7.5);
+            if ($bold)
+                $this->SetFillColor(244, 246, 251);
+            $this->Rect($x, $y, $w, $h, $bold ? 'DF' : 'D');
+            // Centrado vertical del texto dentro de la celda
+            $lineas = $this->NbLines($w, $txt);
+            $this->SetXY($x, $y + ($h - $lineas * $hLinea) / 2);
+            $this->MultiCell($w, $hLinea, $this->t($txt), 0, 'L');
+            $x += $w;
+        };
+
+        $celda($L1, $etq1, true);
+        $celda($V1, $val1, false);
+        $celda($L2, $etq2, true);
+        $celda($V2, $val2, false);
+
+        $this->SetXY($this->lMargin, $y + $h);
+    }
 }
 
 $pdf = new CertPDF('P', 'mm', 'Letter');
@@ -222,26 +311,27 @@ $pdf->Cell(0, 5, $pdf->t('FECHA DE EMISIÓN: ') . fecha($c['CER_fechaEmision']),
 
 // ---- Datos generales (2 columnas de etiqueta/valor) ----
 $pdf->Bloque('Información del producto');
+
+$anchos = [34, 72, 34, 47];
+
 $L = 38;
 $V = 55.5;  // 38+55.5+38+55.5 = 187 (ancho útil)
-$gen = [
-    ['Categoría del Producto', $pdfCategoria, 'Nombre del Producto', $pdfProducto],
-    ['Presentación', $pdfPresentacion, 'Nombre del Fabricante', $c['CER_fabricante']],
-    ['País de Origen', $c['CER_paisOrigen'], 'Fecha de Fabricación', fecha($ins['INS_fechaFabricacion'] ?? null)],
-    ['Fecha de Caducidad', fecha($ins['INS_fechaCaducidad'] ?? null) ?: 'No aplica', 'Número de Lote', $c['CER_lote']],
-    ['Clave KCM', $c['CER_clave'], '', ''],
-];
-foreach ($gen as $g) {
-    $pdf->SetFont('Arial', 'B', 7.5);
-    $pdf->SetFillColor(244, 246, 251);
-    $pdf->Cell($L, 6, $pdf->t($g[0]), 1, 0, 'L', true);
-    $pdf->SetFont('Arial', '', 7.5);
-    $pdf->Cell($V, 6, $pdf->t($g[1]), 1, 0, 'L');
-    $pdf->SetFont('Arial', 'B', 7.5);
-    $pdf->Cell($L, 6, $pdf->t($g[2]), 1, 0, 'L', true);
-    $pdf->SetFont('Arial', '', 7.5);
-    $pdf->Cell($V, 6, $pdf->t($g[3]), 1, 1, 'L');
-}
+$pdf->FilaGeneral('Categoría del Producto', $pdfCategoria, 'Nombre del Producto', $pdfProducto, $anchos);
+$pdf->FilaGeneral('Presentación', $pdfPresentacion, 'Nombre del Fabricante', $c['CER_fabricante'], $anchos);
+$pdf->FilaGeneral('País de Origen', $c['CER_paisOrigen'], 'Fecha de Fabricación', fecha($ins['INS_fechaFabricacion'] ?? null), $anchos);
+$pdf->FilaGeneral('Fecha de Caducidad', fecha($ins['INS_fechaCaducidad'] ?? null) ?: 'No aplica', 'Número de Lote', $c['CER_lote'], $anchos);
+$pdf->FilaGeneral('Clave KCM', $c['CER_clave'], '', '', $anchos);
+// foreach ($gen as $g) {
+//     $pdf->SetFont('Arial', 'B', 7.5);
+//     $pdf->SetFillColor(244, 246, 251);
+//     $pdf->Cell($L, 6, $pdf->t($g[0]), 1, 0, 'L', true);
+//     $pdf->SetFont('Arial', '', 7.5);
+//     $pdf->Cell($V, 6, $pdf->t($g[1]), 1, 0, 'L');
+//     $pdf->SetFont('Arial', 'B', 7.5);
+//     $pdf->Cell($L, 6, $pdf->t($g[2]), 1, 0, 'L', true);
+//     $pdf->SetFont('Arial', '', 7.5);
+//     $pdf->Cell($V, 6, $pdf->t($g[3]), 1, 1, 'L');
+// }
 
 // ---- Fisicoquímicas ----
 $pdf->Bloque('Variables Fisicoquímicas');

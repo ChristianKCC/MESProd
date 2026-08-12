@@ -203,14 +203,49 @@ if ($accion === 'folios') {
 // iniciar — crea el certificado desde un folio de bajada
 //           El producto guardado es el de la BAJADA (no el de la vista)
 // ============================================================
+// if ($accion === 'iniciar') {
+//     $folio = trim($in['folio'] ?? '');
+//     if ($folio === '')
+//         salir(['ok' => false, 'error' => 'Folio requerido']);
+
+//     $b = fila(q(
+//         $conn,
+//         "SELECT TOP 1 folio, claveProducto, producto FROM tblMXPRBajadasFormulados
+//          WHERE folio = ? AND activo = 1 ORDER BY id DESC",
+//         [$folio]
+//     ));
+//     if (!$b)
+//         salir(['ok' => false, 'error' => 'Folio no encontrado en bajadas']);
+
+//     $esp = especsClave($conn, $b['claveProducto'], $ESPECS_DEFAULT);
+
+//     $rs = q(
+//         $conn,
+//         "INSERT INTO tblMXPRCertificadoFR (CER_folio, CER_clave, CER_producto, CER_presentacion, CER_lote)
+//          OUTPUT INSERTED.CER_id
+//          VALUES (?,?,?,?,?)",
+//         [$b['folio'], $b['claveProducto'], $b['producto'], $esp['presentacion'], $b['folio']]
+//     );
+//     $id = (int) fila($rs)['CER_id'];
+
+//     q($conn, "INSERT INTO tblMXPRCertificadoInspeccionFR    (INS_idCertificado) VALUES (?)", [$id]);
+//     q($conn, "INSERT INTO tblMXPRCertificadoFisicoquimicoFR (FIS_idCertificado) VALUES (?)", [$id]);
+//     q($conn, "INSERT INTO tblMXPRCertificadoMicrobiologiaFR (MIC_idCertificado) VALUES (?)", [$id]);
+
+//     salir(['ok' => true, 'id' => $id]);
+// }
+
 if ($accion === 'iniciar') {
     $folio = trim($in['folio'] ?? '');
     if ($folio === '')
         salir(['ok' => false, 'error' => 'Folio requerido']);
 
+    // Traemos también la fecha de producción
     $b = fila(q(
         $conn,
-        "SELECT TOP 1 folio, claveProducto, producto FROM tblMXPRBajadasFormulados
+        "SELECT TOP 1 folio, claveProducto, producto,
+                CONVERT(varchar(10), fecha, 23) AS fechaProd
+         FROM tblMXPRBajadasFormulados
          WHERE folio = ? AND activo = 1 ORDER BY id DESC",
         [$folio]
     ));
@@ -228,7 +263,12 @@ if ($accion === 'iniciar') {
     );
     $id = (int) fila($rs)['CER_id'];
 
-    q($conn, "INSERT INTO tblMXPRCertificadoInspeccionFR    (INS_idCertificado) VALUES (?)", [$id]);
+    // Inspección nace con la fecha de fabricación = fecha de producción de la bajada
+    q(
+        $conn,
+        "INSERT INTO tblMXPRCertificadoInspeccionFR (INS_idCertificado, INS_fechaFabricacion) VALUES (?,?)",
+        [$id, $b['fechaProd']]
+    );
     q($conn, "INSERT INTO tblMXPRCertificadoFisicoquimicoFR (FIS_idCertificado) VALUES (?)", [$id]);
     q($conn, "INSERT INTO tblMXPRCertificadoMicrobiologiaFR (MIC_idCertificado) VALUES (?)", [$id]);
 
@@ -272,16 +312,30 @@ if ($accion === 'espacio') {
             if ($puedeCapturar || $puedeAutorizar)
                 $tieneAccion = true;
 
+            // $etapas[$etapa] = [
+            //     'estatus' => $st,
+            //     'bloqueado' => $bloqueado,
+            //     'visible' => $visible,
+            //     'puedeCapturar' => $puedeCapturar,
+            //     'puedeAutorizar' => $puedeAutorizar,
+            //     'capturo' => $visible ? ($e["{$p}_nombreCaptura"] ?? null) : null,
+            //     'autorizo' => $visible ? ($e["{$p}_nombreAutoriza"] ?? null) : null,
+            //     'motivoRechazo' => $visible ? ($e["{$p}_motivoRechazo"] ?? null) : null,
+            //     'fechaCaptura' => $visible ? fmtFecha($e["{$p}_fechaCaptura"] ?? null, 'Y-m-d H:i') : null,
+            // ];
+
             $etapas[$etapa] = [
                 'estatus' => $st,
                 'bloqueado' => $bloqueado,
                 'visible' => $visible,
                 'puedeCapturar' => $puedeCapturar,
                 'puedeAutorizar' => $puedeAutorizar,
+                // Historial completo: captura Y autorización conviven
                 'capturo' => $visible ? ($e["{$p}_nombreCaptura"] ?? null) : null,
+                'fechaCaptura' => $visible ? fmtFecha($e["{$p}_fechaCaptura"] ?? null, 'd/m/Y H:i') : null,
                 'autorizo' => $visible ? ($e["{$p}_nombreAutoriza"] ?? null) : null,
+                'fechaAutoriza' => $visible ? fmtFecha($e["{$p}_fechaAutoriza"] ?? null, 'd/m/Y H:i') : null,
                 'motivoRechazo' => $visible ? ($e["{$p}_motivoRechazo"] ?? null) : null,
-                'fechaCaptura' => $visible ? fmtFecha($e["{$p}_fechaCaptura"] ?? null, 'Y-m-d H:i') : null,
             ];
         }
 
@@ -350,6 +404,16 @@ if ($accion === 'detalle') {
         $out['editable'][$etapa] = $ed;
     }
     $out['ok'] = true;
+
+    $bj = fila(q(
+        $conn,
+        "SELECT TOP 1 CONVERT(varchar(10), fecha, 23) AS fechaProd
+     FROM tblMXPRBajadasFormulados
+     WHERE folio = ? AND activo = 1 ORDER BY id DESC",
+        [$c['CER_folio']]
+    ));
+    $out['fechaProduccion'] = $bj['fechaProd'] ?? null;
+
     salir($out);
 }
 
