@@ -600,7 +600,7 @@ if ($data[0]['Turno'] == 1) {
     // if (is_numeric($tiempoAbajo) && in_array((int) $noMaquina, [60, 61, 62, 63], true)) {
     //     $tiempoAbajoAjustado = number_format(((float) $tiempoAbajo / 60), 2);
     // } else {
-    $tiempoAbajoAjustado = is_numeric($tiempoAbajo) ? number_format((float) $tiempoAbajo, 2) : $tiempoAbajo;
+    $tiempoAbajoAjustado = is_numeric($tiempoAbajo) ? number_format($tiempoAbajo, 0) : $tiempoAbajo;
 
     $valorMostrar = $tiempoAbajoAjustado;
 
@@ -645,7 +645,7 @@ if (isset($data[1]) && (($data[1]['Turno'] ?? null) == 2)) {
     //     $t1 = number_format(((float) $t1_raw / 60), 2);
     // } else {
     // En caso contrario mantener el valor tal cual (convertido a float si es numérico)
-    $t1 = is_numeric($t1_raw) ? number_format((float) $t1_raw, 2) : $t1_raw;
+    $t1 = is_numeric($t1_raw) ? number_format($t1_raw, 0) : $t1_raw;
     // }
     $h1 = $data[1]['HorasTrabajadas'] ?? 0;
     $m1 = $data[1]['TotalGeneralPañales'] ?? 0;
@@ -706,7 +706,7 @@ if (isset($data[2]) && (($data[2]['Turno'] ?? null) == 3)) {
     // if (is_numeric($ta2_raw) && in_array((int) $noMaquina2, [60, 61, 62, 63], true)) {
     //     $ta2 = number_format(((float) $ta2_raw / 60), 2);
     // } else {
-    $ta2 = is_numeric($ta2_raw) ? (float) $ta2_raw : $ta2_raw;
+    $ta2 = is_numeric($ta2_raw) ? number_format($ta2_raw, 0) : $ta2_raw;
     // }
     $h2 = (float) ($t2['HorasTrabajadas'] ?? 0);
     $m2 = (float) ($t2['TotalGeneralPañales'] ?? 0);
@@ -776,7 +776,7 @@ foreach ($data as $registro) {
         //     $TiempoAbajoTotal += number_format(((float) $tiempoRaw / 60), 2);
         // } else {
         // En caso contrario mantener el valor tal cual (o 0 si no es numérico)
-        $TiempoAbajoTotal += is_numeric($tiempoRaw) ? number_format((float) $tiempoRaw, 2) : 0;
+        $TiempoAbajoTotal += is_numeric($tiempoRaw) ? number_format((float) $tiempoRaw, 0) : 0;
         // }
         $horasTrabajadasTotal += (float) $registro['HorasTrabajadas'];
         $mermaMaquinaTotal += (float) $registro['TotalGeneralPañales'];
@@ -794,7 +794,7 @@ foreach ($data as $registro) {
         $totalMinutosDisponibles += floatval($registro['HorasTrabajadas']) * 60;
     }
 }
-$TiempoPerdidoTotal = ($totalMinutosDisponibles > 0) ? round(($TiempoAbajoTotal / $totalMinutosDisponibles) * 100, 2) : 0;
+$TiempoPerdidoTotal = ($totalMinutosDisponibles > 0) ? round(($TiempoAbajoTotal / $totalMinutosDisponibles) * 100, 0) : 0;
 
 //Merma total
 $mermaMaquinaTotal = $CortesTotal != 0 ? round((1 - ($mermaMaquinaTotal / $CortesTotal)) * 100, 2) : 0;

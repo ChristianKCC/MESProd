@@ -367,7 +367,7 @@ class ReporteDiario
         $conexion = new ClassConexion();
         $conn = $conexion->conexion('TLX004MXDB'); // ajusta la BD si Hook vive en otra
 
-        $sql = "EXEC dbo.sp_PRSD_ObtenerProduccionHook_ConTiempos @FechaEvaluar = ?";
+        $sql = "EXEC dbo.sp_PRSD_ObtenerProduccionHook_ConTiempos_V2 @FechaEvaluar = ?";
         $params = [$fecha];
 
         $stmt = sqlsrv_query($conn, $sql, $params);

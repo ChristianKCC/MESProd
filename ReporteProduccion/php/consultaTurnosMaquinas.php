@@ -627,62 +627,55 @@ class TurnosSinConexion
     {
         $conexion = new ClassConexion();
         $conn = $conexion->conexion('TLX004MXDB');
-        // $ibm = $_SESSION['ibm'];
 
         if ($conn === false) {
             die(json_encode(["error" => "Error de conexión a la base de datos."]));
         }
 
-        // Validaciones mínimas para evitar consultas inválidas
         if (empty($fecha) || empty($maquina)) {
             die(json_encode(["error" => "Parámetros insuficientes. Se requieren 'fecha' y 'maquina'."]));
         }
 
         $array = [];
 
-        // Base de la consulta
-        $query = " SELECT 
-                    IdEncabezadoBItacora,
-                    presentacion,
-                    Descripcion_Articulo,
-                    Fecha,
-                    Turno,
-                    HorasTrabajadas,
-                    NoMaquina,
-                    NombreMaquina,
-                    golpes,
-                    merma,
-                    real AS CajasReales,
-                    cajasxp AS CajasxPanal,
-                    acumulado,
-                    std,
-                    Rechazos,
-                    MinutosTurno,
-                    TotalTiempoPerdido AS TiempoPerdido,
-                    TiempoArriba,
-                    ParosMaquina,
-                    NombreEmpleado
-                FROM (
-                    SELECT *,
-                        ROW_NUMBER() OVER (PARTITION BY Turno ORDER BY IdEncabezadoBItacora DESC) AS rn
-                    FROM ProduccionesMaquinasSinRed
-                    WHERE Fecha = ?
-                    AND NoMaquina = ?
-                ) AS ranked
-                WHERE rn = 1
-            ";
+        // Agrupa TODAS las claves del turno con SUM para los campos numéricos.
+        // Para campos de contexto (conductor, std, etc.) toma el del último IdEncabezadoBItacora.
+        $query = "
+        SELECT
+            MAX(IdEncabezadoBItacora)   AS IdEncabezadoBItacora,
+            MAX(presentacion)           AS presentacion,
+            MAX(Descripcion_Articulo)   AS Descripcion_Articulo,
+            MAX(Fecha)                  AS Fecha,
+            Turno,
+            MAX(HorasTrabajadas)        AS HorasTrabajadas,
+            MAX(NoMaquina)              AS NoMaquina,
+            MAX(NombreMaquina)          AS NombreMaquina,
+            SUM(golpes)                 AS golpes,
+            SUM(merma)                  AS merma,
+            SUM(real)                   AS CajasReales,
+            SUM(cajasxp)                AS CajasxPanal,
+            SUM(acumulado)              AS acumulado,
+            MAX(std)                    AS std,
+            SUM(Rechazos)               AS Rechazos,
+            MAX(MinutosTurno)           AS MinutosTurno,
+            SUM(TotalTiempoPerdido)     AS TiempoPerdido,
+            SUM(TiempoArriba)           AS TiempoArriba,
+            SUM(ParosMaquina)           AS ParosMaquina,
+            MAX(NombreEmpleado)         AS NombreEmpleado
+        FROM ProduccionesMaquinasSinRed
+        WHERE Fecha    = ?
+          AND NoMaquina = ?
+    ";
 
-        // Parámetros base
         $params = [$fecha, $maquina];
 
-        // Agregar filtro de turno solo si viene en el POST
         if (!empty($turno)) {
             $query .= " AND Turno <= ?";
             $params[] = $turno;
         }
 
-        // Ordenar por fecha (desc) y turno (desc) para ver primero lo más reciente
-        $query .= " ORDER BY Fecha DESC, Turno ASC";
+        $query .= " GROUP BY Turno
+                ORDER BY Turno ASC";
 
         $result = sqlsrv_query($conn, $query, $params);
 
@@ -692,7 +685,6 @@ class TurnosSinConexion
         }
 
         while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
-            // 'Fecha' normalmente viene como objeto DateTime de SQLSRV; protegemos por si viene null
             $fechaFormateada = isset($row['Fecha']) && $row['Fecha'] instanceof DateTime
                 ? $row['Fecha']->format('Y-m-d')
                 : (is_string($row['Fecha']) ? $row['Fecha'] : null);
@@ -701,11 +693,9 @@ class TurnosSinConexion
 
             if ($fechaFormateada) {
                 $fechaObj = new DateTime($fechaFormateada);
-
                 $dia = $fechaObj->format('d');
                 $mes = nombreMes((int) $fechaObj->format('m'));
                 $anio = $fechaObj->format('Y');
-
                 $fechaBonita = "{$dia} - {$mes} - {$anio}";
             }
 
@@ -733,24 +723,18 @@ class TurnosSinConexion
             ];
         }
 
-
         // Asegurar que existan los 3 turnos (1, 2, 3)
         $turnosFinales = [];
 
-        // Indexar lo que sí vino de la BD por turno
         $indexados = [];
         foreach ($array as $item) {
             $indexados[(int) $item['Turno']] = $item;
         }
 
-        // Crear los 3 turnos siempre
         for ($i = 1; $i <= 3; $i++) {
-
             if (isset($indexados[$i])) {
-                // Si existe en BD, usarlo tal cual
                 $turnosFinales[] = $indexados[$i];
             } else {
-                // Si NO existe, crear registro en 0
                 $turnosFinales[] = [
                     "IdEncabezadoBItacora" => null,
                     "presentacion" => null,
@@ -776,14 +760,11 @@ class TurnosSinConexion
             }
         }
 
-        // Ordenar por turno (por si acaso)
         usort($turnosFinales, function ($a, $b) {
             return $a['Turno'] <=> $b['Turno'];
         });
 
-        // echo json_encode($turnosFinales, JSON_PRETTY_PRINT);
         return $turnosFinales;
-
     }
 
     public function clavesMaquinasSinRed($fecha, $maquina, $turno)

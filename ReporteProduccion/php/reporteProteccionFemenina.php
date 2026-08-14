@@ -1350,7 +1350,7 @@ function pintarTiempoAbajoMaquinas(
         $valortTotal = ($minutosTrabajadosTurno > 0)
             ? number_format($ptpt, 2) . '%'
             : '';
-        $pdf->Cell($colW[12], $rowHeight, $totalTurno . ' / ' . $valortTotal, 1, 0, 'C');
+        $pdf->Cell($colW[12], $rowHeight, number_format($totalTurno, 0) . ' / ' . $valortTotal, 1, 0, 'C');
 
         $totalGeneral += $totalTurno;
     }

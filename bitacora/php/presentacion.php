@@ -849,7 +849,7 @@ class BitacoraElectronica
 
         $folio = $_POST['folio'] ?? null;
         $notbl = $_POST['notbl'] ?? null;
-        $claveOpcional = $_POST['clave'] ?? null;  // NUEVO: clave opcional
+        $claveOpcional = $_POST['clave'] ?? null;
 
         if (!$folio || !$notbl) {
             http_response_code(400);
@@ -858,34 +858,10 @@ class BitacoraElectronica
         }
 
         $clave = null;
-        $turno = null;
 
         // OPCIÓN A: Si viene clave en POST, usarla directamente
         if ($claveOpcional) {
             $clave = $claveOpcional;
-
-            // Obtener turno de tblEncabezadoBitacora
-            $Conecta2 = new ClassConexion();
-            $conn2 = $Conecta2->conexion("TLX004MXDB");
-
-            $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora 
-                       WHERE IdEncabezadoBItacora = ?";
-            $resultTurno = sqlsrv_query($conn2, $queryTurno, array($folio));
-
-            if ($resultTurno === false) {
-                http_response_code(500);
-                echo json_encode(['error' => 'Error al obtener turno']);
-                return;
-            }
-
-            $rowTurno = sqlsrv_fetch_array($resultTurno, SQLSRV_FETCH_ASSOC);
-            if (!$rowTurno) {
-                http_response_code(404);
-                echo json_encode(['error' => 'Folio no encontrado']);
-                return;
-            }
-
-            $turno = $rowTurno['Turno'];
         }
         // OPCIÓN B: Si NO viene clave, obtenerla de Hook_Enc
         else {
@@ -909,57 +885,27 @@ class BitacoraElectronica
             }
 
             $clave = $rowClave['clave'];
-
-            // Obtener el turno desde tblEncabezadoBitacora
-            $Conecta2 = new ClassConexion();
-            $conn2 = $Conecta2->conexion("TLX004MXDB");
-
-            $queryTurno = "SELECT Turno FROM tblEncabezadoBitacora 
-                       WHERE IdEncabezadoBItacora = ?";
-            $resultTurno = sqlsrv_query($conn2, $queryTurno, array($folio));
-
-            if ($resultTurno === false) {
-                error_log("Error obtenerEtiquetasHook (obtener turno): " . print_r(sqlsrv_errors(), true));
-                http_response_code(500);
-                echo json_encode(['error' => 'Error al obtener turno de Encabezado']);
-                return;
-            }
-
-            $rowTurno = sqlsrv_fetch_array($resultTurno, SQLSRV_FETCH_ASSOC);
-            if (!$rowTurno) {
-                error_log("No se encontró turno en tblEncabezadoBitacora para IdEncabezadoBItacora=$folio");
-                http_response_code(404);
-                echo json_encode(['error' => 'No se encontró turno en Encabezado']);
-                return;
-            }
-
-            $turno = $rowTurno['Turno'];
         }
 
-        // PASO 3: Buscar etiquetas en tblMXPRBitacoraEtiquetasImpresion
-        // Excluye los rollos que ya fueron confirmados como merma (esMerma = 1)
-        $query = "SELECT e.NumeroRollo, 
-                     e.MetrosLineales, 
-                     e.Clave, 
-                     e.Turno, 
-                     e.IdEncabezadoBitacora,
-                     e.FechaCaptura,
-                     tblVEC.factor
-              FROM tblMXPRBitacoraEtiquetasImpresion e
-              INNER JOIN TLX002MXDB.dbo.tblValeEClaves tblVEC 
-                  ON tblVEC.NoClave = CAST(e.Clave AS VARCHAR(10))
-              LEFT JOIN tblMXPR_Hook_Merma m
-                  ON m.folio = e.IdEncabezadoBitacora
-                 AND m.turno = e.Turno
-                 AND m.NumeroRollo = e.NumeroRollo
-                 AND m.esMerma = 1
-              WHERE e.IdEncabezadoBitacora = ? 
-                AND e.Clave = ?
-                AND e.Turno = ?
-                AND m.id IS NULL
-              ORDER BY e.FechaCaptura ASC";
+        // Leer directamente de tblMXPR_Produccion_Hook_Etiquetas
+        // AccML y AccMC ya están calculados correctamente por guardarEtiquetasHook
+        $query = "SELECT e.NumeroRollo,
+                         e.MetrosLineales,
+                         e.Clave,
+                         e.Factor,
+                         e.AccML,
+                         e.AccMC
+                  FROM tblMXPR_Produccion_Hook_Etiquetas e
+                  LEFT JOIN tblMXPR_Hook_Merma m
+                      ON m.folio = e.folio
+                     AND m.NumeroRollo = e.NumeroRollo
+                     AND m.esMerma = 1
+                  WHERE e.folio = ?
+                    AND e.Clave = ?
+                    AND m.id IS NULL
+                  ORDER BY e.NumeroRollo ASC";
 
-        $result = sqlsrv_query($conn, $query, array($folio, $clave, $turno));
+        $result = sqlsrv_query($conn, $query, array($folio, $clave));
 
         if ($result === false) {
             error_log("Error obtenerEtiquetasHook (consulta etiquetas): " . print_r(sqlsrv_errors(), true));
@@ -968,15 +914,16 @@ class BitacoraElectronica
             return;
         }
 
-        // PASO 4: Construir array de respuesta
         $array = array();
 
         while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
             array_push($array, [
-                'NumeroRollo' => intval($row['NumeroRollo']),
-                'MetrosLineales' => floatval($row['MetrosLineales']),
-                'Clave' => $row['Clave'],
-                'factor' => floatval($row['factor']),
+                'NumeroRollo'   => intval($row['NumeroRollo']),
+                'MetrosLineales'=> floatval($row['MetrosLineales']),
+                'Clave'         => $row['Clave'],
+                'factor'        => floatval($row['Factor']),
+                'AccML'         => floatval($row['AccML']),
+                'AccMC'         => floatval($row['AccMC']),
             ]);
         }
 

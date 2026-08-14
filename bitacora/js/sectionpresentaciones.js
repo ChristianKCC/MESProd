@@ -419,7 +419,7 @@ export class BitPresentaciones {
 
     try {
       // Paso 1: Crear/verificar Hook_Enc para todas las claves
-      const respuestaraw = await fetch("php/presentacion.php?cargarPresentacionesAutomatico", {
+      const respuestaraw = await fetch("api/hook.php?cargarPresentacionesAutomatico", {
         method: "POST",
         body: data,
       });
@@ -430,6 +430,7 @@ export class BitPresentaciones {
       }
 
       const respuesta = await respuestaraw.json();
+      console.log(respuesta);
 
       if (!respuesta.presentaciones) {
         console.log("No hay presentaciones para cargar, limpiando tablas...");
@@ -575,7 +576,7 @@ export class BitPresentaciones {
       }
     }
   }
-  
+
   // FUNCION A REVISAR
   async tblPresentacionSub(folio, notbl, domtbl) {
     const data = new FormData();
@@ -599,6 +600,7 @@ export class BitPresentaciones {
       sumareal = sumareal + newelement.real;
       cajasxpanal = sumareal * newelement.panalxcaja;
       std = (sumareal * newelement.factor).toFixed(3);
+      console.log("Cajas por panel:", cajasxpanal, "Suma real:", sumareal, "STD:", std);
       body += `
       <tr data-id="${newelement.id}">
         <td>${newelement.hora}</td>
@@ -839,6 +841,7 @@ export class BitPresentaciones {
     const cells = row.querySelectorAll("td");
     const editableValue = cell.innerText;
     const table = cell.closest("table");
+    console.log(cell);
 
     this.savePresentacionaditional(
       rowId,
@@ -1057,90 +1060,77 @@ export class BitPresentaciones {
     data.append("folio", folio);
     data.append("notbl", notbl);
 
-    // Si viene clave opcional (desde cargarPresentacionesAutomatico), pasarla
     if (claveOpcional) {
-      data.append("clave", claveOpcional);
+        data.append("clave", claveOpcional);
     }
 
-    // Llamar al NUEVO endpoint que lee de tblMXPRBitacoraEtiquetasImpresion
-    const respuestaraw = await fetch(
-      "php/presentacion.php?obtenerEtiquetasHook",
-      {
+    const respuestaraw = await fetch("api/hook.php?obtenerEtiquetasHook", {
         method: "POST",
         body: data,
-      },
-    );
+    });
 
-    // Validar respuesta
     if (!respuestaraw.ok) {
-      console.error("Error en obtenerEtiquetasHook:", respuestaraw.status);
-      return;
+        console.error("Error en obtenerEtiquetasHook:", respuestaraw.status);
+        return;
     }
 
     const respuesta = await respuestaraw.json();
 
-    // Validar que sea un array
     if (!Array.isArray(respuesta)) {
-      console.error("Respuesta no es un array:", respuesta);
-      return;
+        console.error("Respuesta no es un array:", respuesta);
+        return;
     }
 
     let body = "";
     let totalML = 0;
-    let accML = 0;
-    let accMC = 0;
     let clave = "";
 
-    // Iterar sobre cada etiqueta impresa
-    respuesta.forEach((row) => {
-      // Acumulativo de metros lineales (suma simple)
-      totalML = Math.round((totalML + row.MetrosLineales) * 1000) / 1000;
+   respuesta.forEach((row) => {
+    console.log(row);
 
-      // Acumulativo de metros lineales en decímetros (ML / 100)
-      accML = Math.round((accML + row.MetrosLineales / 1000) * 1000) / 1000;
+    totalML += row.MetrosLineales;
+    clave = row.Clave;
 
-      // MM2 = (MetrosLineales * factor) / 1000
-      const mmc = (row.MetrosLineales * row.factor) / 1000;
+    const mmc = (row.MetrosLineales * row.factor) / 1000;
+    const accML = row.AccML ?? null;
+    const accMC = row.AccMC ?? null;
 
-      // Acumulativo de MM2
-      accMC = Math.round((accMC + mmc) * 1000) / 1000;
-
-      clave = row.Clave; // Asignar la clave de la última fila procesada
-
-      // Fila de la tabla (READONLY - sin contenteditable)
-      body += `
+    body += `
         <tr>
             <td>${row.NumeroRollo}</td>
             <td>${row.MetrosLineales}</td>
             <td>${mmc.toFixed(3)}</td>
-            <td>${accML}</td>
-            <td>${accMC.toFixed(3)}</td>
+            <td>${accML !== null ? accML.toFixed(3) : '—'}</td>
+            <td>${accMC !== null ? accMC.toFixed(3) : '—'}</td>
         </tr>`;
-    });
+});
 
     document.getElementById("presentacion" + notbl + "Hook").value = clave;
-    // Si hay datos, agregar fila de TOTAL
-    if (body !== "") {
-      document.getElementById("presentacion" + notbl + "Hook").disabled = true;
-      body += `<tr class="row-total">
-                    <td colspan="1">TOTAL</td>
-                    <td>${totalML}</td>
-                    <td></td>
-                    <td>${accML}</td>
-                    <td>${accMC}</td>
-                </tr>`;
-    } else {
-      document.getElementById("presentacion" + notbl + "Hook").disabled = false;
 
-      // Si no hay datos, mostrar mensaje vacío
-      body = `<tr>
-                    <td colspan="5" class="text-center text-muted">No hay etiquetas</td>
-                </tr>`;
+    if (body !== "") {
+        document.getElementById("presentacion" + notbl + "Hook").disabled = true;
+
+        // AccML y AccMC del total vienen del último row (ya es el acumulado final)
+        const ultimoRow = respuesta[respuesta.length - 1];
+
+        body += `
+            <tr class="row-total">
+                <td colspan="1">TOTAL</td>
+                <td>${totalML}</td>
+                <td></td>
+                <td>${ultimoRow.AccML.toFixed(3)}</td>
+                <td>${ultimoRow.AccMC.toFixed(3)}</td>
+            </tr>`;
+    } else {
+        document.getElementById("presentacion" + notbl + "Hook").disabled = false;
+        body = `
+            <tr>
+                <td colspan="5" class="text-center text-muted">No hay etiquetas</td>
+            </tr>`;
     }
 
-    // Renderizar tabla en el DOM
     document.getElementById(domtbl).innerHTML = body;
-  }
+}
 
   // -------------------------------------------------------
   // MERMA HOOK

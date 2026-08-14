@@ -1348,7 +1348,7 @@ class PdfGenerator
 
                     foreach ($fechas as $f) {
                         $v   = $info['dias'][$f] ?? null;
-                        echo "Día: $f, Valor: $v\n"; // Debugging line
+                        
                         $txt = ($v === null || $v == 0) ? '—' : number_format((float)$v, 3, '.', ',');
                         $this->setTextColor(($v === null || $v == 0) ? [187,187,187] : $this->cText);
                         $this->pdf->SetXY($cx-5, $y);
