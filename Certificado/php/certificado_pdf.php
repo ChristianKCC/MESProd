@@ -1,31 +1,19 @@
 <?php
-// php/certificado_pdf.php — Certificado de Calidad FORM-63297 en FPDF
-// Uso:  certificado_pdf.php?id=123        (descarga/inline en el navegador)
+// php/certificado_pdf.php — CERTIFICADO DE ANÁLISIS (CoA) con FPDF
+// v7.1 · sin sello · tipografía a escala de hoja · nombre = folio + clave + descripción
 if (session_status() === PHP_SESSION_NONE)
     session_start();
 require_once "../../conexion.php";
-require_once "../../fpdf/fpdf.php";      // <-- ajusta a la ruta de FPDF de tu proyecto
+require_once "../../fpdf/fpdf.php";      // <-- ajusta a tu ruta de FPDF
 
 // ====== CONFIG ======
 $DB_APP = "TLX004MXDB";
 $VISTA_CLAVES = "vwMXPRClaveMaquina";
-$RUTA_LOGO = __DIR__ . "/../../img/imglogoprosede.png";        // logo del encabezado
-$RUTA_FIRMAS = __DIR__ . "/../../FirmaDigital/firmas/";      // {noemp}.png
-
-
-$ESPECS_DEFAULT = [
-    'visMin' => 2,
-    'visObj' => 2,
-    'visMax' => 2,
-    'phMin' => 2,
-    'phObj' => 2,
-    'phMax' => 2,
-    'denMin' => 2,
-    'denObj' => 2,
-    'denMax' => 2,
-    'aspecto' => 'Dato a definir de la base',
-    'olor' => 'Dato a definir de la base',
-];
+$RUTA_LOGO = __DIR__ . "/../../img/imglogoprosede.png";
+$RUTA_FIRMAS = __DIR__ . "/../../FirmaDigital/firmas/";
+$FABRICANTE = 'KCM Prosede Planta Formulados';
+$REFERENCIA = 'Análisis: Especificación interna.';
+$PROCEDENCIA = 'México';
 // ====================
 
 $id = (int) ($_GET['id'] ?? 0);
@@ -43,64 +31,104 @@ function fx($conn, $sql, $p = [])
     $rs = sqlsrv_query($conn, $sql, $p);
     return $rs ? sqlsrv_fetch_array($rs, SQLSRV_FETCH_ASSOC) : null;
 }
+function fxAll($conn, $sql, $p = [])
+{
+    $rs = sqlsrv_query($conn, $sql, $p);
+    $o = [];
+    if ($rs)
+        while ($r = sqlsrv_fetch_array($rs, SQLSRV_FETCH_ASSOC))
+            $o[] = $r;
+    return $o;
+}
 function fecha($v, $f = 'd/m/Y')
 {
     return ($v instanceof DateTime) ? $v->format($f) : ($v ?: '');
 }
 
+// Veredicto contra parámetros (misma lógica que el API y el front)
+function veredictoParametro($valor, $p)
+{
+    if ($valor === null || $valor === '' || !$p)
+        return '';
+    $v = (float) $valor;
+    $min = $p['minimo'];
+    $obj = $p['objetivo'];
+    $max = $p['maximo'];
+    if ($min === null && $max === null && $obj === null)
+        return '';
+    if ($min !== null && $v < $min)
+        return 'No cumple';
+    if ($max !== null && $v > $max)
+        return 'No cumple';
+    if ($obj !== null && abs($v - $obj) < 0.00001)
+        return 'Cumple';
+    if ($obj !== null && $v < $obj)
+        return 'Cumple';
+    if ($obj !== null && $v > $obj)
+        return 'Cumple';
+    return 'Cumple';
+}
+
+// ---------- Datos ----------
 $c = fx($conn, "SELECT * FROM tblMXPRCertificadoFR WHERE CER_id = ? AND CER_activo = 1", [$id]);
 if (!$c)
     die('Certificado no encontrado');
-if ($c['CER_estatus'] !== 'APROBADO')
-    die('El certificado aún no está aprobado');
+// if ($c['CER_estatus'] !== 'APROBADO')
+//     die('El certificado aún no está aprobado');
+if (!in_array($c['CER_estatus'], ['APROBADO', 'RECHAZADO'], true))
+    die('El certificado aún no ha sido validado');
 
 $ins = fx($conn, "SELECT * FROM tblMXPRCertificadoInspeccionFR    WHERE INS_idCertificado = ?", [$id]);
 $fis = fx($conn, "SELECT * FROM tblMXPRCertificadoFisicoquimicoFR WHERE FIS_idCertificado = ?", [$id]);
-$mic = fx($conn, "SELECT * FROM tblMXPRCertificadoMicrobiologiaFR WHERE MIC_idCertificado = ?", [$id]);
 
-// Los 3 datos del catálogo, SOLO para el PDF
 $vw = fx($conn, "SELECT TOP 1 Producto, Categoria, Descripcion_Articulo FROM $VISTA_CLAVES WHERE NoClave = ?", [$c['CER_clave']]);
-$pdfProducto = $vw['Producto'] ?? $c['CER_producto'];
-$pdfCategoria = $vw['Categoria'] ?? '';
-// $pdfPresentacion = $vw['Descripcion_Articulo'] ?? '';
+$descRaw = $vw['Descripcion_Articulo'] ?? ($vw['Producto'] ?? $c['CER_producto']);
+$descProducto = ucfirst(mb_strtolower((string) $descRaw, 'UTF-8'));
 
-$pdfPresentacionRaw = $vw['Descripcion_Articulo'] ?? '';
-$pdfPresentacion = ucfirst(strtolower($pdfPresentacionRaw));
-
-// $gen = [
-//     ['Categoría del Producto', $pdfCategoria, 'Nombre del Producto', $pdfProducto],
-//     ['Presentación', $pdfPresentacion, 'Nombre del Fabricante', $c['CER_fabricante']],
-//     ['País de Origen', $c['CER_paisOrigen'], 'Fecha de Fabricación', fecha($ins['INS_fechaFabricacion'] ?? null)],
-//     ['Fecha de Caducidad', fecha($ins['INS_fechaCaducidad'] ?? null) ?: 'No aplica', 'Número de Lote', $c['CER_lote']],
-//     ['Clave KCM', $c['CER_clave'], 'Folio', $c['CER_folio']],
-// ];
-
-
-// Especificaciones
-$e = fx($conn, "SELECT * FROM tblMXPRCertificadoEspecsFR WHERE ESP_clave = ? AND ESP_activo = 1", [$c['CER_clave']]);
-$esp = $ESPECS_DEFAULT;
-if ($e) {
-    foreach (
-        [
-            'visMin' => 'ESP_visMin',
-            'visObj' => 'ESP_visObj',
-            'visMax' => 'ESP_visMax',
-            'phMin' => 'ESP_phMin',
-            'phObj' => 'ESP_phObj',
-            'phMax' => 'ESP_phMax',
-            'denMin' => 'ESP_denMin',
-            'denObj' => 'ESP_denObj',
-            'denMax' => 'ESP_denMax',
-            'aspecto' => 'ESP_aspecto',
-            'olor' => 'ESP_olor'
-        ] as $k => $col
-    ) {
-        if (!empty($e[$col]))
-            $esp[$k] = $e[$col];
-    }
+// Parámetros por clave (unidades + rangos)
+$par = [];
+foreach (
+    fxAll(
+        $conn,
+        "SELECT PAR_variable, PAR_unidad, PAR_minimo, PAR_objetivo, PAR_maximo
+         FROM tblMXPRCertificadoParametroFR
+         WHERE LTRIM(RTRIM(PAR_clave)) = LTRIM(RTRIM(?)) AND PAR_activo = 1",
+        [$c['CER_clave']]
+    ) as $p
+) {
+    $par[strtoupper(trim($p['PAR_variable']))] = [
+        'unidad' => $p['PAR_unidad'],
+        'minimo' => $p['PAR_minimo'] !== null ? (float) $p['PAR_minimo'] : null,
+        'objetivo' => $p['PAR_objetivo'] !== null ? (float) $p['PAR_objetivo'] : null,
+        'maximo' => $p['PAR_maximo'] !== null ? (float) $p['PAR_maximo'] : null,
+    ];
 }
+$uni = fn($v, $fb) => $par[$v]['unidad'] ?? $fb;
 
-// Firma del gerente
+$evalFQ = [
+    'DENSIDAD' => veredictoParametro($fis['FIS_densidad'] ?? null, $par['DENSIDAD'] ?? null),
+    'VISCOSIDAD' => veredictoParametro($fis['FIS_viscosidad'] ?? null, $par['VISCOSIDAD'] ?? null),
+    'PH' => veredictoParametro($fis['FIS_ph'] ?? null, $par['PH'] ?? null),
+];
+
+$mo = fxAll(
+    $conn,
+    "SELECT m.MOC_nombre, m.MOC_tipo, m.MOC_unidad, d.MOD_resultado
+     FROM tblMXPRCertificadoMODetFR d
+     JOIN tblMXPRCertificadoMOFR m ON m.MOC_id = d.MOD_idMO
+     WHERE d.MOD_idCertificado = ? ORDER BY m.MOC_orden",
+    [$id]
+);
+
+$defectos = fxAll(
+    $conn,
+    "SELECT f.DEF_atributo, f.DEF_nombre
+     FROM tblMXPRCertificadoDefectoDetFR d
+     JOIN tblMXPRCertificadoDefectoFR f ON f.DEF_id = d.DFD_idDefecto
+     WHERE d.DFD_idCertificado = ? ORDER BY f.DEF_atributo, f.DEF_orden",
+    [$id]
+);
+
 $firma = null;
 if ($c['CER_ibmGerente']) {
     $g = fx($conn, "SELECT TOP 1 PER_noemp FROM tblMXPRCertificadoPerfilFR WHERE PER_ibm = ?", [$c['CER_ibmGerente']]);
@@ -108,104 +136,74 @@ if ($c['CER_ibmGerente']) {
         $firma = $RUTA_FIRMAS . $g['PER_noemp'] . '.png';
 }
 
+// ¿Cumple?
+$noCumple = false;
+foreach (
+    [
+        $ins['INS_seguridad'] ?? '',
+        $ins['INS_desempeno'] ?? '',
+        $ins['INS_apariencia'] ?? '',
+        $fis['FIS_aspecto'] ?? '',
+        $fis['FIS_color'] ?? '',
+        $fis['FIS_olor'] ?? '',
+        $evalFQ['DENSIDAD'],
+        $evalFQ['VISCOSIDAD'],
+        $evalFQ['PH']
+    ] as $r
+) {
+    if (stripos((string) $r, 'no') === 0)
+        $noCumple = true;
+}
+foreach ($mo as $m) {
+    if (stripos((string) $m['MOD_resultado'], 'presente') !== false)
+        $noCumple = true;
+}
+
 // ================= PDF =================
-class CertPDF extends FPDF
+class CoaPDF extends FPDF
 {
     public $logo, $folio;
 
-    // FPDF core usa cp1252: convertimos desde UTF-8
     function t($s)
     {
         return iconv('UTF-8', 'windows-1252//TRANSLIT', (string) $s);
     }
 
-    // function Header()
-    // {
-    //     if ($this->logo && file_exists($this->logo))
-    //         $this->Image($this->logo, 12, 10, 32);
-    //     $this->SetXY(48, 11);
-    //     $this->SetFont('Arial', 'B', 12);
-    //     $this->SetTextColor(0, 43, 117);
-    //     $this->Cell(120, 6, $this->t('CERTIFICADO DE CALIDAD LÍQUIDOS Y FORMULADOS'), 0, 2, 'C');
-    //     $this->SetFont('Arial', 'B', 11);
-    //     // $this->Cell(120, 6, $this->t('LÍQUIDOS Y FORMULADOS'), 0, 2, 'C');
-    //     $this->SetFont('Arial', '', 7);
-    //     $this->SetTextColor(110, 110, 110);
-    //     $this->Cell(120, 4, $this->t('FORM-63297'), 0, 2, 'C');
-    //     $this->SetTextColor(0);
-    //     $this->SetDrawColor(0, 43, 117);
-    //     $this->SetLineWidth(0.6);
-    //     $this->Line(12, 30, 199, 30);
-    //     $this->SetLineWidth(0.2);
-    //     $this->SetDrawColor(70, 70, 70);
-    //     $this->SetY(34);
-    // }
-
     function Header()
     {
         if ($this->logo && file_exists($this->logo))
-            $this->Image($this->logo, 12, 10, 32);
+            $this->Image($this->logo, 16, 11, 48);
 
-        $this->SetXY(48, 11);
-        $this->SetFont('Arial', 'B', 12);
-        $this->SetTextColor(0, 43, 117);
-        $this->Cell(120, 6, $this->t('CERTIFICADO DE CALIDAD LÍQUIDOS Y FORMULADOS'), 0, 2, 'C');
+        $this->SetY(13);
+        $this->SetFont('Arial', 'B', 15);
+        $this->SetTextColor(20, 20, 20);
+        // $this->Cell(0, 8, $this->t('Kimberly-Clark de México, S.A.B. de C.V.'), 0, 1, 'C');
 
-        $this->SetFont('Arial', 'B', 11);
-        $this->SetFont('Arial', '', 7);
-        $this->SetTextColor(110, 110, 110);
-        // $this->Cell(120, 4, $this->t('FORM-63297'), 0, 2, 'C');
-
+        $this->Ln(3);
+        $this->SetFont('Arial', 'B', 10);
+        $this->SetTextColor(31, 73, 125);
+        $this->Cell(0, 7, $this->t('CERTIFICADO DE ANÁLISIS'), 0, 1, 'C');
         $this->SetTextColor(0);
-        $this->SetDrawColor(0, 43, 117);
-        $this->SetLineWidth(0.6);
-        // Línea más cercana al título
-        $this->Line(12, 26, 199, 26);
-
-        $this->SetLineWidth(0.2);
-        $this->SetDrawColor(70, 70, 70);
-        // Ajusta la posición inicial del contenido
-        $this->SetY(28);
+        $this->Ln(1);
     }
-
 
     function Footer()
     {
-        $this->SetY(-12);
-        $this->SetFont('Arial', 'I', 7);
+        $this->SetY(-13);
+        $this->SetFont('Arial', 'I', 8);
         $this->SetTextColor(130);
-        $this->Cell(0, 5, $this->t('Documento generado electrónicamente para folio ' . $this->folio), 0, 0, 'L');
+        $this->Cell(0, 5, $this->t('Documento generado electrónicamente · ' . $this->folio), 0, 0, 'L');
         $this->Cell(0, 5, $this->t('Página ') . $this->PageNo(), 0, 0, 'R');
         $this->SetTextColor(0);
     }
 
-    // Título de bloque
-    function Bloque($txt)
+    function Seccion($txt)
     {
-        $this->Ln(2);
+        $this->Ln(2.5);
         $this->SetFont('Arial', 'B', 8.5);
-        $this->SetTextColor(0, 43, 117);
-        $this->Cell(0, 5, $this->t($txt), 0, 1, 'L');
+        $this->SetTextColor(31, 73, 125);
+        $this->Cell(0, 6, $this->t($txt), 0, 1, 'C');
         $this->SetTextColor(0);
-    }
-
-    // Fila de encabezado de tabla
-    function Th($cols, $anchos)
-    {
-        $this->SetFont('Arial', 'B', 7.5);
-        $this->SetFillColor(220, 230, 244);
-        foreach ($cols as $i => $x)
-            $this->Cell($anchos[$i], 6, $this->t($x), 1, 0, 'C', true);
-        $this->Ln();
-    }
-
-    // Fila normal
-    function Td($cols, $anchos, $aligns = null, $h = 5.5)
-    {
-        $this->SetFont('Arial', '', 7.5);
-        foreach ($cols as $i => $x)
-            $this->Cell($anchos[$i], $h, $this->t($x), 1, 0, $aligns[$i] ?? 'C');
-        $this->Ln();
     }
 
     function NbLines($w, $txt)
@@ -240,187 +238,196 @@ class CertPDF extends FPDF
                 if ($sep == -1) {
                     if ($i == $j)
                         $i++;
-                } else {
+                } else
                     $i = $sep + 1;
-                }
                 $sep = -1;
                 $j = $i;
                 $l = 0;
                 $nl++;
-            } else {
+            } else
                 $i++;
-            }
         }
         return $nl;
     }
 
-    function FilaGeneral($etq1, $val1, $etq2, $val2, $anchos, $hLinea = 4.5)
+    // Fila etiqueta/valor con alto automático
+    function FilaDato($etq, $val, $wEtq, $wVal, $x0, $h = 5.6)
     {
-        list($L1, $V1, $L2, $V2) = $anchos;
-
-        // Alto necesario = la celda que más líneas ocupe
         $this->SetFont('Arial', '', 7.5);
-        $n = max(
-            $this->NbLines($V1, $val1),
-            $this->NbLines($V2, $val2),
-            $this->NbLines($L1, $etq1),
-            $this->NbLines($L2, $etq2),
-            1
-        );
-        $h = $n * $hLinea;
-
-        // Salto de página si no cabe
-        if ($this->GetY() + $h > $this->PageBreakTrigger)
-            $this->AddPage($this->CurOrientation);
-
-        $x = $this->GetX();
+        $n = max($this->NbLines($wVal, $val), 1);
+        $alto = $n * $h;
         $y = $this->GetY();
 
-        $celda = function ($w, $txt, $bold) use (&$x, $y, $h, $hLinea) {
-            $this->SetXY($x, $y);
-            $this->SetFont('Arial', $bold ? 'B' : '', 7.5);
-            if ($bold)
-                $this->SetFillColor(244, 246, 251);
-            $this->Rect($x, $y, $w, $h, $bold ? 'DF' : 'D');
-            // Centrado vertical del texto dentro de la celda
-            $lineas = $this->NbLines($w, $txt);
-            $this->SetXY($x, $y + ($h - $lineas * $hLinea) / 2);
-            $this->MultiCell($w, $hLinea, $this->t($txt), 0, 'L');
-            $x += $w;
-        };
+        $this->Rect($x0, $y, $wEtq, $alto);
+        $this->SetXY($x0 + 1.5, $y + ($alto - $h) / 2);
+        $this->Cell($wEtq - 3, $h, $this->t($etq), 0, 0, 'L');
 
-        $celda($L1, $etq1, true);
-        $celda($V1, $val1, false);
-        $celda($L2, $etq2, true);
-        $celda($V2, $val2, false);
+        $this->Rect($x0 + $wEtq, $y, $wVal, $alto);
+        $this->SetXY($x0 + $wEtq + 1.5, $y);
+        $this->MultiCell($wVal - 3, $h, $this->t($val), 0, 'C');
 
-        $this->SetXY($this->lMargin, $y + $h);
+        $this->SetXY($x0, $y + $alto);
+    }
+
+    function Th($cols, $anchos, $x0, $h = 4.8)
+    {
+        $this->SetX($x0);
+        $this->SetFont('Arial', 'B', 7.5);
+        $this->SetFillColor(236, 239, 245);
+        foreach ($cols as $i => $c)
+            $this->Cell($anchos[$i], $h, $this->t($c), 1, 0, 'C', true);
+        $this->Ln();
+    }
+
+    function Td($cols, $anchos, $x0, $aligns = [], $h = 4.2, $italic = false)
+    {
+        $this->SetX($x0);
+        $this->SetFont('Arial', $italic ? 'I' : '', 7.5);
+        foreach ($cols as $i => $c)
+            $this->Cell($anchos[$i], $h, $this->t($c), 1, 0, $aligns[$i] ?? 'C');
+        $this->Ln();
     }
 }
 
-$pdf = new CertPDF('P', 'mm', 'Letter');
+$pdf = new CoaPDF('P', 'mm', 'Letter');
 $pdf->logo = $RUTA_LOGO;
 $pdf->folio = $c['CER_folio'];
-$pdf->SetMargins(12, 10, 12);
-$pdf->SetAutoPageBreak(true, 15);
+$pdf->SetMargins(16, 11, 16);
+$pdf->SetAutoPageBreak(true, 18);
 $pdf->AddPage();
 
-// ---- Fecha de emisión ----
-$pdf->SetFont('Arial', 'B', 8);
-$pdf->Cell(0, 5, $pdf->t('FECHA DE EMISIÓN: ') . fecha($c['CER_fechaEmision']), 0, 1, 'R');
+$X = 22;              // margen interno de los bloques
+$ANCHO = 172;         // ancho de las tablas (Carta 216 - 44)
 
-// ---- Datos generales (2 columnas de etiqueta/valor) ----
-$pdf->Bloque('Información del producto');
+// ---------- Datos generales ----------
+$wE = 62;
+$wV = $ANCHO - $wE;
+$pdf->SetX($X);
+$pdf->FilaDato('Descripción de producto', $descProducto, $wE, $wV, $X);
+$pdf->FilaDato('Procedencia', $PROCEDENCIA, $wE, $wV, $X);
+$pdf->FilaDato('Fecha de Fabricación', fecha($ins['INS_fechaFabricacion'] ?? null), $wE, $wV, $X);
+$pdf->FilaDato('Fecha de Emisión del CoA', fecha($c['CER_fechaEmision']), $wE, $wV, $X);
+$pdf->FilaDato('Clave', $c['CER_clave'], $wE, $wV, $X);
+$pdf->FilaDato('Lote', $c['CER_lote'], $wE, $wV, $X);
+$pdf->FilaDato('Referencia', $REFERENCIA, $wE, $wV, $X);
+$pdf->FilaDato('Fabricante', $FABRICANTE, $wE, $wV, $X);
 
-$anchos = [34, 72, 34, 47];
+// ---------- Control físico-químico ----------
+$pdf->Seccion('CONTROL FÍSICO-QUÍMICO');
+$a = [58, 44, 30, 40];
+$pdf->Th(['Característica', 'Resultado', 'Unidades', 'Evaluación'], $a, $X);
+$pdf->Td(['Aspecto', $fis['FIS_aspecto'] ?? '', '', ''], $a, $X, ['L']);
+$pdf->Td(['Color', $fis['FIS_color'] ?? '', '', ''], $a, $X, ['L']);
+$pdf->Td(['Olor', $fis['FIS_olor'] ?? '', '', ''], $a, $X, ['L']);
+$pdf->Td(['Densidad', $fis['FIS_densidad'] ?? '', $uni('DENSIDAD', 'g/mL'), $evalFQ['DENSIDAD']], $a, $X, ['L']);
+$pdf->Td(['Viscosidad', $fis['FIS_viscosidad'] ?? '', $uni('VISCOSIDAD', 'cps'), $evalFQ['VISCOSIDAD']], $a, $X, ['L']);
+$pdf->Td(['pH', $fis['FIS_ph'] ?? '', $uni('PH', ''), $evalFQ['PH']], $a, $X, ['L']);
 
-$L = 38;
-$V = 55.5;  // 38+55.5+38+55.5 = 187 (ancho útil)
-$pdf->FilaGeneral('Categoría del Producto', $pdfCategoria, 'Nombre del Producto', $pdfProducto, $anchos);
-$pdf->FilaGeneral('Presentación', $pdfPresentacion, 'Nombre del Fabricante', $c['CER_fabricante'], $anchos);
-$pdf->FilaGeneral('País de Origen', $c['CER_paisOrigen'], 'Fecha de Fabricación', fecha($ins['INS_fechaFabricacion'] ?? null), $anchos);
-$pdf->FilaGeneral('Fecha de Caducidad', fecha($ins['INS_fechaCaducidad'] ?? null) ?: 'No aplica', 'Número de Lote', $c['CER_lote'], $anchos);
-$pdf->FilaGeneral('Clave KCM', $c['CER_clave'], '', '', $anchos);
-// foreach ($gen as $g) {
-//     $pdf->SetFont('Arial', 'B', 7.5);
-//     $pdf->SetFillColor(244, 246, 251);
-//     $pdf->Cell($L, 6, $pdf->t($g[0]), 1, 0, 'L', true);
-//     $pdf->SetFont('Arial', '', 7.5);
-//     $pdf->Cell($V, 6, $pdf->t($g[1]), 1, 0, 'L');
-//     $pdf->SetFont('Arial', 'B', 7.5);
-//     $pdf->Cell($L, 6, $pdf->t($g[2]), 1, 0, 'L', true);
-//     $pdf->SetFont('Arial', '', 7.5);
-//     $pdf->Cell($V, 6, $pdf->t($g[3]), 1, 1, 'L');
-// }
+// ---------- Información de atributos ----------
+$pdf->Seccion('INFORMACIÓN DE ATRIBUTOS');
+$a = [58, 114];
+$pdf->Th(['Atributo', 'Resultado'], $a, $X);
+$pdf->Td(['Seguridad', $ins['INS_seguridad'] ?? ''], $a, $X, ['L']);
+$pdf->Td(['Desempeño', $ins['INS_desempeno'] ?? ''], $a, $X, ['L']);
+$pdf->Td(['Apariencia', $ins['INS_apariencia'] ?? ''], $a, $X, ['L']);
 
-// ---- Fisicoquímicas ----
-$pdf->Bloque('Variables Fisicoquímicas');
-$a = [40, 27, 22, 24, 24, 24, 26];
-$pdf->Th(['Variable', 'Método', 'Unidad', 'Mínimo', 'Objetivo', 'Máximo', 'Resultado'], $a);
-$pdf->Td(['Viscosidad', 'TTM-00557', 'cps', $esp['visMin'], $esp['visObj'], $esp['visMax'], $fis['FIS_viscosidad'] ?? ''], $a, ['L']);
-$pdf->Td(['pH', 'TTM-00558', 'pH', $esp['phMin'], $esp['phObj'], $esp['phMax'], $fis['FIS_ph'] ?? ''], $a, ['L']);
-$pdf->Td(['Densidad', 'TTM-00559', 'g / mL', $esp['denMin'], $esp['denObj'], $esp['denMax'], $fis['FIS_densidad'] ?? ''], $a, ['L']);
-
-// ---- Organolépticas ----
-$pdf->Bloque('Especificaciones Organolépticas');
-$a = [50, 107, 30];
-$pdf->Th(['Característica', 'Especificación', 'Resultado'], $a);
-$pdf->Td(['Aspecto / Color', $esp['aspecto'], $fis['FIS_aspectoColor'] ?? ''], $a, ['L', 'L', 'C']);
-$pdf->Td(['Olor', $esp['olor'], $fis['FIS_olor'] ?? ''], $a, ['L', 'L', 'C']);
-
-// ---- Microbiológicas ----
-$pdf->Bloque('Especificaciones Microbiológicas');
-$a = [88, 34, 35, 30];
-$pdf->Th(['Determinación', 'Especificación', 'Técnica', 'Resultado'], $a);
-$pdf->Td(['Recuento total de Mesófilos Aerobios (TAMC)', "\xE2\x89\xA4 100 UFC / g", 'TTM-00554', $mic['MIC_tamc'] ?? ''], $a, ['L', 'C', 'C', 'C']);
-$pdf->Td(['Recuento total de Hongos y Levaduras (TYMC)', "\xE2\x89\xA4 10 UFC / g", 'TTM-00556', $mic['MIC_tymc'] ?? ''], $a, ['L', 'C', 'C', 'C']);
-// Fila de patógenos: texto largo en MultiCell alineado a mano
-$yIni = $pdf->GetY();
-$xIni = $pdf->GetX();
-$pdf->SetFont('Arial', '', 6);
-$patog = 'Pseudomonas aeruginosa, Escherichia coli, Salmonella spp., Coliformes fecales y totales, Burkholderia cepacia, '
-    . 'Staphylococcus aureus, Aspergillus brasiliensis, Candida albicans, Pluralibacter gergoviae';
-$pdf->MultiCell($a[0], 4, $pdf->t($patog), 1, 'L');
-$hFila = $pdf->GetY() - $yIni;
-$pdf->SetXY($xIni + $a[0], $yIni);
-$pdf->SetFont('Arial', '', 7.5);
-$pdf->Cell($a[1], $hFila, $pdf->t('Ausencia'), 1, 0, 'C');
-$pdf->Cell($a[2], $hFila, '', 1, 0, 'C');
-$pdf->Cell($a[3], $hFila, $pdf->t($mic['MIC_patogenos'] ?? ''), 1, 1, 'C');
-
-// ---- Atributos ----
-$pdf->Bloque('Evaluación de atributos');
-$a = [88, 69, 30];
-$pdf->Th(['Atributo', 'Especificación (AQL)', 'Resultado'], $a);
-$pdf->Td(['Seguridad', '< 0.025', $ins['INS_seguridad'] ?? ''], $a, ['L', 'C', 'C']);
-$pdf->Td(['Desempeño', '< 2.5', $ins['INS_desempeno'] ?? ''], $a, ['L', 'C', 'C']);
-$pdf->Td(['Apariencia', '< 4.0', $ins['INS_apariencia'] ?? ''], $a, ['L', 'C', 'C']);
-
-// ---- Conclusión ----
-$pdf->Bloque('Conclusión');
-$pdf->SetFont('Arial', '', 8);
-$pdf->MultiCell(0, 4.5, $pdf->t($c['CER_conclusion']), 0, 'J');
-if (!empty($c['CER_observacionesGT'])) {
+// Defectos, solo si los hubo (compactos: un renglón por atributo)
+if (count($defectos)) {
+    $agr = [];
+    foreach ($defectos as $d)
+        $agr[$d['DEF_atributo']][] = $d['DEF_nombre'];
     $pdf->Ln(1);
-    $pdf->SetFont('Arial', 'B', 7.5);
-    $pdf->Cell(0, 4, $pdf->t('Observaciones de Gerencia Técnica:'), 0, 1);
-    $pdf->SetFont('Arial', '', 7.5);
-    $pdf->MultiCell(0, 4, $pdf->t($c['CER_observacionesGT']), 0, 'J');
+    $pdf->SetX($X);
+    $pdf->SetFont('Arial', 'B', 8.5);
+    $pdf->Cell($ANCHO, 5.5, $pdf->t('Defectos detectados'), 1, 1, 'L');
+    foreach ($agr as $atr => $lista) {
+        $y = $pdf->GetY();
+        $pdf->SetXY($X, $y);
+        $pdf->SetFont('Arial', 'B', 8.5);
+        $pdf->Cell(38, 5.5, $pdf->t(ucfirst(mb_strtolower($atr, 'UTF-8'))), 0, 0, 'L');
+        $pdf->SetFont('Arial', '', 8.5);
+        $pdf->MultiCell($ANCHO - 38, 5.5, $pdf->t(implode(' · ', $lista)), 0, 'L');
+        $alto = $pdf->GetY() - $y;
+        $pdf->Rect($X, $y, 38, $alto);
+        $pdf->Rect($X + 38, $y, $ANCHO - 38, $alto);
+        $pdf->SetXY($X, $y + $alto);
+    }
 }
 
-// ---- Pie: firma a la izquierda + sello a la derecha ----
-$pdf->Ln(4);
-$y = $pdf->GetY();
-$y += 10; // baja un poco el bloque
-$pdf->SetY($y);
+// ---------- Recuento microbiológico ----------
+$pdf->Seccion('RECUENTO MICROBIOLÓGICO');
+$a = [110, 62];
+$pdf->Th(['Determinación', 'Resultado'], $a, $X);
+if (count($mo)) {
+    foreach ($mo as $m) {
+        $res = $m['MOD_resultado'];
+        if ($m['MOC_tipo'] === 'RECUENTO' && $m['MOC_unidad'])
+            $res .= ' ' . $m['MOC_unidad'];
+        $pdf->Td([$m['MOC_nombre'], $res], $a, $X, ['L', 'C'], 6.2, $m['MOC_tipo'] === 'AUSENCIA');
+    }
+} else {
+    $pdf->Td(['Sin resultados capturados', ''], $a, $X, ['L', 'C']);
+}
+
+// ---------- Conclusión ----------
+$pdf->Seccion('CONCLUSIÓN');
+$pdf->SetX($X);
+$pdf->SetFont('Arial', '', 8);
+$pdf->Cell(24, 6, $pdf->t('El producto'), 0, 0, 'L');
+$pdf->SetFont('Arial', 'BI', 8);
+$pdf->SetTextColor(31, 73, 125);
+$pdf->Cell(26, 6, $pdf->t($noCumple ? 'No cumple' : 'cumple'), 0, 0, 'L');
+$pdf->SetTextColor(0);
+$pdf->SetFont('Arial', '', 8);
+$pdf->Cell(0, 6, $pdf->t('con la especificación'), 0, 1, 'L');
+
+if (!empty($c['CER_observacionesGT'])) {
+    $pdf->Ln(1.5);
+    $pdf->SetX($X);
+    $pdf->SetFont('Arial', 'B', 8.5);
+    $pdf->Cell(0, 5, $pdf->t('Observaciones de Gerencia Técnica:'), 0, 1, 'L');
+    $pdf->SetX($X);
+    $pdf->SetFont('Arial', '', 8.5);
+    $pdf->MultiCell($ANCHO, 4.6, $pdf->t($c['CER_observacionesGT']), 0, 'J');
+}
+
+// ---------- Aprobó + firma (sin sello) ----------
+// ---------- Aprobó + firma (compacto) ----------
+$pdf->Ln(5);
 $y = $pdf->GetY();
 
-// Firma (izquierda)
-$pdf->SetDrawColor(150);
+// Solo salta de página si de verdad no cabe el bloque completo (32 mm)
+if ($y + 32 > ($pdf->GetPageHeight() - 18)) {
+    $pdf->AddPage();
+    $y = $pdf->GetY();
+}
 
-$pdf->SetXY(12, $y);
-$pdf->SetFont('Arial', 'B', 7.5);
-$pdf->Cell(88, 5, $pdf->t('KIMBERLY CLARK DE MÉXICO S.A.B DE C.V.'), 0, 1, 'C');
+$pdf->SetXY($X, $y);
+$pdf->SetFont('Arial', '', 8);
+$pdf->Cell($ANCHO, 4.5, $pdf->t('Apróbo'), 0, 1, 'C');
+
+// Firma más chica y pegada a la línea
 if ($firma)
-    $pdf->Image($firma, 35, $y + 10, 50); // firma dentro del recuadro
-$pdf->Line(15, $y + 28, 95, $y + 28);
-$pdf->SetXY(12, $y + 28.5);
-$pdf->SetFont('Arial', '', 7.5);
-$pdf->Cell(88, 4, $pdf->t($c['CER_nombreGerente']), 0, 2, 'C');
-$pdf->SetFont('Arial', '', 7);
-$pdf->Cell(88, 4, $pdf->t('Gerencia Técnica'), 0, 2, 'C');
-$pdf->Cell(88, 4, $pdf->t('Firmado: ' . fecha($c['CER_fechaFirma'], 'd/m/Y H:i')), 0, 2, 'C');
+    $pdf->Image($firma, $X + ($ANCHO / 2) - 15, $y + 5, 30);
 
-// Sello (derecha)
-$pdf->SetDrawColor(150);
-$pdf->Rect(105, $y, 94, 38); // recuadro para el sello
-$pdf->SetXY(105, $y + 12);
-$pdf->SetFont('Arial', 'B', 8);
-$pdf->SetTextColor(120);
-$pdf->Cell(94, 5, $pdf->t('CONTROL DE CALIDAD'), 0, 2, 'C');
+$pdf->Line($X + 50, $y + 19, $X + $ANCHO - 50, $y + 19);
+$pdf->SetXY($X, $y + 19.5);
+$pdf->SetFont('Arial', '', 8);
+$pdf->Cell($ANCHO, 4, $pdf->t($c['CER_nombreGerente']), 0, 2, 'C');
+$pdf->SetFont('Arial', '', 8.5);
+$pdf->Cell($ANCHO, 4, $pdf->t('Gerente Técnico'), 0, 2, 'C');
 $pdf->SetFont('Arial', '', 7);
-$pdf->Cell(94, 4, $pdf->t('Colocación de sello'), 0, 2, 'C');
-$pdf->Cell(94, 4, $pdf->t('de acuerdo al estatus'), 0, 2, 'C');
+$pdf->SetTextColor(130);
+$pdf->Cell($ANCHO, 3.5, $pdf->t('Firmado: ' . fecha($c['CER_fechaFirma'], 'd/m/Y H:i')), 0, 2, 'C');
 $pdf->SetTextColor(0);
 
-$pdf->Output('I', 'Certificado_' . $c['CER_folio'] . '.pdf');
+// ---------- Nombre del archivo: folio + clave + descripción ----------
+$limpia = function ($s) {
+    $s = iconv('UTF-8', 'ASCII//TRANSLIT', (string) $s);
+    $s = preg_replace('/[^A-Za-z0-9 \-_]/', '', $s);
+    return trim(preg_replace('/\s+/', ' ', $s));
+};
+$nombre = $limpia($c['CER_folio']) . ' - ' . $limpia($c['CER_clave']) . ' - ' . $limpia($descProducto);
+$nombre = substr($nombre, 0, 120) . '.pdf';
+
+$pdf->Output('I', $nombre);

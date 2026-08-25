@@ -7,6 +7,13 @@ const CF_LOGO_URL = "../../KCMes/img/imglogoprosede.png";
 let CF_PERFIL = { roles: [], nombre: "" };
 let CF_ESPACIO = []; // cache para el buscador
 
+const CF_EST_PALET = {
+  "EN PROCESO": "cf-enviado",
+  LIBERADO: "cf-autorizado",
+  RECHAZADO: "cf-rechazado",
+  "RECHAZADO EN ORIGEN": "cf-rechazado",
+};
+
 const cfQ = (s) => document.querySelector(s);
 const cfEsc = (s) =>
   String(s ?? "").replace(
@@ -24,7 +31,7 @@ async function cfApi(payload) {
 }
 
 async function cfRefrescarTodo() {
-  await Promise.all([cfCargarEspacio(), cfCargarCerts(), cfCargarFolios()]);
+  await Promise.all([cfCargarEspacio(), cfCargarCerts(), cfCargarGrupos()]);
 }
 
 // SweetAlert dentro de un modal Bootstrap: sin esto el input no recibe foco
@@ -208,6 +215,12 @@ function cfPintarEspacio(items, roles = [], ibm = "") {
             <div class="cf-item-clave">${cfEsc(it.clave)}</div>
             <div class="cf-item-prod">${cfEsc(it.producto)}</div>
             ${sinAccion}
+            ${
+              it.paletsPendientes > 0
+                ? `<span class="cf-badge cf-captura ms-auto me-2" title="Palets integrados sin liberar">
+           ${it.paletsPendientes} palet(s) por liberar</span>`
+                : ""
+            }
             <i class="fa-solid fa-chevron-down cf-chevron"></i>
           </div>
           <div class="cf-item-body">
@@ -222,88 +235,572 @@ function cfPintarEspacio(items, roles = [], ibm = "") {
 }
 
 // ================= INICIAR CERTIFICADO =================
-async function cfCargarFolios() {
+let CF_GRUPO = null; // grupo abierto en el modal
+
+let CF_RECHAZO = null; // grupo abierto en el modal de rechazo
+
+// ---------- 1) REEMPLAZA cfCargarGrupos ----------
+async function cfCargarGrupos() {
   const tb = cfQ("#tblFolios");
-  const r = await cfApi({ accion: "folios" });
+  const r = await cfApi({ accion: "grupos" });
   if (!r.ok) {
-    tb.innerHTML = `<tr><td colspan="6">${cfVacio(r.error)}</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="8">${cfVacio(r.error)}</td></tr>`;
     return;
   }
   if (!r.items.length) {
-    tb.innerHTML = `<tr><td colspan="6">${cfVacio("Todos los folios ya tienen certificado.")}</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="8">${cfVacio("No hay folios pendientes de certificar.")}</td></tr>`;
     return;
   }
+
+  // Solo supervisores y Gerencia pueden rechazar en origen
+  const puedeRechazar = (CF_PERFIL.roles || []).some((x) =>
+    [
+      "SUP_INSPECCION",
+      "SUP_FISICOQUIMICO",
+      "SUP_MICROBIOLOGIA",
+      "GERENTE",
+    ].includes(x),
+  );
+
   tb.innerHTML = r.items
-    .map(
-      (f) => `<tr>
-      <td>${cfEsc(f.fecha)}</td><td>${cfEsc(f.maquina)}</td>
-      <td><strong>${cfEsc(f.folio)}</strong></td><td><code>${cfEsc(f.clave)}</code></td>
-      <td>${cfEsc(f.producto)}</td>
-      <td><button class="btn btn-sm btn-primary" onclick="cfIniciar('${cfEsc(f.folio)}')">Iniciar</button></td>
-    </tr>`,
-    )
+    .map((g) => {
+      const parcial =
+        g.paletsUsados > 0
+          ? `<span class="cf-badge cf-captura ms-1" title="Ya hay palets certificados de este folio">Parcial</span>`
+          : "";
+
+      const btnRechazo = puedeRechazar
+        ? `<button class="btn btn-sm btn-outline-danger ms-1"
+                   title="Rechazar palets sin iniciar certificación"
+                   onclick="cfAbrirRechazo('${cfEsc(g.folio)}','${cfEsc(g.clave)}',${g.turno})">
+             <i class="fa-solid fa-ban"></i> Rechazar
+           </button>`
+        : "";
+
+      return `<tr>
+        <td>${cfEsc(g.fecha)}</td>
+        <td>${cfEsc(g.maquina)}</td>
+        <td><strong>${cfEsc(g.folio)}</strong></td>
+        <td>${cfEsc(g.turno)}</td>
+        <td><code>${cfEsc(g.clave)}</code></td>
+        <td class="text-start">${cfEsc(g.producto)}</td>
+        <td>
+          <span class="cf-badge cf-autorizado">${g.disponibles} de ${g.totalPalets} palets</span>${parcial}
+          <br><small class="text-muted">${cfEsc(g.totalCajas)} cajas en total</small>
+        </td>
+        <td class="text-nowrap">
+          <button class="btn btn-sm btn-primary"
+                  onclick="cfAbrirGrupo('${cfEsc(g.folio)}','${cfEsc(g.clave)}',${g.turno})">
+            <i class="fa-solid fa-list-check"></i> Revisar e iniciar
+          </button>
+          ${btnRechazo}
+        </td>
+      </tr>`;
+    })
     .join("");
 }
 
-async function cfIniciar(folio) {
-  const r = await cfApi({ accion: "iniciar", folio });
+async function cfAbrirRechazo(folio, clave, turno) {
+  const r = await cfApi({ accion: "palets", folio, clave, turno });
   if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
+
+  // Solo se rechazan en origen los que no están en un certificado
+  const candidatos = r.items.filter(
+    (p) => !p.usado && p.estadoBits !== "RECHAZADO EN ORIGEN",
+  );
+  if (!candidatos.length)
+    return cfSwal({
+      title: "Sin palets disponibles",
+      text: "Todos los palets de este folio ya están en un certificado o rechazados. El rechazo tendría que hacerse desde Gerencia Técnica.",
+      icon: "info",
+    });
+
+  CF_RECHAZO = { ...r, candidatos };
+
+  cfQ("#rechazoTitulo").textContent = `${r.folio} — ${r.clave}`;
+  cfQ("#rechazoResumen").innerHTML = `
+    <div class="alert alert-danger py-2 mb-3" style="font-size:.85rem;">
+      <i class="fa-solid fa-triangle-exclamation me-1"></i>
+      <b>Rechazo en origen.</b> El material quedará marcado como rechazado sin pasar por
+      certificación y <b>no podrá integrarse a un certificado después</b>.
+    </div>
+    <div class="cf-resumen">
+      <div class="cf-res-item"><span>Producto</span><b>${cfEsc(r.producto)}</b></div>
+      <div class="cf-res-item"><span>Máquina</span><b>${cfEsc(r.maquina)}</b></div>
+      <div class="cf-res-item"><span>Turno</span><b>${cfEsc(r.turno)}</b></div>
+      <div class="cf-res-item"><span>Palets disponibles</span><b>${candidatos.length}</b></div>
+    </div>`;
+
+  cfQ("#rechazoPalets").innerHTML = candidatos
+    .map(
+      (p) => `<tr>
+        <td><input class="form-check-input cf-rech" type="checkbox"
+                   value="${p.idBajada}" data-cajas="${p.cajas}"
+                   data-palet="${p.noPalet}" onchange="cfContarRechazo()"></td>
+        <td><strong>${String(p.noPalet).padStart(3, "0")}</strong></td>
+        <td>${cfEsc(p.fecha)}</td><td>${cfEsc(p.hora)}</td>
+        <td>${cfEsc(p.cajas)}</td>
+        <td><span class="cf-badge cf-enviado">${cfEsc(p.estadoBits || "EN PROCESO")}</span></td>
+      </tr>`,
+    )
+    .join("");
+
+  cfQ("#rechazoTodos").checked = false;
+  cfQ("#rechazoMotivo").value = "";
+  cfContarRechazo();
+  bootstrap.Modal.getOrCreateInstance(cfQ("#modalRechazo")).show();
+}
+
+function cfMarcarTodosRechazo(chk) {
+  document.querySelectorAll(".cf-rech").forEach((c) => (c.checked = chk));
+  cfContarRechazo();
+}
+
+function cfContarRechazo() {
+  const sel = [...document.querySelectorAll(".cf-rech:checked")];
+  const cajas = sel.reduce((a, c) => a + (+c.dataset.cajas || 0), 0);
+  cfQ("#rechazoConteo").innerHTML = sel.length
+    ? `<b>${sel.length}</b> palet(s) · <b>${cajas}</b> cajas se marcarán como rechazadas`
+    : `Selecciona los palets que vas a rechazar`;
+  cfQ("#btnRechazarOrigen").disabled = sel.length === 0;
+
+  const todos = document.querySelectorAll(".cf-rech").length;
+  const chkTodos = cfQ("#rechazoTodos");
+  if (chkTodos) {
+    chkTodos.checked = sel.length === todos && todos > 0;
+    chkTodos.indeterminate = sel.length > 0 && sel.length < todos;
+  }
+}
+
+async function cfRechazarOrigen() {
+  const sel = [...document.querySelectorAll(".cf-rech:checked")];
+  const palets = sel.map((c) => +c.value);
+  const motivo = cfQ("#rechazoMotivo").value.trim();
+
+  if (!palets.length)
+    return cfSwal({
+      title: "Sin palets",
+      text: "Selecciona al menos uno.",
+      icon: "warning",
+    });
+  if (!motivo)
+    return cfSwal({
+      title: "Falta el motivo",
+      text: "Escribe por qué se rechaza el material.",
+      icon: "warning",
+    });
+
+  const lista = sel
+    .map((c) => String(c.dataset.palet).padStart(3, "0"))
+    .join(", ");
+
+  const c = await cfSwal({
+    title: "¿Rechazar el material?",
+    html: `Se rechazarán <b>${palets.length}</b> palet(s): <code>${lista}</code><br><br>
+           <span class="text-danger"><b>Esta acción no se revierte desde el módulo.</b></span><br>
+           <small class="text-muted">Motivo: <i>${cfEsc(motivo)}</i></small>`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, rechazar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#B02A2A",
+  });
+  if (!c.isConfirmed) return;
+
+  const r = await cfApi({ accion: "rechazar_origen", palets, motivo });
+  if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
+
+  bootstrap.Modal.getInstance(cfQ("#modalRechazo"))?.hide();
   cfSwal({
-    title: "Listo",
-    text: "Certificado iniciado. Las etapas ya pueden capturar.",
+    title: "Material rechazado",
+    text: `${r.rechazados} palet(s) quedaron marcados como rechazados en origen.`,
     icon: "success",
   });
   cfRefrescarTodo();
 }
 
+// ---------- Tab: grupos disponibles ----------
+// async function cfCargarGrupos() {
+//   const tb = cfQ("#tblFolios");
+//   const r = await cfApi({ accion: "grupos" });
+//   if (!r.ok) {
+//     tb.innerHTML = `<tr><td colspan="8">${cfVacio(r.error)}</td></tr>`;
+//     return;
+//   }
+//   if (!r.items.length) {
+//     tb.innerHTML = `<tr><td colspan="8">${cfVacio("No hay folios pendientes de certificar.")}</td></tr>`;
+//     return;
+//   }
+
+//   tb.innerHTML = r.items
+//     .map((g) => {
+//       const parcial =
+//         g.paletsUsados > 0
+//           ? `<span class="cf-badge cf-captura ms-1" title="Ya hay palets certificados de este folio">Parcial</span>`
+//           : "";
+//       return `<tr>
+//         <td>${cfEsc(g.fecha)}</td>
+//         <td>${cfEsc(g.maquina)}</td>
+
+// <td><strong>${cfEsc(g.folio)}</strong><br>
+//     <small class="text-muted">${cfEsc(g.folioCompleto)}</small></td>
+
+//         <td>${cfEsc(g.turno)}</td>
+//         <td><code>${cfEsc(g.clave)}</code></td>
+//         <td class="text-start">${cfEsc(g.producto)}</td>
+//         <td>
+//           <span class="cf-badge cf-autorizado">${g.disponibles} de ${g.totalPalets} palets</span>${parcial}
+//           <br><small class="text-muted">${cfEsc(g.totalCajas)} cajas en total</small>
+//         </td>
+//         <td>
+//           <button class="btn btn-sm btn-primary"
+//                   onclick="cfAbrirGrupo('${cfEsc(g.folio)}','${cfEsc(g.clave)}',${g.turno})"
+// >
+//             <i class="fa-solid fa-list-check"></i> Revisar e iniciar
+//           </button>
+//         </td>
+//       </tr>`;
+//     })
+//     .join("");
+// }
+
+// ---------- Modal: resumen del folio y selección de palets ----------
+// async function cfAbrirGrupo(folio, clave, turno) {
+//   const r = await cfApi({ accion: "palets", folio, clave, turno });
+//   if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
+
+//   CF_GRUPO = r;
+
+//   cfQ("#grupoTitulo").textContent = `${r.folio} — ${r.clave}`;
+
+//   // Resumen tipo RARR
+//   cfQ("#grupoResumen").innerHTML = `
+//     <div class="cf-resumen">
+//       <div class="cf-res-item"><span>Producto</span><b>${cfEsc(r.producto)}</b></div>
+//       <div class="cf-res-item"><span>Máquina</span><b>${cfEsc(r.maquina)}</b></div>
+//       <div class="cf-res-item"><span>Turno</span><b>${cfEsc(r.turno)}</b></div>
+//       <div class="cf-res-item"><span>Palets disponibles</span><b>${r.disponibles}</b></div>
+//       <div class="cf-res-item"><span>Cajas disponibles</span><b>${r.cajasDisponibles}</b></div>
+//     </div>`;
+
+//   const ce = r.certExistente;
+//   if (ce) {
+//     const yaFirmado = ce.estatus === "APROBADO" || ce.estatus === "RECHAZADO";
+//     cfQ("#grupoResumen").insertAdjacentHTML(
+//       "beforeend",
+//       `<div class="alert ${yaFirmado ? "alert-warning" : "alert-info"} py-2 mt-3 mb-0" style="font-size:.85rem;">
+//          <i class="fa-solid fa-link me-1"></i>
+//          Este folio ya tiene el <b>certificado #${ce.id}</b> (${cfEsc(ce.estatus)}, v${ce.version})
+//          con ${ce.palets} palet(s). Los que selecciones se <b>integrarán ahí</b>, no se creará otro.
+//          ${
+//            yaFirmado
+//              ? `<br><i class="fa-solid fa-triangle-exclamation me-1"></i>
+//                 Como ya está firmado, se <b>reabrirá</b> y Gerencia Técnica deberá validarlo de nuevo.`
+//              : ""
+//          }
+//        </div>`,
+//     );
+//   }
+
+//   // Tabla de palets individuales
+//   cfQ("#grupoPalets").innerHTML = r.items
+//     .map((p) => {
+//       if (p.usado) {
+//         return `<tr class="table-light text-muted">
+//           <td><i class="fa-solid fa-lock"></i></td>
+//           <td>${String(p.noPalet).padStart(3, "0")}</td>
+//           <td>${cfEsc(p.fecha)}</td><td>${cfEsc(p.hora)}</td>
+//           <td>${cfEsc(p.cajas)}</td>
+//           <td><span class="cf-badge cf-bloqueado">En certificado #${p.idCertUsado}</span></td>
+//         </tr>`;
+//       }
+//       return `<tr>
+//         <td><input class="form-check-input cf-palet" type="checkbox"
+//                    value="${p.idBajada}" data-cajas="${p.cajas}" checked
+//                    onchange="cfContarPalets()"></td>
+//         <td><strong>${String(p.noPalet).padStart(3, "0")}</strong></td>
+//         <td>${cfEsc(p.fecha)}</td><td>${cfEsc(p.hora)}</td>
+//         <td>${cfEsc(p.cajas)}</td>
+//         <td><span class="cf-badge cf-autorizado">Disponible</span></td>
+//       </tr>`;
+//     })
+//     .join("");
+
+//   cfQ("#grupoTodos").checked = true;
+//   cfContarPalets();
+//   bootstrap.Modal.getOrCreateInstance(cfQ("#modalGrupo")).show();
+// }
+
+async function cfAbrirGrupo(folio, clave, turno) {
+  const r = await cfApi({ accion: "palets", folio, clave, turno });
+  if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
+
+  CF_GRUPO = r;
+  cfQ("#grupoTitulo").textContent = `${r.folio} — ${r.clave}`;
+
+  cfQ("#grupoResumen").innerHTML = `
+    <div class="cf-resumen">
+      <div class="cf-res-item"><span>Producto</span><b>${cfEsc(r.producto)}</b></div>
+      <div class="cf-res-item"><span>Máquina</span><b>${cfEsc(r.maquina)}</b></div>
+      <div class="cf-res-item"><span>Turno</span><b>${cfEsc(r.turno)}</b></div>
+      <div class="cf-res-item"><span>Palets disponibles</span><b>${r.disponibles}</b></div>
+      <div class="cf-res-item"><span>Cajas disponibles</span><b>${r.cajasDisponibles}</b></div>
+    </div>`;
+
+  // Certificado ya existente para este folio
+  const ce = r.certExistente;
+  if (ce) {
+    const yaFirmado = ce.estatus === "APROBADO" || ce.estatus === "RECHAZADO";
+    cfQ("#grupoResumen").insertAdjacentHTML(
+      "beforeend",
+      `<div class="alert ${yaFirmado ? "alert-warning" : "alert-info"} py-2 mt-3 mb-0" style="font-size:.85rem;">
+         <i class="fa-solid fa-link me-1"></i>
+         Este folio ya tiene el <b>certificado #${ce.id}</b> (${cfEsc(ce.estatus)}, v${ce.version})
+         con ${ce.palets} palet(s). Los que selecciones se <b>integrarán ahí</b>.
+         ${
+           yaFirmado
+             ? `<br><i class="fa-solid fa-triangle-exclamation me-1"></i>
+                Como ya está firmado, se <b>reabrirá</b> y Gerencia Técnica deberá validarlo de nuevo.`
+             : ""
+         }
+       </div>`,
+    );
+  }
+
+  // Exclusiones previas sin resolver
+  const exc = r.exclusiones || [];
+  if (exc.length) {
+    cfQ("#grupoResumen").insertAdjacentHTML(
+      "beforeend",
+      `<div class="alert alert-secondary py-2 mt-2 mb-0" style="font-size:.82rem;">
+         <b><i class="fa-solid fa-circle-exclamation me-1"></i> Palets excluidos anteriormente:</b>
+         ${exc
+           .map(
+             (e) =>
+               `<div class="mt-1">Palet ${String(e.palet).padStart(3, "0")} —
+                 ${cfEsc(e.motivo)}
+                 <small class="text-muted">(${cfEsc(e.quien || "")} ${cfEsc(e.fecha || "")})</small>
+               </div>`,
+           )
+           .join("")}
+       </div>`,
+    );
+  }
+
+  cfQ("#grupoPalets").innerHTML = r.items
+    .map((p) => {
+      const est = p.estadoBits || "EN PROCESO";
+      const clsEst = CF_EST_PALET[est] || "cf-bloqueado";
+
+      if (p.usado) {
+        return `<tr class="table-light text-muted">
+          <td><i class="fa-solid fa-lock"></i></td>
+          <td>${String(p.noPalet).padStart(3, "0")}</td>
+          <td>${cfEsc(p.fecha)}</td><td>${cfEsc(p.hora)}</td>
+          <td>${cfEsc(p.cajas)}</td>
+          <td><span class="cf-badge cf-bloqueado">En certificado #${p.idCertUsado}</span>
+              <br><small>${cfEsc(est)}</small></td>
+        </tr>`;
+      }
+
+      // Rechazado en origen: ya no se puede integrar
+      if (est === "RECHAZADO EN ORIGEN") {
+        return `<tr class="table-light text-muted">
+          <td><i class="fa-solid fa-ban"></i></td>
+          <td>${String(p.noPalet).padStart(3, "0")}</td>
+          <td>${cfEsc(p.fecha)}</td><td>${cfEsc(p.hora)}</td>
+          <td>${cfEsc(p.cajas)}</td>
+          <td><span class="cf-badge cf-rechazado">Rechazado en origen</span></td>
+        </tr>`;
+      }
+
+      return `<tr>
+        <td><input class="form-check-input cf-palet" type="checkbox"
+                   value="${p.idBajada}" data-cajas="${p.cajas}"
+                   data-palet="${p.noPalet}" checked onchange="cfContarPalets()"></td>
+        <td><strong>${String(p.noPalet).padStart(3, "0")}</strong></td>
+        <td>${cfEsc(p.fecha)}</td><td>${cfEsc(p.hora)}</td>
+        <td>${cfEsc(p.cajas)}</td>
+        <td><span class="cf-badge ${clsEst}">${cfEsc(est)}</span></td>
+      </tr>`;
+    })
+    .join("");
+
+  cfQ("#grupoTodos").checked = true;
+  cfContarPalets();
+  bootstrap.Modal.getOrCreateInstance(cfQ("#modalGrupo")).show();
+}
+
+function cfMarcarTodos(chk) {
+  document.querySelectorAll(".cf-palet").forEach((c) => (c.checked = chk));
+  cfContarPalets();
+}
+
+function cfContarPalets() {
+  const sel = [...document.querySelectorAll(".cf-palet:checked")];
+  const cajas = sel.reduce((a, c) => a + (+c.dataset.cajas || 0), 0);
+  cfQ("#grupoConteo").innerHTML =
+    `<b>${sel.length}</b> palet(s) · <b>${cajas}</b> cajas seleccionadas`;
+  cfQ("#btnIniciarGrupo").disabled = sel.length === 0;
+
+  const todos = document.querySelectorAll(".cf-palet").length;
+  const chkTodos = cfQ("#grupoTodos");
+  if (chkTodos) {
+    chkTodos.checked = sel.length === todos && todos > 0;
+    chkTodos.indeterminate = sel.length > 0 && sel.length < todos;
+  }
+}
+
+// async function cfIniciarGrupo() {
+//   if (!CF_GRUPO) return;
+//   const palets = [...document.querySelectorAll(".cf-palet:checked")].map(
+//     (c) => +c.value,
+//   );
+//   if (!palets.length)
+//     return cfSwal({
+//       title: "Sin palets",
+//       text: "Selecciona al menos uno.",
+//       icon: "warning",
+//     });
+
+//   const total = document.querySelectorAll(".cf-palet").length;
+//   const ce = CF_GRUPO.certExistente;
+//   const yaFirmado =
+//     ce && (ce.estatus === "APROBADO" || ce.estatus === "RECHAZADO");
+
+//   let html;
+//   if (ce) {
+//     html = `Se integrarán <b>${palets.length}</b> palet(s) al <b>certificado #${ce.id}</b>.`;
+//     if (yaFirmado)
+//       html += `<br><br><span class="text-danger"><b>El certificado ya está firmado.</b></span><br>
+//                <small>Se reabrirá en una nueva versión y Gerencia Técnica tendrá que validarlo otra vez.
+//                Los palets ya liberados conservan su estado.</small>`;
+//   } else {
+//     html =
+//       palets.length < total
+//         ? `Se creará el certificado con <b>${palets.length}</b> de <b>${total}</b> palets.<br>
+//            <small class="text-muted">Los que dejes fuera se integrarán a este mismo certificado cuando los certifiques.</small>`
+//         : `Se creará el certificado con los <b>${palets.length}</b> palets disponibles.`;
+//   }
+
+//   const c = await cfSwal({
+//     title: ce ? "¿Integrar al certificado existente?" : "¿Iniciar certificado?",
+//     html,
+//     icon: yaFirmado ? "warning" : "question",
+//     showCancelButton: true,
+//     confirmButtonText: ce ? "Integrar" : "Iniciar",
+//     cancelButtonText: "Cancelar",
+//   });
+//   if (!c.isConfirmed) return;
+
+//   const r = await cfApi({
+//     accion: "iniciar",
+//     folio: CF_GRUPO.folio,
+//     clave: CF_GRUPO.clave,
+//     palets,
+//   });
+//   if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
+
+//   bootstrap.Modal.getInstance(cfQ("#modalGrupo"))?.hide();
+//   cfSwal({
+//     title: r.integrado ? "Palets integrados" : "Certificado iniciado",
+//     html: r.reabierto
+//       ? `Se agregaron ${r.palets} palet(s) al certificado #${r.id}.<br>
+//          <b>Reabierto en versión ${r.version}</b>: requiere nueva validación de Gerencia Técnica.`
+//       : `${r.palets} palet(s) y ${r.cajas} cajas integradas.`,
+//     icon: "success",
+//   });
+//   cfRefrescarTodo();
+// }
+
 // ================= FORMULARIOS POR ETAPA =================
-const CF_CAMPOS = {
-  // fechaProd: fecha de producción del folio (respaldo si aún no se ha guardado)
-  inspeccion: (e, ro, fechaProd = "") => `
-    <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
-      <div class="col-md-6"><label class="form-label">Fecha de fabricación</label>
-        <input type="date" class="form-control" id="cf_fechaFabricacion"
-               value="${cfEsc(cfFecha(e?.INS_fechaFabricacion) || fechaProd)}">
-        <div class="form-text">Tomada de la fecha de producción del folio.</div></div>
-      <div class="col-md-6"><label class="form-label">Fecha de caducidad (si aplica)</label>
-        <input type="date" class="form-control" id="cf_fechaCaducidad" value="${cfEsc(cfFecha(e?.INS_fechaCaducidad))}"></div>
-      <div class="col-md-4"><label class="form-label">Seguridad (AQL &lt;0.025)</label>${cfSel("cf_seguridad", e?.INS_seguridad)}</div>
-      <div class="col-md-4"><label class="form-label">Desempeño (AQL &lt;2.5)</label>${cfSel("cf_desempeno", e?.INS_desempeno)}</div>
-      <div class="col-md-4"><label class="form-label">Apariencia (AQL &lt;4.0)</label>${cfSel("cf_apariencia", e?.INS_apariencia)}</div>
-      <div class="col-12"><label class="form-label">Observaciones</label>
-        <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.INS_observaciones || "")}</textarea></div>
-    </div>`,
 
-  fisicoquimico: (e, ro) => `
-    <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
-      <div class="col-md-4"><label class="form-label">Viscosidad (cps) — TTM-00557</label>
-        <input type="number" step="0.01" class="form-control" id="cf_viscosidad" value="${cfEsc(e?.FIS_viscosidad ?? "")}"></div>
-      <div class="col-md-4"><label class="form-label">pH — TTM-00558</label>
-        <input type="number" step="0.01" class="form-control" id="cf_ph" value="${cfEsc(e?.FIS_ph ?? "")}"></div>
-      <div class="col-md-4"><label class="form-label">Densidad (g/mL) — TTM-00559</label>
-        <input type="number" step="0.0001" class="form-control" id="cf_densidad" value="${cfEsc(e?.FIS_densidad ?? "")}"></div>
-      <div class="col-md-6"><label class="form-label">Aspecto / Color</label>${cfSel("cf_aspectoColor", e?.FIS_aspectoColor)}</div>
-      <div class="col-md-6"><label class="form-label">Olor</label>${cfSel("cf_olor", e?.FIS_olor)}</div>
-      <div class="col-12"><label class="form-label">Observaciones</label>
-        <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.FIS_observaciones || "")}</textarea></div>
-    </div>`,
+async function cfIniciarGrupo() {
+  if (!CF_GRUPO) return;
+  const marcados = [...document.querySelectorAll(".cf-palet:checked")];
+  const palets = marcados.map((c) => +c.value);
+  if (!palets.length)
+    return cfSwal({
+      title: "Sin palets",
+      text: "Selecciona al menos uno.",
+      icon: "warning",
+    });
 
-  microbiologia: (e, ro) => `
-    <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
-      <div class="col-md-4"><label class="form-label">TAMC (UFC/g, ≤100)</label>
-        <input type="number" class="form-control" id="cf_tamc" value="${cfEsc(e?.MIC_tamc ?? "")}"></div>
-      <div class="col-md-4"><label class="form-label">TYMC (UFC/g, ≤10)</label>
-        <input type="number" class="form-control" id="cf_tymc" value="${cfEsc(e?.MIC_tymc ?? "")}"></div>
-      <div class="col-md-4"><label class="form-label">Patógenos</label>
-        <select class="form-select" id="cf_patogenos">
-          <option value="">-- Selecciona --</option>
-          <option ${e?.MIC_patogenos === "Ausentes" ? "selected" : ""}>Ausentes</option>
-          <option ${e?.MIC_patogenos === "Presentes" ? "selected" : ""}>Presentes</option>
-        </select></div>
-      <div class="col-12"><label class="form-label">Observaciones</label>
-        <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.MIC_observaciones || "")}</textarea></div>
-    </div>`,
-};
+  const todos = [...document.querySelectorAll(".cf-palet")];
+  const fuera = todos.filter((c) => !c.checked);
+  const ce = CF_GRUPO.certExistente;
+  const yaFirmado =
+    ce && (ce.estatus === "APROBADO" || ce.estatus === "RECHAZADO");
+
+  // Si se deja algún palet fuera, se pide el motivo
+  let motivoExclusion = "";
+  if (fuera.length) {
+    const lista = fuera
+      .map((c) => String(c.dataset.palet).padStart(3, "0"))
+      .join(", ");
+    const res = await cfSwal({
+      title: "Palets excluidos",
+      html: `Quedarán fuera <b>${fuera.length}</b> palet(s): <code>${lista}</code><br>
+             <small class="text-muted">Escribe el motivo; se mostrará en la vista de liberación.</small>`,
+      input: "textarea",
+      inputPlaceholder: "Motivo de la exclusión…",
+      showCancelButton: true,
+      confirmButtonText: "Continuar",
+      cancelButtonText: "Cancelar",
+      inputValidator: (v) =>
+        !v || !v.trim() ? "El motivo es obligatorio" : undefined,
+      didOpen: () => {
+        const i = Swal.getInput();
+        if (i) i.focus();
+      },
+    });
+    if (!res.isConfirmed) return;
+    motivoExclusion = (res.value || "").trim();
+  }
+
+  let html;
+  if (ce) {
+    html = `Se integrarán <b>${palets.length}</b> palet(s) al <b>certificado #${ce.id}</b>.`;
+    if (yaFirmado)
+      html += `<br><br><span class="text-danger"><b>El certificado ya está firmado.</b></span><br>
+               <small>Se reabrirá en una nueva versión y Gerencia Técnica tendrá que validarlo otra vez.</small>`;
+  } else {
+    html = `Se creará el certificado con <b>${palets.length}</b> de <b>${todos.length}</b> palets.`;
+  }
+  if (fuera.length)
+    html += `<br><br><small class="text-muted">${fuera.length} palet(s) quedan excluidos:
+             <i>${cfEsc(motivoExclusion)}</i></small>`;
+
+  const c = await cfSwal({
+    title: ce ? "¿Integrar al certificado existente?" : "¿Iniciar certificado?",
+    html,
+    icon: yaFirmado ? "warning" : "question",
+    showCancelButton: true,
+    confirmButtonText: ce ? "Integrar" : "Iniciar",
+    cancelButtonText: "Cancelar",
+  });
+  if (!c.isConfirmed) return;
+
+  const r = await cfApi({
+    accion: "iniciar",
+    folio: CF_GRUPO.folio,
+    clave: CF_GRUPO.clave,
+    palets,
+    motivoExclusion,
+  });
+  if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
+
+  bootstrap.Modal.getInstance(cfQ("#modalGrupo"))?.hide();
+  cfSwal({
+    title: r.integrado ? "Palets integrados" : "Certificado iniciado",
+    html: r.reabierto
+      ? `Se agregaron ${r.palets} palet(s) al certificado #${r.id}.<br>
+         <b>Reabierto en versión ${r.version}</b>: requiere nueva validación.`
+      : `${r.palets} palet(s) y ${r.cajas} cajas integradas.`,
+    icon: "success",
+  });
+  cfRefrescarTodo();
+}
 
 function cfSel(id, val) {
   return `<select class="form-select" id="${id}">
@@ -320,9 +817,215 @@ function cfFecha(v) {
   return "";
 }
 
+let CF_CAT = null; // catálogos de la clave abierta
+
+// ---------- Utilidades ----------
+function cfOpciones(id, opciones, val, onchange = "") {
+  const ops = opciones
+    .map(
+      (o) =>
+        `<option ${val === o.valor ? "selected" : ""}>${cfEsc(o.valor)}</option>`,
+    )
+    .join("");
+  return `<select class="form-select" id="${id}" ${onchange ? `onchange="${onchange}"` : ""}>
+      <option value="">-- Selecciona --</option>${ops}
+    </select>`;
+}
+
+// ¿El valor elegido es de falla? (dispara el panel de defectos)
+function cfEsFalla(tipo, valor) {
+  const o = (CF_CAT?.opciones?.[tipo] || []).find((x) => x.valor === valor);
+  return !!o?.esFalla;
+}
+
+// Muestra u oculta el panel de defectos de un atributo
+function cfToggleDefectos(attr) {
+  const sel = cfQ(`#cf_${attr.toLowerCase()}`);
+  const panel = cfQ(`#defectos_${attr}`);
+  if (!sel || !panel) return;
+  const falla = cfEsFalla("ATRIBUTO", sel.value);
+  panel.classList.toggle("d-none", !falla);
+  if (!falla)
+    panel
+      .querySelectorAll("input[type=checkbox]")
+      .forEach((c) => (c.checked = false));
+}
+
+// Panel de defectos de un atributo
+function cfPanelDefectos(attr, etiqueta, seleccionados, ro) {
+  const lista = CF_CAT?.defectos?.[attr] || [];
+  if (!lista.length)
+    return `<div id="defectos_${attr}" class="cf-defectos d-none">
+        <div class="alert alert-warning py-2 mb-0">Sin defectos configurados para ${cfEsc(etiqueta)}.</div>
+      </div>`;
+
+  const items = lista
+    .map(
+      (d) => `<label class="cf-defecto">
+        <input class="form-check-input" type="checkbox" data-attr="${attr}" value="${d.id}"
+               ${seleccionados.includes(d.id) ? "checked" : ""} ${ro ? "disabled" : ""}>
+        <span>${cfEsc(d.nombre)}</span>
+      </label>`,
+    )
+    .join("");
+
+  return `<div id="defectos_${attr}" class="cf-defectos d-none">
+      <div class="cf-defectos-tit"><i class="fa-solid fa-triangle-exclamation"></i>
+        Defectos de ${cfEsc(etiqueta)}</div>
+      <div class="cf-defectos-grid">${items}</div>
+    </div>`;
+}
+
+// ---------- Formularios por etapa ----------
+const CF_CAMPOS = {
+  inspeccion: (e, ro, fechaProd = "", defSel = []) => {
+    const ids = defSel.map((d) => d.id);
+    const opAtr = CF_CAT?.opciones?.ATRIBUTO || [];
+    return `
+    <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
+      <div class="col-md-6"><label class="form-label">Fecha de fabricación</label>
+        <input type="date" class="form-control" id="cf_fechaFabricacion"
+               value="${cfEsc(cfFecha(e?.INS_fechaFabricacion) || fechaProd)}">
+        <div class="form-text">Tomada de la fecha de producción del folio.</div></div>
+      <div class="col-md-6"><label class="form-label">Fecha de caducidad (si aplica)</label>
+        <input type="date" class="form-control" id="cf_fechaCaducidad" value="${cfEsc(cfFecha(e?.INS_fechaCaducidad))}"></div>
+
+      <div class="col-md-4"><label class="form-label">Seguridad</label>
+        ${cfOpciones("cf_seguridad", opAtr, e?.INS_seguridad, "cfToggleDefectos('SEGURIDAD')")}</div>
+      <div class="col-md-4"><label class="form-label">Desempeño</label>
+        ${cfOpciones("cf_desempeno", opAtr, e?.INS_desempeno, "cfToggleDefectos('DESEMPENO')")}</div>
+      <div class="col-md-4"><label class="form-label">Apariencia</label>
+        ${cfOpciones("cf_apariencia", opAtr, e?.INS_apariencia, "cfToggleDefectos('APARIENCIA')")}</div>
+
+      <div class="col-12">
+        ${cfPanelDefectos("SEGURIDAD", "Seguridad", ids, ro)}
+        ${cfPanelDefectos("DESEMPENO", "Desempeño", ids, ro)}
+        ${cfPanelDefectos("APARIENCIA", "Apariencia", ids, ro)}
+      </div>
+
+      <div class="col-12"><label class="form-label">Observaciones</label>
+        <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.INS_observaciones || "")}</textarea></div>
+    </div>`;
+  },
+
+  microbiologia: (e, ro, _fp = "", _ds = [], moSel = {}) => {
+    const lista = CF_CAT?.mo || [];
+    if (!lista.length)
+      return `<div class="alert alert-warning">No hay microorganismos objetables configurados.</div>`;
+
+    const filas = lista
+      .map((m) => {
+        const val = moSel[m.id] ?? "";
+        const campo =
+          m.tipo === "RECUENTO"
+            ? `<input type="text" class="form-control form-control-sm cf-mo text-center"
+                      data-id="${m.id}" data-tipo="RECUENTO" value="${cfEsc(val)}"
+                      placeholder="<1, 10, >100…" maxlength="15">`
+            : `<select class="form-select form-select-sm cf-mo" data-id="${m.id}" data-tipo="AUSENCIA">
+                 <option value="">--</option>
+                 ${(CF_CAT?.opciones?.MO || [])
+                   .map(
+                     (o) =>
+                       `<option ${val === o.valor ? "selected" : ""}>${cfEsc(o.valor)}</option>`,
+                   )
+                   .join("")}
+               </select>`;
+        return `<tr>
+          <td class="text-start"><i>${cfEsc(m.nombre)}</i></td>
+          <td>${cfEsc(m.especificacion || "—")}${m.unidad ? " " + cfEsc(m.unidad) : ""}</td>
+          <td><small class="text-muted">${cfEsc(m.metodo || "—")}</small></td>
+          <td style="width:130px;">${campo}</td>
+        </tr>`;
+      })
+      .join("");
+
+    return `
+    <div class="${ro ? "cf-solo-lectura" : ""}">
+      <div class="cf-card-title mb-2"><i class="fa-solid fa-bacterium"></i> Microorganismos Objetables (MO)</div>
+      <div class="table-responsive" style="max-height:330px;">
+        <table class="table table-sm table-bordered align-middle text-center mb-0">
+          <thead class="table-dark">
+            <tr><th class="text-start">Determinación</th><th>Especificación</th><th>Técnica</th><th>Resultado</th></tr>
+          </thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>
+      <div class="mt-3"><label class="form-label">Observaciones</label>
+        <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.MIC_observaciones || "")}</textarea></div>
+    </div>`;
+  },
+};
+
+// ---------- Lectura de los formularios ----------
+
+CF_CAMPOS.fisicoquimico = (e, ro) => {
+  const par = CF_CAT?.parametros || {};
+  const org = CF_CAT?.organolepticas || {};
+  const uni = (v, fb) => cfEsc(par[v]?.unidad || fb);
+
+  const espec = (t) => {
+    const lista = org[t] || [];
+    if (!lista.length)
+      return `<div class="form-text text-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i> Sin especificación configurada</div>`;
+    return `<div class="form-text">
+        ${lista.map((x) => `<div>· ${cfEsc(x)}</div>`).join("")}
+      </div>`;
+  };
+
+  // Rangos configurados de la clave, para guiarse al capturar
+  const rangos = (variable) => {
+    const p = par[variable];
+    if (!p)
+      return `<div class="cf-rangos cf-rangos-vacio">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Sin parámetros configurados
+              </div>`;
+    const val = (x) => (x === null || x === undefined ? "—" : x);
+    return `<div class="cf-rangos">
+        <div><span>Mín</span><b>${val(p.minimo)}</b></div>
+        <div class="cf-rango-obj"><span>Objetivo</span><b>${val(p.objetivo)}</b></div>
+        <div><span>Máx</span><b>${val(p.maximo)}</b></div>
+      </div>`;
+  };
+
+  const campoNum = (variable, id, label, step, val) => `
+    <div class="col-md-4">
+      <label class="form-label">${label} (${uni(variable, "")})</label>
+      ${rangos(variable)}
+      <input type="number" step="${step}" class="form-control" id="${id}"
+             value="${cfEsc(val ?? "")}"
+             oninput="cfEvaluarFQ('${variable}','${id}')">
+      <div class="mt-1" id="eval_${variable}"></div>
+    </div>`;
+
+  return `
+    <div class="row g-3 ${ro ? "cf-solo-lectura" : ""}">
+      ${campoNum("DENSIDAD", "cf_densidad", "Densidad", "0.0001", e?.FIS_densidad)}
+      ${campoNum("VISCOSIDAD", "cf_viscosidad", "Viscosidad", "0.01", e?.FIS_viscosidad)}
+      ${campoNum("PH", "cf_ph", "pH", "0.01", e?.FIS_ph)}
+
+      <div class="col-md-4"><label class="form-label">Aspecto</label>
+        ${cfOpciones("cf_aspecto", CF_CAT?.opciones?.ASPECTO || [], e?.FIS_aspecto)}
+        ${espec("ASPECTO")}</div>
+      <div class="col-md-4"><label class="form-label">Color</label>
+        ${cfOpciones("cf_color", CF_CAT?.opciones?.COLOR || [], e?.FIS_color)}
+        ${espec("COLOR")}</div>
+      <div class="col-md-4"><label class="form-label">Olor</label>
+        ${cfOpciones("cf_olor", CF_CAT?.opciones?.OLOR || [], e?.FIS_olor)}
+        ${espec("OLOR")}</div>
+
+      <div class="col-12"><label class="form-label">Observaciones</label>
+        <textarea class="form-control" id="cf_observaciones" rows="2">${cfEsc(e?.FIS_observaciones || "")}</textarea></div>
+    </div>`;
+};
+
 function cfLeerDatos(etapa) {
   const g = (id) => cfQ("#" + id)?.value ?? "";
-  if (etapa === "inspeccion")
+
+  if (etapa === "inspeccion") {
+    const defectos = [
+      ...document.querySelectorAll(".cf-defectos:not(.d-none) input:checked"),
+    ].map((c) => ({ id: +c.value, atributo: c.dataset.attr }));
     return {
       fechaFabricacion: g("cf_fechaFabricacion"),
       fechaCaducidad: g("cf_fechaCaducidad"),
@@ -330,24 +1033,47 @@ function cfLeerDatos(etapa) {
       desempeno: g("cf_desempeno"),
       apariencia: g("cf_apariencia"),
       observaciones: g("cf_observaciones"),
+      defectos,
     };
+  }
+
   if (etapa === "fisicoquimico")
     return {
+      densidad: g("cf_densidad"),
       viscosidad: g("cf_viscosidad"),
       ph: g("cf_ph"),
-      densidad: g("cf_densidad"),
-      aspectoColor: g("cf_aspectoColor"),
+      aspecto: g("cf_aspecto"),
+      color: g("cf_color"),
       olor: g("cf_olor"),
       observaciones: g("cf_observaciones"),
     };
+
+  // microbiologia
+  const mo = [...document.querySelectorAll(".cf-mo")].map((el) => ({
+    id: +el.dataset.id,
+    tipo: el.dataset.tipo,
+    resultado: el.value,
+  }));
+
+  // TAMC / TYMC salen de los MO de tipo RECUENTO (primero y segundo)
+  const recuentos = mo.filter((m) => m.tipo === "RECUENTO");
+  const presentes = mo
+    .filter((m) => m.tipo === "AUSENCIA" && cfEsFalla("MO", m.resultado))
+    .map((m) => (CF_CAT.mo.find((x) => x.id === m.id) || {}).nombre)
+    .filter(Boolean);
+
   return {
-    tamc: g("cf_tamc"),
-    tymc: g("cf_tymc"),
-    patogenos: g("cf_patogenos"),
+    tamc: recuentos[0]?.resultado ?? "",
+    tymc: recuentos[1]?.resultado ?? "",
+    resumenMO: presentes.length
+      ? "Presentes: " + presentes.join(", ")
+      : "Ausentes",
     observaciones: g("cf_observaciones"),
+    mo: mo.filter((m) => m.resultado !== ""),
   };
 }
 
+// ---------- Apertura del modal ----------
 async function cfAbrirEtapa(id, etapa, autorizar = false) {
   const r = await cfApi({ accion: "detalle", id });
   if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
@@ -360,27 +1086,53 @@ async function cfAbrirEtapa(id, etapa, autorizar = false) {
       icon: "info",
     });
 
+  // Catálogos configurados para esta clave
+  const cat = await cfApi({ accion: "catalogos", clave: r.cert.CER_clave });
+  CF_CAT = cat.ok ? cat : null;
+
   const editable = !autorizar && r.editable[etapa];
   cfQ("#etapaTitulo").textContent =
     `${CF_ETAPA_TXT[etapa]} — ${r.cert.CER_folio} (${r.cert.CER_clave})`;
 
   let body = "";
-  const esp = r.especs;
-  if (esp && etapa === "fisicoquimico") {
-    body += `<div class="alert alert-info py-2 mb-3">
-      <b>Especificaciones ${cfEsc(r.cert.CER_clave)}</b><br>
-      Viscosidad ${esp.visMin}–${esp.visMax} (obj ${esp.visObj}) ·
-      pH ${esp.phMin}–${esp.phMax} (obj ${esp.phObj}) ·
-      Densidad ${esp.denMin}–${esp.denMax} (obj ${esp.denObj})<br>
-      <small>Aspecto: ${cfEsc(esp.aspecto)} · Olor: ${cfEsc(esp.olor)}</small></div>`;
+
+  // Aviso cuando falta configuración para validar esta clave
+  if (etapa === "fisicoquimico") {
+    const fp = CF_CAT?.faltanParametros || [];
+    const fo = CF_CAT?.faltanOrganolepticas || [];
+
+    if (fp.length) {
+      body += `<div class="alert alert-warning py-2 mb-2">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+        <b>${cfEsc(r.cert.CER_clave)}</b> no tiene rangos configurados para:
+        ${cfEsc(fp.join(", "))}. Esos resultados no se evaluarán.
+      </div>`;
+    }
+    if (fo.length) {
+      body += `<div class="alert alert-secondary py-2 mb-3" style="font-size:.85rem;">
+        <i class="fa-regular fa-circle-question me-1"></i>
+        Sin especificación escrita para: ${cfEsc(fo.join(", "))}.
+      </div>`;
+    }
+    if (!fp.length && !fo.length) {
+      body += `<div class="alert alert-success py-2 mb-3" style="font-size:.85rem;">
+        <i class="fa-solid fa-circle-check me-1"></i>
+        Configuración completa para <b>${cfEsc(r.cert.CER_clave)}</b>.
+      </div>`;
+    }
   }
 
-  // La fecha de producción del folio va como respaldo de la fecha de fabricación
-  body += CF_CAMPOS[etapa](e, !editable, r.fechaProduccion || "");
+  body += CF_CAMPOS[etapa](
+    e,
+    !editable,
+    r.fechaProduccion || "",
+    r.defectosSel || [],
+    r.moSel || {},
+  );
 
   const pre = CF_PRE[etapa];
 
-  // Historial dentro del modal (captura + autorización)
+  // Historial (captura + autorización)
   const hist = [];
   if (e[`${pre}_nombreCaptura`])
     hist.push(
@@ -391,8 +1143,7 @@ async function cfAbrirEtapa(id, etapa, autorizar = false) {
       `<i class="fa-solid fa-circle-check me-1"></i> ${+e[`${pre}_estatus`] === 3 ? "Rechazó" : "Autorizó"} <b>${cfEsc(e[`${pre}_nombreAutoriza`])}</b>`,
     );
   if (hist.length)
-    body += `<div class="alert alert-light border mt-3 py-2" style="font-size:.85rem;">
-      ${hist.join("<br>")}</div>`;
+    body += `<div class="alert alert-light border mt-3 py-2" style="font-size:.85rem;">${hist.join("<br>")}</div>`;
 
   if (+e[`${pre}_estatus`] === 2)
     body += `<div class="alert alert-success mt-2 py-2">Etapa autorizada — solo lectura.</div>`;
@@ -400,6 +1151,16 @@ async function cfAbrirEtapa(id, etapa, autorizar = false) {
     body += `<div class="alert alert-danger mt-2 py-2">Motivo del rechazo: ${cfEsc(e[`${pre}_motivoRechazo`])}</div>`;
 
   cfQ("#etapaBody").innerHTML = body;
+
+  if (etapa === "fisicoquimico") {
+    cfEvaluarFQ("DENSIDAD", "cf_densidad");
+    cfEvaluarFQ("VISCOSIDAD", "cf_viscosidad");
+    cfEvaluarFQ("PH", "cf_ph");
+  }
+
+  // Deja visibles los paneles de defectos que ya venían en falla
+  if (etapa === "inspeccion")
+    ["SEGURIDAD", "DESEMPENO", "APARIENCIA"].forEach(cfToggleDefectos);
 
   let footer = `<button class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-rectangle-xmark"></i> Cerrar</button>`;
   if (editable) {
@@ -540,12 +1301,16 @@ async function cfCargarCerts() {
       (c) => `<tr>
       <td><strong>${cfEsc(c.folio)}</strong></td><td><code>${cfEsc(c.clave)}</code></td>
       <td>${cfEsc(c.producto)}</td><td>${cfEsc(c.fechaEmision || "—")}</td>
-      <td><span class="cf-badge ${badge(c.estatus)}">${cfEsc(c.estatus)}</span></td>
+      <td><span class="cf-badge ${badge(c.estatus)}">${cfEsc(c.estatus)}</span> <small class="text-muted">${c.paletsLiberados}/${c.palets} palets liberados${
+        c.version > 1 ? ` · v${c.version}` : ""
+      }</small></td>
       <td>${cfEsc(c.gerente || "—")}<br><small>${cfEsc(c.fechaFirma || "")}</small></td>
       <td>${
-        c.estatus === "APROBADO"
-          ? `<button class="btn btn-sm btn-outline-primary" onclick="cfPreviewCert(${c.id})"><i class="fa-solid fa-eye"></i> Ver</button>
-             <a class="btn btn-sm btn-primary" target="_blank" href="${CF_PDF}?id=${c.id}"><i class="fa-regular fa-file-pdf"></i> PDF</a>`
+        c.estatus === "APROBADO" || c.estatus === "RECHAZADO"
+          ? `<button class="btn btn-sm btn-outline-primary" onclick="cfPreviewCert(${c.id})">
+           <i class="fa-solid fa-eye"></i> Ver</button>
+         <a class="btn btn-sm btn-primary" target="_blank" href="${CF_PDF}?id=${c.id}">
+           <i class="fa-regular fa-file-pdf"></i> PDF</a>`
           : "—"
       }</td>
     </tr>`,
@@ -557,102 +1322,194 @@ async function cfPreviewCert(id, validarGT = false) {
   const r = await cfApi({ accion: "pdf_datos", id });
   if (!r.ok) return cfSwal({ title: "Error", text: r.error, icon: "error" });
 
-  const { cert: c, ins, fis, mic, especs: esp } = r;
+  const { cert: c, ins, fis } = r;
+  const mo = r.mo || [];
+  const defectos = r.defectos || [];
+  const par = r.parametros || {};
+  const ev = r.evaluacion || {};
+  const palets = r.palets || [];
 
-  // Datos del catálogo (vwMXPRClaveMaquina), solo para el certificado
-  const prodPDF = r.pdfProducto ?? c.CER_producto;
-  const catPDF = r.pdfCategoria ?? c.CER_categoria;
-  const presPDF = r.pdfPresentacion ?? c.CER_presentacion;
+  const f = (v) => cfEsc(v ?? "");
+  const uni = (k, fb) => cfEsc(par[k]?.unidad ?? fb);
+  const veredictoCel = (v) => {
+    if (!v) return "";
+    const cls = v === "No cumple" ? "coa-nocumple" : "coa-cumple";
+    return `<span class="${cls}">${cfEsc(v)}</span>`;
+  };
 
-  const f = (v) => cfEsc(v ?? "—");
-  const fd = (v) => cfEsc(cfFecha(v) || "—");
+  const presentacion = r.pdfPresentacion ?? c.CER_presentacion ?? "";
+  const descProducto = presentacion || r.pdfProducto || c.CER_producto || "";
+
+  const falla = (v) =>
+    String(v || "")
+      .toLowerCase()
+      .startsWith("no");
+  const noCumple =
+    [
+      ins?.INS_seguridad,
+      ins?.INS_desempeno,
+      ins?.INS_apariencia,
+      fis?.FIS_aspecto,
+      fis?.FIS_color,
+      fis?.FIS_olor,
+      ev.DENSIDAD,
+      ev.VISCOSIDAD,
+      ev.PH,
+    ].some(falla) ||
+    mo.some((m) =>
+      String(m.resultado || "")
+        .toLowerCase()
+        .includes("presente"),
+    );
+
   const firmaImg =
     c.CER_estatus === "APROBADO" && r.noempFirma
       ? `<img src="${CF_FIRMA_URL(r.noempFirma)}" alt="Firma" onerror="this.style.display='none'">`
       : "";
 
+  const generales = [
+    ["Descripción de producto", descProducto],
+    ["Procedencia", c.CER_paisOrigen || "México"],
+    ["Fecha de Fabricación", cfFecha(ins?.INS_fechaFabricacion) || ""],
+    ["Fecha de Emisión del CoA", cfFecha(c.CER_fechaEmision) || ""],
+    ["Clave", c.CER_clave],
+    ["Lote", c.CER_lote],
+    ["Referencia", "Análisis: Especificación interna."],
+    ["Fabricante", "KCM Prosede Planta Formulados"],
+  ]
+    .map(
+      ([e, v]) =>
+        `<tr><td class="coa-etq">${cfEsc(e)}</td><td>${f(v)}</td></tr>`,
+    )
+    .join("");
+
+  let bloqueDefectos = "";
+  if (defectos.length) {
+    const agr = {};
+    defectos.forEach((d) => (agr[d.atributo] ??= []).push(d.nombre));
+    bloqueDefectos = `
+      <table class="coa-tabla coa-defectos">
+        <tr><th colspan="2" class="text-start">Defectos detectados</th></tr>
+        ${Object.entries(agr)
+          .map(
+            ([a, l]) =>
+              `<tr><td class="coa-etq" style="width:22%">${cfEsc(a.charAt(0) + a.slice(1).toLowerCase())}</td>
+               <td class="text-start">${cfEsc(l.join(" · "))}</td></tr>`,
+          )
+          .join("")}
+      </table>`;
+  }
+
+  const filasMO = mo.length
+    ? mo
+        .map((m) => {
+          const res =
+            m.tipo === "RECUENTO" && m.unidad
+              ? `${f(m.resultado)} ${cfEsc(m.unidad)}`
+              : f(m.resultado);
+          const it = m.tipo === "AUSENCIA" ? "coa-italic" : "";
+          return `<tr><td class="text-start ${it}">${cfEsc(m.nombre)}</td><td>${res}</td></tr>`;
+        })
+        .join("")
+    : `<tr><td class="text-start">Sin resultados capturados</td><td></td></tr>`;
+
   cfQ("#certHoja").innerHTML = `
-    <div class="cert-top">
-      <img src="${CF_LOGO_URL}" alt="KCM" onerror="this.style.display='none'">
-      <div class="cert-tit">
-        <h5>CERTIFICADO DE CALIDAD LÍQUIDOS Y FORMULADOS</h5>
-        <small>FORM-63297</small>
+    <div class="coa">
+      <div class="coa-header">
+        <img src="${CF_LOGO_URL}" alt="KCM" onerror="this.style.display='none'">
+        
       </div>
-      <div style="text-align:right;font-size:10.5px;"><b>FECHA DE EMISIÓN</b><br>${fd(c.CER_fechaEmision)}</div>
-    </div>
+      <div class="coa-titulo">CERTIFICADO DE ANÁLISIS</div>
 
-    <table>
-      <tr><td><b>Categoría del Producto</b></td><td>${f(catPDF)}</td>
-          <td><b>Nombre del Producto</b></td><td>${f(prodPDF)}</td></tr>
-      <tr><td><b>Presentación</b></td><td>${f(presPDF)}</td>
-          <td><b>Nombre del Fabricante</b></td><td>${f(c.CER_fabricante)}</td></tr>
-      <tr><td><b>País de Origen</b></td><td>${f(c.CER_paisOrigen)}</td>
-          <td><b>Fecha de Fabricación</b></td><td>${fd(ins?.INS_fechaFabricacion)}</td></tr>
-      <tr><td><b>Fecha de Caducidad</b></td><td>${fd(ins?.INS_fechaCaducidad)}</td>
-          <td><b>Número de Lote</b></td><td>${f(c.CER_lote)}</td></tr>
-      <tr><td><b>Clave KCM</b></td><td colspan="3">${f(c.CER_clave)}</td></tr>
-    </table>
+      <table class="coa-tabla coa-generales">${generales}</table>
 
-    <div class="cert-bloque-tit">Variables Fisicoquímicas</div>
-    <table>
-      <tr><th>Variable</th><th>Método</th><th>Unidad</th><th>Mínimo</th><th>Objetivo</th><th>Máximo</th><th>Resultado</th></tr>
-      <tr><td>Viscosidad</td><td>TTM-00557</td><td>cps</td>
-          <td>${f(esp.visMin)}</td><td>${f(esp.visObj)}</td><td>${f(esp.visMax)}</td><td>${f(fis?.FIS_viscosidad)}</td></tr>
-      <tr><td>pH</td><td>TTM-00558</td><td>pH</td>
-          <td>${f(esp.phMin)}</td><td>${f(esp.phObj)}</td><td>${f(esp.phMax)}</td><td>${f(fis?.FIS_ph)}</td></tr>
-      <tr><td>Densidad</td><td>TTM-00559</td><td>g / mL</td>
-          <td>${f(esp.denMin)}</td><td>${f(esp.denObj)}</td><td>${f(esp.denMax)}</td><td>${f(fis?.FIS_densidad)}</td></tr>
-    </table>
+      <div class="coa-seccion">CONTROL FÍSICO-QUÍMICO</div>
+      <table class="coa-tabla">
+        <tr><th style="width:29%">Característica</th><th>Resultado</th>
+            <th style="width:17%">Unidades</th><th style="width:26%">Evaluación</th></tr>
+        <tr><td class="text-start">Aspecto</td><td>${f(fis?.FIS_aspecto)}</td><td></td><td></td></tr>
+        <tr><td class="text-start">Color</td><td>${f(fis?.FIS_color)}</td><td></td><td></td></tr>
+        <tr><td class="text-start">Olor</td><td>${f(fis?.FIS_olor)}</td><td></td><td></td></tr>
+        <tr><td class="text-start">Densidad</td><td>${f(fis?.FIS_densidad)}</td>
+            <td>${uni("DENSIDAD", "g/mL")}</td><td>${veredictoCel(ev.DENSIDAD)}</td></tr>
+        <tr><td class="text-start">Viscosidad</td><td>${f(fis?.FIS_viscosidad)}</td>
+            <td>${uni("VISCOSIDAD", "cps")}</td><td>${veredictoCel(ev.VISCOSIDAD)}</td></tr>
+        <tr><td class="text-start">pH</td><td>${f(fis?.FIS_ph)}</td>
+            <td>${uni("PH", "")}</td><td>${veredictoCel(ev.PH)}</td></tr>
+      </table>
 
-    <div class="cert-bloque-tit">Especificaciones Organolépticas</div>
-    <table>
-      <tr><th style="width:40%">Característica</th><th>Especificación</th><th style="width:22%">Resultado</th></tr>
-      <tr><td>Aspecto / Color</td><td>${f(esp.aspecto)}</td><td>${f(fis?.FIS_aspectoColor)}</td></tr>
-      <tr><td>Olor</td><td>${f(esp.olor)}</td><td>${f(fis?.FIS_olor)}</td></tr>
-    </table>
+      <div class="coa-seccion">INFORMACIÓN DE ATRIBUTOS</div>
+      <table class="coa-tabla">
+        <tr><th style="width:29%">Atributo</th><th>Resultado</th></tr>
+        <tr><td class="text-start">Seguridad</td><td>${f(ins?.INS_seguridad)}</td></tr>
+        <tr><td class="text-start">Desempeño</td><td>${f(ins?.INS_desempeno)}</td></tr>
+        <tr><td class="text-start">Apariencia</td><td>${f(ins?.INS_apariencia)}</td></tr>
+      </table>
+      ${bloqueDefectos}
 
-    <div class="cert-bloque-tit">Especificaciones Microbiológicas</div>
-    <table>
-      <tr><th style="width:45%">Determinación</th><th>Especificación</th><th>Técnica</th><th style="width:18%">Resultado</th></tr>
-      <tr><td>Recuento total de microorganismos Mesófilos Aerobios (TAMC)</td><td>≤ 100 UFC / g</td>
-          <td rowspan="3">TTM-00554<br>TTM-00556</td><td>${f(mic?.MIC_tamc)}</td></tr>
-      <tr><td>Recuento total de Hongos y Levaduras (TYMC)</td><td>≤ 10 UFC / g</td><td>${f(mic?.MIC_tymc)}</td></tr>
-      <tr><td style="font-size:9px;">Pseudomonas aeruginosa, Escherichia coli, Salmonella spp., Coliformes fecales y totales,
-          Burkholderia cepacia, Staphylococcus aureus, Aspergillus brasiliensis, Candida albicans, Pluralibacter gergoviae</td>
-          <td>Ausencia</td><td>${f(mic?.MIC_patogenos)}</td></tr>
-    </table>
+      <div class="coa-seccion">RECUENTO MICROBIOLÓGICO</div>
+      <table class="coa-tabla">
+        <tr><th style="width:60%">Determinación</th><th>Resultado</th></tr>
+        ${filasMO}
+      </table>
 
-    <div class="cert-bloque-tit">Evaluación de atributos</div>
-    <table>
-      <tr><th style="width:45%">Atributo</th><th>Especificación (AQL)</th><th style="width:22%">Resultado</th></tr>
-      <tr><td>Seguridad</td><td>&lt;0.025</td><td>${f(ins?.INS_seguridad)}</td></tr>
-      <tr><td>Desempeño</td><td>&lt;2.5</td><td>${f(ins?.INS_desempeno)}</td></tr>
-      <tr><td>Apariencia</td><td>&lt;4.0</td><td>${f(ins?.INS_apariencia)}</td></tr>
-    </table>
+    
 
-    ${
-      c.CER_conclusion
-        ? `<p style="font-size:11px;"><b>Conclusión:</b> ${cfEsc(c.CER_conclusion)}</p>`
-        : ""
-    }
-    ${
-      c.CER_observacionesGT
-        ? `<p style="font-size:11px;"><b>Observaciones de Gerencia Técnica:</b> ${cfEsc(c.CER_observacionesGT)}</p>`
-        : ""
-    }
+      <div class="coa-seccion">CONCLUSIÓN</div>
+      <p class="coa-conclusion">
+        El producto <b class="coa-veredicto">${noCumple ? "No cumple" : "cumple"}</b> con la especificación
+      </p>
+      ${
+        c.CER_observacionesGT
+          ? `<p class="coa-obs"><b>Observaciones de Gerencia Técnica:</b> ${cfEsc(c.CER_observacionesGT)}</p>`
+          : ""
+      }
 
-    <div class="cert-pie">
-      <div class="cert-sello">
-        <b style="font-size:10.5px;color:#7a8291;">CONTROL DE CALIDAD</b>
-        <span>Espacio reservado para el sello<br>de acuerdo al estatus</span>
-      </div>
-      <div class="cert-firma">
-        <b style="font-size:10.5px;">KIMBERLY CLARK DE MÉXICO S.A.B DE C.V.</b>
-        <div style="flex:1"></div>
-        ${firmaImg}
-        <div class="cert-linea">${f(c.CER_nombreGerente || "")}<br>Gerencia Técnica</div>
+      <div class="coa-pie">
+        <div class="coa-firma">
+          <div class="coa-aprobo">Apróbo</div>
+          ${firmaImg}
+          <div class="coa-linea">
+              ${f(c.CER_nombreGerente)}<br>
+              <span class="coa-cargo">Gerente Técnico</span>
+            </div>
+          </div>
       </div>
     </div>`;
+
+  // en cfPreviewCert, después de asignar cfQ("#certHoja").innerHTML = ...
+  const infoPalets = palets.length
+    ? `<div class="alert alert-light border mt-3 mb-0" style="font-size:.8rem;">
+       <b><i class="fa-solid fa-layer-group me-1"></i> Palets amparados</b>
+       <span class="text-muted">(referencia interna, no aparece en el PDF)</span>
+       <div class="mt-2">
+         ${palets
+           .map(
+             (p) =>
+               `<span class="cf-badge ${
+                 p.estatus === "LIBERADO"
+                   ? "cf-autorizado"
+                   : p.estatus === "RECHAZADO"
+                     ? "cf-rechazado"
+                     : "cf-captura"
+               } me-1 mb-1">
+                  ${String(p.palet).padStart(3, "0")} · ${cfEsc(p.cajas)} cajas · ${cfEsc(p.estatus)}
+                </span>`,
+           )
+           .join("")}
+       </div>
+     </div>`
+    : "";
+
+  // cfQ("#certHoja").insertAdjacentHTML("afterend", infoPalets);
+  // Limpia el bloque anterior antes de volver a pintarlo
+  document.querySelector("#certHoja + .cf-info-palets")?.remove();
+  if (infoPalets) {
+    cfQ("#certHoja").insertAdjacentHTML(
+      "afterend",
+      infoPalets.replace('class="alert', 'class="cf-info-palets alert'),
+    );
+  }
 
   let footer = `<button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>`;
   if (validarGT) {
@@ -666,7 +1523,6 @@ async function cfPreviewCert(id, validarGT = false) {
   bootstrap.Modal.getOrCreateInstance(cfQ("#modalCert")).show();
 }
 
-// El Gerente escribe la conclusión/observaciones finales
 async function cfValidarGT(id, aprobar) {
   const modal = bootstrap.Modal.getInstance(cfQ("#modalCert"));
   let motivo = "";
@@ -747,6 +1603,8 @@ async function cfArranque() {
   cfFiltroTabla("buscarFolios", "tblFolios");
   cfFiltroTabla("buscarCerts", "tblCerts");
 
+  cfgInit();
+  libInit();
   cfRefrescarTodo();
 }
 document.addEventListener("DOMContentLoaded", cfArranque);
@@ -758,7 +1616,38 @@ document
     b.addEventListener("shown.bs.tab", (ev) => {
       const target = ev.target.getAttribute("data-bs-target");
       if (target === "#tabEspacio") cfCargarEspacio();
-      if (target === "#tabFolios") cfCargarFolios();
+      if (target === "#tabFolios") cfCargarGrupos();
       if (target === "#tabCerts") cfCargarCerts();
     });
   });
+
+function cfVeredicto(valor, p) {
+  if (valor === "" || valor === null || valor === undefined || !p) return "";
+  // Acepta "<1", ">10", "1.5" — se queda con el número
+  const v = parseFloat(String(valor).replace(/[<>≤≥\s]/g, ""));
+  if (isNaN(v)) return "";
+  const { minimo: min, objetivo: obj, maximo: max } = p;
+  if (min == null && max == null && obj == null) return "";
+  if (min != null && v < min) return "No cumple";
+  if (max != null && v > max) return "No cumple";
+  if (obj != null && Math.abs(v - obj) < 0.00001) return "Cumple";
+  if (obj != null && v < obj) return "Cumple";
+  if (obj != null && v > obj) return "Cumple";
+  return "Cumple";
+}
+
+function cfEvaluarFQ(variable, idInput) {
+  const p = CF_CAT?.parametros?.[variable];
+  const el = cfQ("#" + idInput);
+  const out = cfQ("#eval_" + variable);
+  if (!el || !out) return;
+  const r = cfVeredicto(el.value, p);
+  const cls = !r
+    ? "cf-bloqueado"
+    : r === "No cumple"
+      ? "cf-rechazado"
+      : "cf-autorizado";
+  out.innerHTML = r
+    ? `<span class="cf-badge ${cls}">${r}</span>`
+    : `<span class="text-muted" style="font-size:.75rem;">Sin parámetros configurados</span>`;
+}

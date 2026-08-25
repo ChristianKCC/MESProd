@@ -1,32 +1,3362 @@
-2026-08-11T17:56:52+02:00 Array
+2026-08-18T18:23:38+02:00 SQL: INSERT INTO tblMXPRCertificadoOpcionFR (OPC_tipo, OPC_valor, OPC_esFalla, OPC_orden, OPC_ibmConfig, OPC_nombreConfig) VALUES (?,?,?,?,?,?)
+PARAMS: Array
+(
+    [0] => ATRIBUTO
+    [1] => Ejemplo
+    [2] => 1
+    [3] => 
+    [4] => 60040
+    [5] => Angel
+)
+
+ERROR: Array
 (
     [0] => Array
         (
-            [0] => 42S22
-            [SQLSTATE] => 42S22
-            [1] => 207
-            [code] => 207
-            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'CER_observacionesGT'.
-            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'CER_observacionesGT'.
+            [0] => 23000
+            [SQLSTATE] => 23000
+            [1] => 515
+            [code] => 515
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'OPC_orden', table 'TLX004MXDB.dbo.tblMXPRCertificadoOpcionFR'; column does not allow nulls. INSERT fails.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'OPC_orden', table 'TLX004MXDB.dbo.tblMXPRCertificadoOpcionFR'; column does not allow nulls. INSERT fails.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
         )
 
 )
 
-2026-08-11T17:58:03+02:00 Array
+2026-08-18T18:24:18+02:00 SQL: INSERT INTO tblMXPRCertificadoOpcionFR (OPC_tipo, OPC_valor, OPC_esFalla, OPC_orden, OPC_ibmConfig, OPC_nombreConfig) VALUES (?,?,?,?,?,?)
+PARAMS: Array
+(
+    [0] => OLOR
+    [1] => No Cumple
+    [2] => 1
+    [3] => 
+    [4] => 60040
+    [5] => Angel
+)
+
+ERROR: Array
 (
     [0] => Array
         (
-            [0] => 42S22
-            [SQLSTATE] => 42S22
-            [1] => 207
-            [code] => 207
-            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'CER_observacionesGT'.
-            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'CER_observacionesGT'.
+            [0] => 23000
+            [SQLSTATE] => 23000
+            [1] => 515
+            [code] => 515
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'OPC_orden', table 'TLX004MXDB.dbo.tblMXPRCertificadoOpcionFR'; column does not allow nulls. INSERT fails.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'OPC_orden', table 'TLX004MXDB.dbo.tblMXPRCertificadoOpcionFR'; column does not allow nulls. INSERT fails.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
         )
 
 )
 
-2026-08-11T17:58:14+02:00 Array
+2026-08-19T21:53:20+02:00 SQL: INSERT INTO tblMXPRCertificadoDefectoFR (DEF_atributo, DEF_nombre, DEF_orden, DEF_ibmConfig, DEF_nombreConfig) VALUES (?,?,?,?,?)
+PARAMS: Array
+(
+    [0] => SEGURIDAD
+    [1] => Contaminación, material peligroso u objetable
+    [2] => 
+    [3] => 60040
+    [4] => Angel
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 23000
+            [SQLSTATE] => 23000
+            [1] => 515
+            [code] => 515
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'DEF_orden', table 'TLX004MXDB.dbo.tblMXPRCertificadoDefectoFR'; column does not allow nulls. INSERT fails.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Cannot insert the value NULL into column 'DEF_orden', table 'TLX004MXDB.dbo.tblMXPRCertificadoDefectoFR'; column does not allow nulls. INSERT fails.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-19T23:48:59+02:00 SQL: UPDATE tblMXPRCertificadoPerfilFR SET PER_ibm = ?, PER_nombre = ?, PER_noemp = ?, PER_rol = ? WHERE PER_id = ?
+PARAMS: Array
+(
+    [0] => 58998
+    [1] => Angel
+    [2] => 58998
+    [3] => GERENTE
+    [4] => 21
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 23000
+            [SQLSTATE] => 23000
+            [1] => 2627
+            [code] => 2627
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Violation of UNIQUE KEY constraint 'UQ_PER_ibm_rol'. Cannot insert duplicate key in object 'dbo.tblMXPRCertificadoPerfilFR'. The duplicate key value is (58998, GERENTE).
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Violation of UNIQUE KEY constraint 'UQ_PER_ibm_rol'. Cannot insert duplicate key in object 'dbo.tblMXPRCertificadoPerfilFR'. The duplicate key value is (58998, GERENTE).
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-19T23:49:36+02:00 SQL: INSERT INTO tblMXPRCertificadoPerfilFR (PER_ibm, PER_nombre, PER_noemp, PER_rol) VALUES (?,?,?,?)
+PARAMS: Array
+(
+    [0] => 60040
+    [1] => Angel
+    [2] => 60040
+    [3] => GERENTE
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 23000
+            [SQLSTATE] => 23000
+            [1] => 2627
+            [code] => 2627
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Violation of UNIQUE KEY constraint 'UQ_PER_ibm_rol'. Cannot insert duplicate key in object 'dbo.tblMXPRCertificadoPerfilFR'. The duplicate key value is (60040, GERENTE).
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Violation of UNIQUE KEY constraint 'UQ_PER_ibm_rol'. Cannot insert duplicate key in object 'dbo.tblMXPRCertificadoPerfilFR'. The duplicate key value is (60040, GERENTE).
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-20T02:31:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T02:31:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:03+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:03+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:03+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:03+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:03+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:38+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:38+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:38+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:38+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:38+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:39+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:39+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:39+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:39+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:43+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:43+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:43+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:43+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:43+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:44+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:44+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:44+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:44+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-20T16:41:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:11+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:11+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:11+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:37:11+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:06+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:06+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:06+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:06+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:06+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:09+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:09+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:09+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:09+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:09+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:10+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:14+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:14+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:14+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:14+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:14+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:15+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:15+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:15+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:41:15+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:42:00+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:42:00+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:42:00+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T00:42:00+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:26+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:26+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:26+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:26+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:26+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:27+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:29+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:29+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:29+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:29+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:29+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:30+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:30+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:30+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:30+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T17:50:31+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:47+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:48+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T20:04:52+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:07+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:07+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:07+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:07+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:07+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:08+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:08+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:08+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:08+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:12+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:12+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:12+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:12+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:12+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:54:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:56:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:56:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:56:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:56:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-21T23:56:49+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:23+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:24+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:28+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:38:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:01+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:01+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:01+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:01+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:17+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:17+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:17+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:17+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:20+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:33+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:35+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:35+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:35+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:35+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:35+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:36+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T00:39:51+02:00 vista claves Array
+(
+    [0] => Array
+        (
+            [0] => 22018
+            [SQLSTATE] => 22018
+            [1] => 245
+            [code] => 245
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value 'E9387' to data type int.
+        )
+
+)
+
+2026-08-22T02:15:13+02:00 SQL: UPDATE tblMXPRCertificadoMicrobiologiaFR SET
+                MIC_tamc=?, MIC_tymc=?, MIC_patogenos=?,
+                MIC_observaciones=?, MIC_estatus=?, MIC_ibmCaptura=?, MIC_nombreCaptura=?, MIC_fechaCaptura=GETDATE(),
+                MIC_motivoRechazo=NULL
+             WHERE MIC_idCertificado=?
+PARAMS: Array
+(
+    [0] => 99
+    [1] => 1
+    [2] => Presentes: Candida albicans
+    [3] => No
+    [4] => 1
+    [5] => 60040
+    [6] => Angel
+    [7] => 48
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 22001
+            [SQLSTATE] => 22001
+            [1] => 8152
+            [code] => 8152
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-22T02:15:22+02:00 SQL: UPDATE tblMXPRCertificadoMicrobiologiaFR SET
+                MIC_tamc=?, MIC_tymc=?, MIC_patogenos=?,
+                MIC_observaciones=?, MIC_estatus=?, MIC_ibmCaptura=?, MIC_nombreCaptura=?, MIC_fechaCaptura=GETDATE(),
+                MIC_motivoRechazo=NULL
+             WHERE MIC_idCertificado=?
+PARAMS: Array
+(
+    [0] => <99
+    [1] => 1
+    [2] => Presentes: Candida albicans
+    [3] => No
+    [4] => 1
+    [5] => 60040
+    [6] => Angel
+    [7] => 48
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 22001
+            [SQLSTATE] => 22001
+            [1] => 8152
+            [code] => 8152
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-22T02:15:54+02:00 SQL: UPDATE tblMXPRCertificadoMicrobiologiaFR SET
+                MIC_tamc=?, MIC_tymc=?, MIC_patogenos=?,
+                MIC_observaciones=?, MIC_estatus=?, MIC_ibmCaptura=?, MIC_nombreCaptura=?, MIC_fechaCaptura=GETDATE(),
+                MIC_motivoRechazo=NULL
+             WHERE MIC_idCertificado=?
+PARAMS: Array
+(
+    [0] => <99
+    [1] => >1
+    [2] => Presentes: Candida albicans
+    [3] => No
+    [4] => 1
+    [5] => 60040
+    [6] => Angel
+    [7] => 48
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 22001
+            [SQLSTATE] => 22001
+            [1] => 8152
+            [code] => 8152
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-22T02:16:06+02:00 SQL: UPDATE tblMXPRCertificadoMicrobiologiaFR SET
+                MIC_tamc=?, MIC_tymc=?, MIC_patogenos=?,
+                MIC_observaciones=?, MIC_estatus=?, MIC_ibmCaptura=?, MIC_nombreCaptura=?, MIC_fechaCaptura=GETDATE(),
+                MIC_motivoRechazo=NULL
+             WHERE MIC_idCertificado=?
+PARAMS: Array
+(
+    [0] => <99
+    [1] => <1
+    [2] => Presentes: Candida albicans
+    [3] => No
+    [4] => 1
+    [5] => 60040
+    [6] => Angel
+    [7] => 48
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 22001
+            [SQLSTATE] => 22001
+            [1] => 8152
+            [code] => 8152
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-22T02:16:13+02:00 SQL: UPDATE tblMXPRCertificadoMicrobiologiaFR SET
+                MIC_tamc=?, MIC_tymc=?, MIC_patogenos=?,
+                MIC_observaciones=?, MIC_estatus=?, MIC_ibmCaptura=?, MIC_nombreCaptura=?, MIC_fechaCaptura=GETDATE(),
+                MIC_motivoRechazo=NULL
+             WHERE MIC_idCertificado=?
+PARAMS: Array
+(
+    [0] => <99
+    [1] => <1
+    [2] => Presentes: Candida albicans
+    [3] => No
+    [4] => 1
+    [5] => 60040
+    [6] => Angel
+    [7] => 48
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 22001
+            [SQLSTATE] => 22001
+            [1] => 8152
+            [code] => 8152
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-22T02:17:26+02:00 SQL: UPDATE tblMXPRCertificadoMicrobiologiaFR SET
+                MIC_tamc=?, MIC_tymc=?, MIC_patogenos=?,
+                MIC_observaciones=?, MIC_estatus=?, MIC_ibmCaptura=?, MIC_nombreCaptura=?, MIC_fechaCaptura=GETDATE(),
+                MIC_motivoRechazo=NULL
+             WHERE MIC_idCertificado=?
+PARAMS: Array
+(
+    [0] => >90
+    [1] => <1
+    [2] => Presentes: Candida albicans
+    [3] => No
+    [4] => 1
+    [5] => 60040
+    [6] => Angel
+    [7] => 48
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 22001
+            [SQLSTATE] => 22001
+            [1] => 8152
+            [code] => 8152
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-22T02:41:10+02:00 SQL: UPDATE tblMXPRCertificadoMicrobiologiaFR SET
+                MIC_tamc=?, MIC_tymc=?, MIC_patogenos=?,
+                MIC_observaciones=?, MIC_estatus=?, MIC_ibmCaptura=?, MIC_nombreCaptura=?, MIC_fechaCaptura=GETDATE(),
+                MIC_motivoRechazo=NULL
+             WHERE MIC_idCertificado=?
+PARAMS: Array
+(
+    [0] => >90
+    [1] => <1
+    [2] => Presentes: Candida albicans
+    [3] => No
+    [4] => 1
+    [5] => 60040
+    [6] => Angel
+    [7] => 48
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 22001
+            [SQLSTATE] => 22001
+            [1] => 8152
+            [code] => 8152
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]String or binary data would be truncated.
+        )
+
+    [1] => Array
+        (
+            [0] => 01000
+            [SQLSTATE] => 01000
+            [1] => 3621
+            [code] => 3621
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The statement has been terminated.
+        )
+
+)
+
+2026-08-25T01:55:25+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
 (
     [0] => Array
         (
@@ -34,8 +3364,806 @@
             [SQLSTATE] => 42S22
             [1] => 207
             [code] => 207
-            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'CER_observacionesGT'.
-            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'CER_observacionesGT'.
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T01:58:09+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T01:58:19+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T02:07:14+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T02:07:32+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T16:47:39+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T16:48:01+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T17:30:33+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T17:31:13+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazoOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazoOrigen'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazoCertificado'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazoCertificado'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivosRechazo'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivosRechazo'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'UltimoRechazo'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'UltimoRechazo'.
+        )
+
+)
+
+2026-08-25T17:31:55+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T17:33:02+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+        )
+
+)
+
+2026-08-25T17:33:24+02:00 SQL: SELECT Folio, Clave, Producto, Maquina, Turno,
+                   CONVERT(varchar(10), FechaProduccion, 23) AS fechaProduccion,
+                   TotalPalets, TotalCajas, CajasLiberadas,
+                   PaletsALiberar, PaletsExcluidos,
+                   EnProceso, Liberados, Rechazados,
+                   RechazadosGerencia, RechazadosOrigen,
+                   IdCertificado, MotivoExclusion,
+                   CONVERT(varchar(16), UltimaLiberacion, 120) AS ultimaLiberacion,
+                   EstatusFolio,
+                   Rechazados, RechazoOrigen, RechazoCertificado, MotivosRechazo,
+                   CONVERT(varchar(16), UltimoRechazo, 120) AS ultimoRechazo
+            FROM vwMXPRFolioLiberacion WHERE 1 = 1 ORDER BY FechaProduccion DESC, Folio DESC
+PARAMS: Array
+(
+)
+
+ERROR: Array
+(
+    [0] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsALiberar'.
+        )
+
+    [1] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'PaletsExcluidos'.
+        )
+
+    [2] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosGerencia'.
+        )
+
+    [3] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'RechazadosOrigen'.
+        )
+
+    [4] => Array
+        (
+            [0] => 42S22
+            [SQLSTATE] => 42S22
+            [1] => 207
+            [code] => 207
+            [2] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
+            [message] => [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'MotivoExclusion'.
         )
 
 )
