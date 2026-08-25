@@ -205,8 +205,21 @@ require_once(__DIR__ . "/../index/header.php");
                             <div class="vacio">Selecciona un departamento</div>
                         </div>
                     </div>
-                    <div class="col-lg-4">
+                    <!-- <div class="col-lg-4">
                         <div class="titulo-lista">SECCIÓN / EQUIPO</div>
+                        <div class="lista-panel" id="listaSecciones">
+                            <div class="vacio">Selecciona una máquina</div>
+                        </div>
+                    </div> -->
+
+                    <div class="col-lg-4">
+                        <div class="titulo-lista d-flex justify-content-between align-items-center">
+                            <span>SECCIÓN / EQUIPO</span>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="chkSoloPendientes">
+                                <label class="form-check-label small" for="chkSoloPendientes">Solo pendientes</label>
+                            </div>
+                        </div>
                         <div class="lista-panel" id="listaSecciones">
                             <div class="vacio">Selecciona una máquina</div>
                         </div>

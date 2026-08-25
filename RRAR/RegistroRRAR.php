@@ -79,6 +79,18 @@ require_once(__DIR__ . "/../index/header.php");
                     <i class="fa-solid fa-sliders me-1"></i>Personalizar
                 </button>
 
+                <button type="button" id="btnBorradores" class="btn btn-gris" data-bs-toggle="modal"
+                    data-bs-target="#modalBorradores"
+                    style="position:fixed;top:140px;right:24px;z-index:1030;border-radius:24px;box-shadow:0 3px 10px rgba(0,0,0,.2)">
+                    <i class="fa-regular fa-floppy-disk me-1"></i>Borradores
+                </button>
+
+                <div id="brrEstado" style="position:fixed;top:186px;right:24px;z-index:1030;font-size:.78rem;
+                            padding:4px 12px;border-radius:14px;background:#e8f0fe;color:#1f3d7c;
+                            box-shadow:0 2px 6px rgba(0,0,0,.12);display:none">
+                    <i class="fa-regular fa-clock me-1"></i><span id="brrEstadoTxt"></span>
+                </div>
+
                 <div class="tab-content">
 
                     <!-- ####################### TAB 1 ####################### -->
@@ -183,8 +195,10 @@ require_once(__DIR__ . "/../index/header.php");
                                                     escenario.</div>
                                             </div>
                                             <div class="col-lg-6 text-center">
-                                                <img id="t1ImagenPreview" src="" alt=""
-                                                    style="display:none;max-height:120px;border:1px solid #d9dce1;border-radius:8px">
+                                                <!-- <img id="t1ImagenPreview" src="" alt=""
+                                                    style="display:none;max-height:120px;border:1px solid #d9dce1;border-radius:8px"> -->
+                                                <img id="t1ImagenPreview" src="" alt="" class="img-evidencia"
+                                                    style="display:none">
                                             </div>
                                         </div>
 
@@ -473,6 +487,12 @@ require_once(__DIR__ . "/../index/header.php");
                             <div class="col-lg-3"><label class="form-label">ID Equipo</label>
                                 <input type="text" id="t4IdEquipo" class="form-control input-solo-lectura" readonly>
                             </div>
+                            <div class="col-lg-3 d-flex align-items-end">
+                                <button type="button" id="t4BtnFeedback" class="btn btn-azul w-100" disabled>
+                                    <i class="fa-regular fa-comments me-1"></i>Feedback
+                                    <span class="badge bg-danger ms-1" id="t4BadgeFeedback">0</span>
+                                </button>
+                            </div>
                         </div>
 
                         <div id="t4SinDatos" class="text-center text-muted py-5">Selecciona una máquina y su sección
@@ -496,12 +516,18 @@ require_once(__DIR__ . "/../index/header.php");
                                                         Puro</div>
                                                     <hr>
                                                     <table class="table tabla-rarr mb-0">
-                                                        <thead>
+                                                        <!-- <thead>
                                                             <tr>
                                                                 <th>Nivel</th>
                                                                 <th class="text-center">Escenarios</th>
                                                             </tr>
+                                                        </thead> -->
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Escenarios de Riesgo Registrados</th>
+                                                            </tr>
                                                         </thead>
+
                                                         <tbody id="t4TablaNiveles"></tbody>
                                                     </table>
                                                 </div>
@@ -687,8 +713,9 @@ require_once(__DIR__ . "/../index/header.php");
                                                             class="fa-solid fa-triangle-exclamation me-2"></i>Categorías
                                                         de Peligro</button>
                                                     <button type="button" class="btn btn-gris text-start cfg-btn"
-                                                        data-tipo="consecuencias"><i
-                                                            class="fa-solid fa-heart-crack me-2"></i>Consecuencias</button>
+                                                        data-tipo="consecuencias">
+                                                        <i class="fa-solid fa-heart-crack me-2"></i>Consecuencias
+                                                    </button>
                                                     <button type="button" class="btn btn-gris text-start cfg-btn"
                                                         data-tipo="mecanismos"><i
                                                             class="fa-solid fa-gears me-2"></i>Mecanismos</button>
@@ -701,6 +728,37 @@ require_once(__DIR__ . "/../index/header.php");
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--================= MODAL BORRADOR ======================= -->
+                <div class="modal fade" id="modalBorradores" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content" style="border-radius:12px">
+                            <div class="modal-header" style="background:#1f3d7c;color:#fff;border-radius:12px 12px 0 0">
+                                <h5 class="modal-title"><i class="fa-regular fa-floppy-disk me-2"></i>Borradores
+                                    guardados</h5>
+                                <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="brrCuerpo"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== MODAL FEEDBACK ==================== -->
+                <div class="modal fade" id="modalFeedbackRARR" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content" style="border-radius:12px">
+                            <div class="modal-header" style="background:#1f3d7c;color:#fff;border-radius:12px 12px 0 0">
+                                <h5 class="modal-title"><i class="fa-regular fa-comments me-2"></i>Feedback del RARR
+                                    <small id="fbrEquipo" class="ms-2"></small>
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="fbrCuerpo"></div>
                         </div>
                     </div>
                 </div>

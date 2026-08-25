@@ -18,6 +18,7 @@ $p1 = $payload['paso1'] ?? null;
 $p2 = $payload['paso2'] ?? null;
 $p3 = $payload['paso3'] ?? null;
 $idRARREdicion = enteroONull($payload['idRARR'] ?? null);
+$idBorrador = enteroONull($payload['idBorrador'] ?? null);
 
 if (!$p1 || !$p2 || !$p3) {
     responderError("Faltan pasos por completar");
@@ -115,6 +116,7 @@ if (sqlsrv_begin_transaction($conn) === false) {
 
 /* ---------- 0. Edición: escenarios propios previos + limpiar hijos reinsertables ---------- */
 $idsPrevios = [];
+$planPrevio = [];   // IdEscenario -> IdSeguimiento (para no perder el feedback)
 if ($idRARREdicion !== null) {
     foreach (ejecutarQuery(
         $conn,
@@ -124,11 +126,25 @@ if ($idRARREdicion !== null) {
     ) as $r) {
         $idsPrevios[(int) $r['IdEscenario']] = true;
     }
+
+    /* El plan de acción NO se borra: se actualiza, para conservar el feedback */
+    foreach (ejecutarQuery(
+        $conn,
+        "SELECT IdSeguimiento, IdEscenario, ISNULL(IdEstatus,1) AS IdEstatus
+         FROM TLX002MXDB.dbo.Seg_SeguimientoControl
+         WHERE IdRARR = ? AND Activo = 1",
+        [$idRARREdicion]
+    ) as $r) {
+        $planPrevio[(int) $r['IdEscenario']] = [
+            'id' => (int) $r['IdSeguimiento'],
+            'estatus' => (int) $r['IdEstatus']
+        ];
+    }
+
     ejecutarTx($conn, "DELETE FROM TLX002MXDB.dbo.Seg_EscenarioRiesgo WHERE IdRARR = ? AND EsGenerico = 1", [$idRARREdicion]);
     ejecutarTx($conn, "DELETE FROM TLX002MXDB.dbo.Seg_EvaluacionRARR WHERE IdRARR = ?", [$idRARREdicion]);
     ejecutarTx($conn, "DELETE FROM TLX002MXDB.dbo.Seg_AccionMejora WHERE IdRARR = ?", [$idRARREdicion]);
-    ejecutarTx($conn, "DELETE FROM TLX002MXDB.dbo.Seg_SeguimientoControl WHERE IdRARR = ?", [$idRARREdicion]);
-
+    /* ← ya no se borra Seg_SeguimientoControl */
 }
 
 
@@ -152,6 +168,7 @@ $marcadorGuardas = 0;
 $marcadorIngenieria = 0;
 $idsEscenario = [];  // índice del payload -> IdEscenario (para las imágenes)
 $vistos = [];
+$vistosPlan = [];
 $totalEscenarios = 0;
 $totalEvaluaciones = 0;
 $totalSoluciones = 0;
@@ -327,32 +344,58 @@ foreach ($p1['escenarios'] as $i => $e) {
     $marcadorIngenieria += $c3;
     $totalSoluciones++;
 
-    /* Plan de Acción (Paso 3, div 2) — uno por escenario */
-    $descPlan = limpiar($ep3b['descripcion'] ?? '');
-    $fechaPlan = limpiar($ep3b['fecha'] ?? '');
+    /* Plan de Acción (uno por escenario) — upsert para conservar el feedback */
+    $p3b = $e['p3b'] ?? [];
+    $descPlan = limpiar($p3b['descripcion'] ?? '');
+    $fechaPlan = limpiar($p3b['fecha'] ?? '');
     if ($descPlan === '') {
         abortar($conn, "El plan de acción del Escenario " . ($i + 1) . " está incompleto");
     }
     if ($fechaPlan !== '' && DateTime::createFromFormat('Y-m-d', $fechaPlan) === false) {
         abortar($conn, "Una fecha objetivo del Plan de Acción no es válida");
     }
-    insertarTx(
-        $conn,
-        "INSERT INTO TLX002MXDB.dbo.Seg_SeguimientoControl
-            (IdRARR, IdEscenario, Descripcion, IbmResponsable, Responsable,
-             FechaImplementacion, IdEstatus, no_emp)
-         VALUES (?,?,?,?,?,?,?,?)",
-        [
-            $idRARR,
-            $idEsc,
-            $descPlan,
-            limpiar($ep3b['ibm'] ?? ''),
-            limpiar($ep3b['responsable'] ?? ''),
-            $fechaPlan !== '' ? $fechaPlan : null,
-            enteroONull($ep3b['idEstatus'] ?? null),
-            $noEmp
-        ]
-    );
+
+    $estatusForm = enteroONull($p3b['idEstatus'] ?? null);
+
+    if (isset($planPrevio[$idEsc])) {
+        /* Si el supervisor ya validó (estatus 3), no se degrada al editar */
+        $estatusFinal = $planPrevio[$idEsc]['estatus'] === 3 ? 3 : $estatusForm;
+
+        ejecutarTx(
+            $conn,
+            "UPDATE TLX002MXDB.dbo.Seg_SeguimientoControl
+             SET Descripcion = ?, IbmResponsable = ?, Responsable = ?,
+                 FechaImplementacion = ?, IdEstatus = ?
+             WHERE IdSeguimiento = ?",
+            [
+                $descPlan,
+                limpiar($p3b['ibm'] ?? ''),
+                limpiar($p3b['responsable'] ?? ''),
+                $fechaPlan !== '' ? $fechaPlan : null,
+                $estatusFinal,
+                $planPrevio[$idEsc]['id']
+            ]
+        );
+        $vistosPlan[$planPrevio[$idEsc]['id']] = true;
+    } else {
+        insertarTx(
+            $conn,
+            "INSERT INTO TLX002MXDB.dbo.Seg_SeguimientoControl
+                (IdRARR, IdEscenario, Descripcion, IbmResponsable, Responsable,
+                 FechaImplementacion, IdEstatus, no_emp)
+             VALUES (?,?,?,?,?,?,?,?)",
+            [
+                $idRARR,
+                $idEsc,
+                $descPlan,
+                limpiar($p3b['ibm'] ?? ''),
+                limpiar($p3b['responsable'] ?? ''),
+                $fechaPlan !== '' ? $fechaPlan : null,
+                $estatusForm,
+                $noEmp
+            ]
+        );
+    }
     $totalAcciones++;
 }
 
@@ -361,6 +404,7 @@ foreach (array_keys($idsPrevios) as $idViejo) {
     if (!isset($vistos[$idViejo])) {
         ejecutarTx($conn, "UPDATE TLX002MXDB.dbo.Seg_EscenarioRiesgo SET Activo = 0 WHERE IdEscenario = ?", [$idViejo]);
         ejecutarTx($conn, "UPDATE TLX002MXDB.dbo.Seg_ImagenRARR SET Activo = 0 WHERE IdEscenario = ?", [$idViejo]);
+        ejecutarTx($conn, "UPDATE TLX002MXDB.dbo.Seg_SeguimientoControl SET Activo = 0 WHERE IdEscenario = ?", [$idViejo]);
     }
 }
 
@@ -445,12 +489,48 @@ foreach (($p1['genericos'] ?? []) as $g) {
 }
 
 /* ---------- 4. Imágenes por escenario (Paso 1 y Paso 3) ---------- */
-function guardarImagenEsc($conn, $campo, $paso, $idEquipo, $idEscenario, $noEmp)
+function guardarImagenEsc($conn, $campo, $paso, $idEquipo, $idEscenario, $noEmp, $idBorrador, $indice)
 {
     /* Sin archivo nuevo = conservar la existente */
     if (!isset($_FILES[$campo]) || $_FILES[$campo]['error'] !== UPLOAD_ERR_OK) {
+        /* Sin archivo nuevo: si viene de un borrador, se copia su imagen */
+        if ($idBorrador !== null) {
+            $b = ejecutarQuery(
+                $conn,
+                "SELECT TOP 1 NombreArchivo, TipoMime, Imagen
+                 FROM TLX002MXDB.dbo.Seg_BorradorImagenRARR
+                 WHERE IdBorrador = ? AND Indice = ? AND Paso = ?",
+                [$idBorrador, $indice, $paso]
+            );
+            if (count($b) > 0) {
+                ejecutarTx(
+                    $conn,
+                    "UPDATE TLX002MXDB.dbo.Seg_ImagenRARR SET Activo=0 WHERE IdEscenario=? AND Paso=? AND Activo=1",
+                    [$idEscenario, $paso]
+                );
+                $stmt = sqlsrv_query(
+                    $conn,
+                    "INSERT INTO TLX002MXDB.dbo.Seg_ImagenRARR
+                        (IdEquipo, Paso, IdEscenario, NombreArchivo, TipoMime, Imagen, no_emp)
+                     VALUES (?,?,?,?,?,?,?)",
+                    [
+                        $idEquipo,
+                        $paso,
+                        $idEscenario,
+                        $b[0]['NombreArchivo'],
+                        $b[0]['TipoMime'],
+                        [$b[0]['Imagen'], SQLSRV_PARAM_IN, SQLSRV_PHPTYPE_STRING(SQLSRV_ENC_BINARY), SQLSRV_SQLTYPE_VARBINARY('max')],
+                        $noEmp
+                    ]
+                );
+                if ($stmt !== false)
+                    sqlsrv_free_stmt($stmt);
+                return true;
+            }
+        }
         return false;
     }
+
     $tmp = $_FILES[$campo]['tmp_name'];
     $info = @getimagesize($tmp);
     if ($info === false) {
@@ -489,8 +569,8 @@ function guardarImagenEsc($conn, $campo, $paso, $idEquipo, $idEscenario, $noEmp)
 }
 
 foreach ($idsEscenario as $i => $idEsc) {
-    guardarImagenEsc($conn, "imgP1_$i", 1, $idEquipo, $idEsc, $noEmp);
-    guardarImagenEsc($conn, "imgP3_$i", 3, $idEquipo, $idEsc, $noEmp);
+    guardarImagenEsc($conn, "imgP1_$i", 1, $idEquipo, $idEsc, $noEmp, $idBorrador, $i);
+    guardarImagenEsc($conn, "imgP3_$i", 3, $idEquipo, $idEsc, $noEmp, $idBorrador, $i);
 }
 
 /* ---------- 5. Marcadores y nivel global ---------- */
@@ -524,13 +604,21 @@ if (sqlsrv_commit($conn) === false) {
 }
 sqlsrv_close($conn);
 
-registrarLog($conn, $idRARREdicion ? 'Edicion' : 'Alta', [
-    'modulo' => 'RegistroRARR',
-    'entidad' => 'RARR',
-    'idEquipo' => $idEquipo,
-    'idRARR' => $idRARR,
-    'detalle' => ['escenarios' => $totalEscenarios, 'genericos' => $totalGenericos]
-]);
+/* El RARR ya quedo guardado: el borrador se elimina*/
+if ($idBorrador !== null) {
+    $c2 = (new ClassConexion())->conexion("TLX002MXDB");
+    sqlsrv_query($c2, "DELETE FROM TLX002MXDB.dbo.Seg_BorradorImagenRARR WHERE IdBorrador = ?", [$idBorrador]);
+    sqlsrv_query($c2, "DELETE FROM TLX002MXDB.dbo.Seg_BorradorRARR WHERE IdBorrador = ?", [$idBorrador]);
+    sqlsrv_close($c2);
+}
+
+// registrarLog($conn, $idRARREdicion ? 'Edicion' : 'Alta', [
+//     'modulo' => 'RegistroRARR',
+//     'entidad' => 'RARR',
+//     'idEquipo' => $idEquipo,
+//     'idRARR' => $idRARR,
+//     'detalle' => ['escenarios' => $totalEscenarios, 'genericos' => $totalGenericos]
+// ]);
 
 responderOK([
     "idRARR" => $idRARR,

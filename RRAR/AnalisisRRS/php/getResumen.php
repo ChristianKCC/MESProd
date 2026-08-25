@@ -18,13 +18,24 @@ $ClassConexion = new ClassConexion();
 $conn = $ClassConexion->conexion("TLX002MXDB");
 
 /* --- RARR --- */
-$sqlRARR = "SELECT
-                COUNT(*) AS Total,
-                SUM(CASE WHEN Estatus = 'Concluido' THEN 1 ELSE 0 END) AS Concluidos
-            FROM TLX002MXDB.dbo.Seg_RARR
-            WHERE IdDepartamento = ?";
-$rarr = ejecutarQuery($conn, $sqlRARR, [$idDepartamento]);
-$totalRARR = (int) ($rarr[0]['Total'] ?? 0);
+// $sqlRARR = "SELECT
+//                 COUNT(*) AS Total,
+//                 SUM(CASE WHEN Estatus = 'Concluido' THEN 1 ELSE 0 END) AS Concluidos
+//             FROM TLX002MXDB.dbo.Seg_RARR
+//             WHERE IdDepartamento = ?";
+// $rarr = ejecutarQuery($conn, $sqlRARR, [$idDepartamento]);
+// $totalRARR = (int) ($rarr[0]['Total'] ?? 0);
+// $concluidosRARR = (int) ($rarr[0]['Concluidos'] ?? 0);
+
+/* --- RARR: total = secciones del depto; pendientes = sin RARR + sin concluir --- */
+$sqlSec = "SELECT
+               (SELECT COUNT(*) FROM TLX002MXDB.dbo.Seg_SeccionMaquina
+                 WHERE NoDepto = ? AND Activo = 1) AS TotalSecciones,
+               (SELECT COUNT(*) FROM TLX002MXDB.dbo.Seg_RARR
+                 WHERE IdDepartamento = ? AND Estatus = 'Concluido') AS Concluidos";
+$rarr = ejecutarQuery($conn, $sqlSec, [$idDepartamento, $idDepartamento]);
+
+$totalRARR = (int) ($rarr[0]['TotalSecciones'] ?? 0);
 $concluidosRARR = (int) ($rarr[0]['Concluidos'] ?? 0);
 
 /* --- Personal ---

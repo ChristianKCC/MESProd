@@ -66,6 +66,16 @@ export const API = {
 
   /* Obtencion de RRAR pendientes */
   getPendientesRARR: `${BASE}/RegistroRARR/php/getPendientesRARR.php`, // ?idEquipo=
+
+  getFeedbackRARR: `${BASE}/RegistroRARR/php/getFeedbackRARR.php`, // ?idEquipo=
+  responderFeedbackRARR: `${BASE}/RegistroRARR/php/responderFeedbackRARR.php`, // POST
+
+  getContadorFeedbackRARR: `${BASE}/RegistroRARR/php/getContadorFeedbackRARR.php`, // ?idEquipo=
+
+  guardarBorrador: `${BASE}/RegistroRARR/php/guardarBorrador.php`,
+  getBorradores: `${BASE}/RegistroRARR/php/getBorradores.php`,
+  getImagenBorrador: `${BASE}/RegistroRARR/php/getImagenBorrador.php`,
+  eliminarBorrador: `${BASE}/RegistroRARR/php/eliminarBorrador.php`,
 };
 
 /* GET con query params: llamarGET(API.getResumen, { idDepartamento: 3 }) */

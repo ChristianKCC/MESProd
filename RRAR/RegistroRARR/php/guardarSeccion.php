@@ -63,26 +63,63 @@ if ($id !== null) {
 }
 
 /* ---- El IdEquipo resultante no se puede repetir ---- */
-$idEquipoNuevo = strtoupper(trim($infoM[0]['Departamento'])) . '-'
-    . strtoupper(trim($infoM[0]['Maquina'])) . '-' . $abreviatura . '-01';
+// $idEquipoNuevo = strtoupper(trim($infoM[0]['Departamento'])) . '-'
+//     . strtoupper(trim($infoM[0]['Maquina'])) . '-' . $abreviatura . '-01';
 
-$dup = ejecutarQuery(
+// $dup = ejecutarQuery(
+//     $conn,
+//     "SELECT COUNT(*) AS N FROM TLX002MXDB.dbo.Seg_SeccionMaquina
+//      WHERE Activo = 1 AND IdEquipo = ? AND IdSeccion <> ISNULL(?, 0)",
+//     [$idEquipoNuevo, $id]
+// );
+// if ((int) $dup[0]['N'] > 0) {
+//     sqlsrv_close($conn);
+//     responderError("Ya existe una sección con el ID de equipo $idEquipoNuevo");
+// }
+
+// if ($id === null) {
+//     $nuevo = insertarYObtenerId(
+//         $conn,
+//         "INSERT INTO TLX002MXDB.dbo.Seg_SeccionMaquina
+//             (NoDepto, Departamento, NoMaquina, Maquina, NombreSeccion, Abreviatura, no_emp)
+//          VALUES (?,?,?,?,?,?,?)",
+//         [
+//             (int) $infoM[0]['IdDepartamento'],
+//             $infoM[0]['Departamento'],
+//             (int) $infoM[0]['IdMaquina'],
+//             $infoM[0]['Maquina'],
+//             $nombreSeccion,
+//             $abreviatura,
+//             $noEmp
+//         ]
+//     );
+//     sqlsrv_close($conn);
+//     responderOK(["id" => $nuevo, "idEquipo" => $idEquipoNuevo], "Sección agregada correctamente");
+// }
+
+/* ---- Consecutivo: si el ID base ya existe, se asigna el siguiente ---- */
+$prefijo = strtoupper(trim($infoM[0]['Departamento'])) . '-'
+    . strtoupper(trim($infoM[0]['Maquina'])) . '-' . $abreviatura . '-';
+
+$cons = ejecutarQuery(
     $conn,
-    "SELECT COUNT(*) AS N FROM TLX002MXDB.dbo.Seg_SeccionMaquina
-     WHERE Activo = 1 AND IdEquipo = ? AND IdSeccion <> ISNULL(?, 0)",
-    [$idEquipoNuevo, $id]
+    "SELECT ISNULL(MAX(Consecutivo), 0) AS Ultimo
+     FROM TLX002MXDB.dbo.Seg_SeccionMaquina
+     WHERE Activo = 1 AND NoDepto = ? AND NoMaquina = ? AND Abreviatura = ?
+       AND IdSeccion <> ISNULL(?, 0)",
+    [(int) $infoM[0]['IdDepartamento'], (int) $infoM[0]['IdMaquina'], $abreviatura, $id]
 );
-if ((int) $dup[0]['N'] > 0) {
-    sqlsrv_close($conn);
-    responderError("Ya existe una sección con el ID de equipo $idEquipoNuevo");
-}
+$ultimo = (int) $cons[0]['Ultimo'];
 
 if ($id === null) {
+    $consecutivo = $ultimo + 1;
+    $idEquipoNuevo = $prefijo . str_pad($consecutivo, 2, '0', STR_PAD_LEFT);
+
     $nuevo = insertarYObtenerId(
         $conn,
         "INSERT INTO TLX002MXDB.dbo.Seg_SeccionMaquina
-            (NoDepto, Departamento, NoMaquina, Maquina, NombreSeccion, Abreviatura, no_emp)
-         VALUES (?,?,?,?,?,?,?)",
+            (NoDepto, Departamento, NoMaquina, Maquina, NombreSeccion, Abreviatura, Consecutivo, no_emp)
+         VALUES (?,?,?,?,?,?,?,?)",
         [
             (int) $infoM[0]['IdDepartamento'],
             $infoM[0]['Departamento'],
@@ -90,12 +127,20 @@ if ($id === null) {
             $infoM[0]['Maquina'],
             $nombreSeccion,
             $abreviatura,
+            $consecutivo,
             $noEmp
         ]
     );
     sqlsrv_close($conn);
-    responderOK(["id" => $nuevo, "idEquipo" => $idEquipoNuevo], "Sección agregada correctamente");
+    responderOK([
+        "id" => $nuevo,
+        "idEquipo" => $idEquipoNuevo,
+        "consecutivo" => $consecutivo,
+        "duplicado" => $ultimo > 0     // avisa que ya existía uno igual
+    ], "Sección agregada correctamente");
 }
+
+
 
 $stmt = sqlsrv_query(
     $conn,

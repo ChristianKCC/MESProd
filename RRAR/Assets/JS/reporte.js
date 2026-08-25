@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document
     .getElementById("slcDepartamento")
     .addEventListener("change", onCambioDepartamento);
+  document
+    .getElementById("chkSoloPendientes")
+    .addEventListener("change", pintarSecciones);
 });
 
 /* -------------------- Departamentos -------------------- */
@@ -156,34 +159,101 @@ function pintarListaMaquinas(maquinas) {
 }
 
 /* -------------------- 2) Lista de SECCIONES -------------------- */
+// async function cargarSecciones(idMaquina) {
+//   const cont = document.getElementById("listaSecciones");
+//   cont.innerHTML = `<div class="vacio">Cargando…</div>`;
+//   limpiarPanelRARR();
+
+//   try {
+//     const res = await llamarGET(API.getSeccionesRARR, { idMaquina });
+//     cont.innerHTML = "";
+//     if (res.data.length === 0) {
+//       cont.innerHTML = `<div class="vacio">Esta máquina no tiene secciones dadas de alta</div>`;
+//       return;
+//     }
+//     res.data.forEach((s) => {
+//       const div = document.createElement("div");
+//       div.className = "item";
+//       div.innerHTML = `${s.Seccion}<br><small class="text-muted">${s.IdEquipo}</small>`;
+//       div.addEventListener("click", () => {
+//         cont
+//           .querySelectorAll(".item")
+//           .forEach((i) => i.classList.remove("activo"));
+//         div.classList.add("activo");
+//         cargarRARR(s.IdEquipo);
+//       });
+//       cont.appendChild(div);
+//     });
+//   } catch (e) {
+//     mostrarError(e.message);
+//   }
+// }
+
+let seccionesActuales = [];
+
 async function cargarSecciones(idMaquina) {
   const cont = document.getElementById("listaSecciones");
   cont.innerHTML = `<div class="vacio">Cargando…</div>`;
   limpiarPanelRARR();
-
   try {
     const res = await llamarGET(API.getSeccionesRARR, { idMaquina });
-    cont.innerHTML = "";
-    if (res.data.length === 0) {
-      cont.innerHTML = `<div class="vacio">Esta máquina no tiene secciones dadas de alta</div>`;
-      return;
-    }
-    res.data.forEach((s) => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `${s.Seccion}<br><small class="text-muted">${s.IdEquipo}</small>`;
-      div.addEventListener("click", () => {
-        cont
-          .querySelectorAll(".item")
-          .forEach((i) => i.classList.remove("activo"));
-        div.classList.add("activo");
-        cargarRARR(s.IdEquipo);
-      });
-      cont.appendChild(div);
-    });
+    seccionesActuales = res.data || [];
+    pintarSecciones();
   } catch (e) {
     mostrarError(e.message);
   }
+}
+
+function pintarSecciones() {
+  const cont = document.getElementById("listaSecciones");
+  const solo = document.getElementById("chkSoloPendientes").checked;
+
+  const lista = solo
+    ? seccionesActuales.filter(
+        (s) =>
+          Number(s.TieneRARR) === 0 ||
+          s.EstatusRARR !== "Concluido" ||
+          Number(s.AccionesPendientes) > 0,
+      )
+    : seccionesActuales;
+
+  cont.innerHTML = "";
+  if (lista.length === 0) {
+    cont.innerHTML = `<div class="vacio">${
+      solo
+        ? "No hay secciones pendientes en esta máquina"
+        : "Esta máquina no tiene secciones dadas de alta"
+    }</div>`;
+    return;
+  }
+
+  lista.forEach((s) => {
+    let etiqueta;
+    if (Number(s.TieneRARR) === 0) {
+      etiqueta = `<span class="badge bg-danger">Sin RARR</span>`;
+    } else if (s.EstatusRARR === "Concluido") {
+      etiqueta = `<span class="badge bg-success">Concluido</span>`;
+    } else {
+      etiqueta = `<span class="badge bg-warning text-dark">En proceso</span>`;
+    }
+    const acc =
+      Number(s.AccionesPendientes) > 0
+        ? `<span class="badge bg-secondary ms-1" title="Acciones por concluir">${s.AccionesPendientes} pend.</span>`
+        : "";
+
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `${s.Seccion}<br>
+      <small class="text-muted">${s.IdEquipo}</small><br>${etiqueta}${acc}`;
+    div.addEventListener("click", () => {
+      cont
+        .querySelectorAll(".item")
+        .forEach((i) => i.classList.remove("activo"));
+      div.classList.add("activo");
+      cargarRARR(s.IdEquipo);
+    });
+    cont.appendChild(div);
+  });
 }
 
 /* -------------------- 3) Panel del RARR (por IdEquipo) -------------------- */

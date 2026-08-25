@@ -232,6 +232,14 @@ function registrarEventos() {
     .getElementById("t4BtnConcluir")
     .addEventListener("click", concluirRARR);
 
+  document
+    .getElementById("t4BtnFeedback")
+    .addEventListener("click", abrirFeedbackRARR);
+
+  document
+    .getElementById("btnBorradores")
+    .addEventListener("click", abrirBorradores);
+
   registrarEventosConfig();
 }
 
@@ -359,11 +367,19 @@ function leerImagen(e, idPrev) {
   return file;
 }
 
+// function celdaFoto(img) {
+//   if (img instanceof File)
+//     return `<img src="${URL.createObjectURL(img)}" style="height:36px;border-radius:4px">`;
+//   if (typeof img === "string" && img)
+//     return `<img src="${img}" style="height:36px;border-radius:4px">`;
+//   return `<span class="text-muted">—</span>`;
+// }
+
 function celdaFoto(img) {
   if (img instanceof File)
-    return `<img src="${URL.createObjectURL(img)}" style="height:36px;border-radius:4px">`;
+    return `<img src="${URL.createObjectURL(img)}" class="img-evidencia-mini">`;
   if (typeof img === "string" && img)
-    return `<img src="${img}" style="height:36px;border-radius:4px">`;
+    return `<img src="${img}" class="img-evidencia-mini">`;
   return `<span class="text-muted">—</span>`;
 }
 
@@ -807,6 +823,8 @@ function continuarPaso1() {
     marcadorPuro: total,
   };
 
+  guardarBorrador(false);
+
   Swal.fire({
     icon: "success",
     title: "Paso 1 completo",
@@ -903,11 +921,20 @@ function pintarCardsT2() {
               <label class="form-label">Medidas de Mitigación <span class="text-danger">*</span></label>
               <textarea class="form-control t2f" data-i="${i}" data-campo="mitigacion" rows="3">${f.p2.mitigacion || ""}</textarea>
             </div>
+
             <div class="col-lg-2">
-              <label class="form-label">IBM Responsable <span class="text-danger">*</span></label>
-              <input type="text" class="form-control t2ibm" data-i="${i}" value="${f.p2.ibm || ""}" placeholder="IBM">
-              <input type="text" class="form-control input-solo-lectura mt-2" id="t2Resp${i}" readonly value="${f.p2.responsable || ""}" placeholder="Nombre">
+              <label class="form-label">IBM Responsable</label>
+              <input type="text" class="form-control t2ibm" data-i="${i}" value="${f.p2.ibm || ""}"
+                     placeholder="IBM" ${f.p2.sinResp ? "disabled" : ""}>
+              <input type="text" class="form-control input-solo-lectura mt-2" id="t2Resp${i}" readonly
+                     value="${f.p2.responsable || ""}" placeholder="Nombre">
+              <div class="form-check mt-1">
+                <input class="form-check-input t2sinresp" type="checkbox" id="t2Sin${i}" data-i="${i}"
+                       ${f.p2.sinResp ? "checked" : ""}>
+                <label class="form-check-label small" for="t2Sin${i}">No aplica</label>
+              </div>
             </div>
+
             <div class="col-lg-2">
               <label class="form-label">Fecha Impl. <span class="text-danger">*</span></label>
               <input type="date" class="form-control t2f" data-i="${i}" data-campo="fecha" value="${f.p2.fecha || ""}">
@@ -917,6 +944,12 @@ function pintarCardsT2() {
       </div>`;
     })
     .join("");
+
+  // <div class="col-lg-2">
+  //           <label class="form-label">IBM Responsable <span class="text-danger">*</span></label>
+  //           <input type="text" class="form-control t2ibm" data-i="${i}" value="${f.p2.ibm || ""}" placeholder="IBM">
+  //           <input type="text" class="form-control input-solo-lectura mt-2" id="t2Resp${i}" readonly value="${f.p2.responsable || ""}" placeholder="Nombre">
+  //         </div>
 
   cont.querySelectorAll(".t2f").forEach((el) =>
     el.addEventListener("change", () => {
@@ -930,6 +963,7 @@ function pintarCardsT2() {
       actualizarPuntajeT2(i);
     }),
   );
+
   cont.querySelectorAll(".t2ibm").forEach((el) =>
     el.addEventListener("blur", async () => {
       const i = +el.dataset.i;
@@ -937,6 +971,24 @@ function pintarCardsT2() {
       const nombre = await nombreEmpleado(el.value.trim());
       escenarios[i].p2.responsable = nombre;
       document.getElementById("t2Resp" + i).value = nombre;
+    }),
+  );
+
+  cont.querySelectorAll(".t2sinresp").forEach((el) =>
+    el.addEventListener("change", () => {
+      const i = +el.dataset.i;
+      escenarios[i].p2.sinResp = el.checked;
+      const inp = cont.querySelector(`.t2ibm[data-i="${i}"]`);
+      inp.disabled = el.checked;
+      if (el.checked) {
+        inp.value = "";
+        escenarios[i].p2.ibm = "";
+        escenarios[i].p2.responsable = "No aplica";
+      } else {
+        escenarios[i].p2.responsable = "";
+      }
+      document.getElementById("t2Resp" + i).value =
+        escenarios[i].p2.responsable;
     }),
   );
 }
@@ -959,15 +1011,25 @@ function continuarPaso2() {
   }
   for (let i = 0; i < escenarios.length; i++) {
     const p = escenarios[i].p2 || {};
+    // if (
+    //   !p.descGuarda ||
+    //   !p.idCriterioGuarda ||
+    //   !p.idSeguridadFuncional ||
+    //   !p.accionesContencion ||
+    //   !p.mitigacion ||
+    //   !p.ibm ||
+    //   !p.responsable ||
+    //   !p.fecha
+    // ) {
+
     if (
       !p.descGuarda ||
       !p.idCriterioGuarda ||
       !p.idSeguridadFuncional ||
       !p.accionesContencion ||
       !p.mitigacion ||
-      !p.ibm ||
-      !p.responsable ||
-      !p.fecha
+      !p.fecha ||
+      (!p.sinResp && (!p.ibm || !p.responsable))
     ) {
       mostrarAviso(`Completa la evaluación del Escenario ${i + 1}`);
       return;
@@ -1005,6 +1067,8 @@ function continuarPaso2() {
     marcadorGuardas: total,
   };
 
+  guardarBorrador(false);
+
   Swal.fire({
     icon: "success",
     title: "Paso 2 completo",
@@ -1031,12 +1095,22 @@ function pintarCardsT3() {
       const punt = puntajeP3(f);
       const v = punt !== null ? clasificacionVisual(punt) : null;
 
+      // const prev =
+      //   f.imgP3 instanceof File
+      //     ? `src="${URL.createObjectURL(f.imgP3)}" style="display:inline-block;max-height:90px;border-radius:6px"`
+      //     : typeof f.imgP3 === "string" && f.imgP3
+      //       ? `src="${f.imgP3}" style="display:inline-block;max-height:90px;border-radius:6px"`
+      //       : `style="display:none"`;
+
       const prev =
         f.imgP3 instanceof File
-          ? `src="${URL.createObjectURL(f.imgP3)}" style="display:inline-block;max-height:90px;border-radius:6px"`
+          ? `src="${URL.createObjectURL(f.imgP3)}" style="display:inline-block"`
           : typeof f.imgP3 === "string" && f.imgP3
-            ? `src="${f.imgP3}" style="display:inline-block;max-height:90px;border-radius:6px"`
+            ? `src="${f.imgP3}" style="display:inline-block"`
             : `style="display:none"`;
+
+      // <div class="col-lg-4 text-center"><img id="t3aPrev${i}" ${prev}></div>
+
       return `
       <div class="card-seccion" style="margin-bottom:2.5rem;border:1px solid #2631c9;border-radius:10px">
         <div class="encabezado"><i class="fa-solid fa-user-shield"></i>Escenario ${i + 1}: <small class="ms-2">${f.escenario}</small></div>
@@ -1062,17 +1136,28 @@ function pintarCardsT3() {
             <div class="col-lg-5"><label class="form-label">Foto del control <span class="text-danger">*</span></label>
               <input type="file" accept="image/*" class="form-control t3aimg" data-i="${i}">
               ${f.imgP3 && !(f.imgP3 instanceof File) ? `<div class="subtexto text-success mt-1">Imagen cargada. Sube otra solo para reemplazarla.</div>` : ""}</div>
-            <div class="col-lg-4 text-center"><img id="t3aPrev${i}" ${prev}></div>
+
+            <div class="col-lg-4 text-center"><img id="t3aPrev${i}" class="img-evidencia" ${prev}></div>
           </div>
 
           <hr class="my-3">
           <div class="encabezado ps-0" style="font-size:0.98rem"><i class="fa-solid fa-gears"></i>Plan de Acción – Solución de Diseño Ideal</div>
           <div class="row g-3 align-items-end">
             <div class="col-lg-4"><label class="form-label">Acción a realizar <span class="text-danger">*</span></label>
-              <textarea class="form-control t3bf" data-i="${i}" data-campo="descripcion" rows="2">${f.p3b.descripcion || ""}</textarea></div>
-            <div class="col-lg-3"><label class="form-label">IBM Responsable <span class="text-danger">*</span></label>
-              <input type="text" class="form-control t3bibm" data-i="${i}" value="${f.p3b.ibm || ""}" placeholder="IBM">
-              <input type="text" class="form-control input-solo-lectura mt-2" id="t3bResp${i}" readonly value="${f.p3b.responsable || ""}" placeholder="Nombre"></div>
+              <textarea class="form-control t3bf" data-i="${i}" data-campo="descripcion" rows="2">${f.p3b.descripcion || ""}</textarea></div>          
+
+            <div class="col-lg-3"><label class="form-label">IBM Responsable</label>
+              <input type="text" class="form-control t3bibm" data-i="${i}" value="${f.p3b.ibm || ""}"
+                     placeholder="IBM" ${f.p3b.sinResp ? "disabled" : ""}>
+              <input type="text" class="form-control input-solo-lectura mt-2" id="t3bResp${i}" readonly
+                     value="${f.p3b.responsable || ""}" placeholder="Nombre">
+              <div class="form-check mt-1">
+                <input class="form-check-input t3bsinresp" type="checkbox" id="t3bSin${i}" data-i="${i}"
+                       ${f.p3b.sinResp ? "checked" : ""}>
+                <label class="form-check-label small" for="t3bSin${i}">No aplica</label>
+              </div>
+            </div>
+
             <div class="col-lg-2"><label class="form-label">Fecha objetivo <span class="text-danger">*</span></label>
               <input type="date" class="form-control t3bf" data-i="${i}" data-campo="fecha" value="${f.p3b.fecha || ""}"></div>
             <div class="col-lg-3"><label class="form-label">Estatus <span class="text-danger">*</span></label>
@@ -1082,6 +1167,11 @@ function pintarCardsT3() {
       </div>`;
     })
     .join("");
+
+  // <div class="col-lg-3"><label class="form-label">IBM Responsable <span class="text-danger">*</span></label>
+  //           <input type="text" class="form-control t3bibm" data-i="${i}" value="${f.p3b.ibm || ""}" placeholder="IBM">
+  //           <input type="text" class="form-control input-solo-lectura mt-2" id="t3bResp${i}" readonly value="${f.p3b.responsable || ""}" placeholder="Nombre">
+  //         </div>
 
   cont.querySelectorAll(".t3af").forEach((el) =>
     el.addEventListener("change", () => {
@@ -1108,6 +1198,23 @@ function pintarCardsT3() {
       const nombre = await nombreEmpleado(el.value.trim());
       escenarios[i].p3b.responsable = nombre;
       document.getElementById("t3bResp" + i).value = nombre;
+    }),
+  );
+  cont.querySelectorAll(".t3bsinresp").forEach((el) =>
+    el.addEventListener("change", () => {
+      const i = +el.dataset.i;
+      escenarios[i].p3b.sinResp = el.checked;
+      const inp = cont.querySelector(`.t3bibm[data-i="${i}"]`);
+      inp.disabled = el.checked;
+      if (el.checked) {
+        inp.value = "";
+        escenarios[i].p3b.ibm = "";
+        escenarios[i].p3b.responsable = "No aplica";
+      } else {
+        escenarios[i].p3b.responsable = "";
+      }
+      document.getElementById("t3bResp" + i).value =
+        escenarios[i].p3b.responsable;
     }),
   );
 }
@@ -1144,12 +1251,19 @@ async function registrarRARR() {
       mostrarAviso(`Falta la foto del control del Escenario ${i + 1}`);
       return;
     }
+    // if (
+    //   !p3b.descripcion ||
+    //   !p3b.ibm ||
+    //   !p3b.responsable ||
+    //   !p3b.fecha ||
+    //   !p3b.idEstatus
+    // ) {
+
     if (
       !p3b.descripcion ||
-      !p3b.ibm ||
-      !p3b.responsable ||
       !p3b.fecha ||
-      !p3b.idEstatus
+      !p3b.idEstatus ||
+      (!p3b.sinResp && (!p3b.ibm || !p3b.responsable))
     ) {
       mostrarAviso(`Completa el plan de acción del Escenario ${i + 1}`);
       return;
@@ -1224,6 +1338,8 @@ async function registrarRARR() {
       if (f.imgP1 instanceof File) datos[`imgP1_${i}`] = f.imgP1;
       if (f.imgP3 instanceof File) datos[`imgP3_${i}`] = f.imgP3;
     });
+
+    payloadRARR.idBorrador = idBorradorActual;
 
     const res = await llamarPOST(API.registrarRARR, datos);
 
@@ -1388,6 +1504,7 @@ function ocultarRARR(mensaje) {
 function pintarTab4(d) {
   document.getElementById("t4SinDatos").style.display = "none";
   document.getElementById("t4Contenido").style.display = "block";
+  cargarFeedbackRARR(d.rarr.IdEquipo);
 
   if (!gauges.g1) {
     gauges.g1 = crearGauge("t4Gauge1");
@@ -1405,14 +1522,24 @@ function pintarTab4(d) {
     `Peligro Puro — ${niv1.texto}`;
   document.getElementById("t4Etiqueta1").style.color = niv1.color;
 
-  const c = d.paso1.conteo;
-  const total = c.Aceptable + c.Bajo + c.Alto + c.Inaceptable;
-  document.getElementById("t4TablaNiveles").innerHTML = `
-    <tr><td>Riesgo Aceptable</td><td class="text-center">${c.Aceptable}</td></tr>
-    <tr><td>Riesgo Bajo</td><td class="text-center">${c.Bajo}</td></tr>
-    <tr><td>Riesgo Alto</td><td class="text-center">${c.Alto}</td></tr>
-    <tr><td>Riesgo Inaceptable</td><td class="text-center">${c.Inaceptable}</td></tr>
-    <tr class="fw-bold"><td>Total</td><td class="text-center">${total}</td></tr>`;
+  // const c = d.paso1.conteo;
+  // const total = c.Aceptable + c.Bajo + c.Alto + c.Inaceptable;
+  // document.getElementById("t4TablaNiveles").innerHTML = `
+  //   <tr><td>Riesgo Aceptable</td><td class="text-center">${c.Aceptable}</td></tr>
+  //   <tr><td>Riesgo Bajo</td><td class="text-center">${c.Bajo}</td></tr>
+  //   <tr><td>Riesgo Alto</td><td class="text-center">${c.Alto}</td></tr>
+  //   <tr><td>Riesgo Inaceptable</td><td class="text-center">${c.Inaceptable}</td></tr>
+  //   <tr class="fw-bold"><td>Total</td><td class="text-center">${total}</td></tr>`;
+
+  const propios = (d.paso1.escenarios || []).filter((e) => e.EsGenerico == 0);
+  document.getElementById("t4TablaNiveles").innerHTML = propios.length
+    ? propios
+        .map(
+          (e) =>
+            `<tr><td class="text-start"><small>${e.EscenarioRiesgo}</small></td></tr>`,
+        )
+        .join("")
+    : `<tr><td class="text-center text-muted">Sin escenarios</td></tr>`;
 
   const guardas = d.paso2.marcadorGuardas;
   pintarGauge(gauges.g2, guardas);
@@ -1444,10 +1571,10 @@ function pintarTab4(d) {
         .join("")
     : `<tr><td colspan="2" class="text-center text-muted">Sin controles</td></tr>`;
 
-  document.getElementById("t4ResInaceptables").textContent = c.Inaceptable;
-  document.getElementById("t4ResAltos").textContent = c.Alto;
-  document.getElementById("t4ResBajos").textContent = c.Bajo;
-  document.getElementById("t4ResAceptables").textContent = c.Aceptable;
+  // document.getElementById("t4ResInaceptables").textContent = c.Inaceptable;
+  // document.getElementById("t4ResAltos").textContent = c.Alto;
+  // document.getElementById("t4ResBajos").textContent = c.Bajo;
+  // document.getElementById("t4ResAceptables").textContent = c.Aceptable;
 
   const av = d.paso2.avance;
   document.getElementById("t4BarraAvance").style.width = av + "%";
@@ -1483,6 +1610,17 @@ function pintarTab4(d) {
         btnConcluir.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i>Concluir RARR`;
       });
   }
+
+  const c2 = d.paso2.conteo || {
+    Aceptable: 0,
+    Bajo: 0,
+    Alto: 0,
+    Inaceptable: 0,
+  };
+  document.getElementById("t4ResInaceptables").textContent = c2.Inaceptable;
+  document.getElementById("t4ResAltos").textContent = c2.Alto;
+  document.getElementById("t4ResBajos").textContent = c2.Bajo;
+  document.getElementById("t4ResAceptables").textContent = c2.Aceptable;
 }
 
 async function eliminarRARRCompleto() {
@@ -1959,10 +2097,17 @@ async function guardarConfig() {
         descripcion: valor("cfgDescripcion"),
       });
     }
+    const d = res.data || {};
     await Swal.fire({
-      icon: "success",
+      icon: d.duplicado ? "info" : "success",
       title: id === "" ? "Registro agregado" : "Registro actualizado",
-      html: res.data.idEquipo ? `ID Equipo: <b>${res.data.idEquipo}</b>` : "",
+      html: d.duplicado
+        ? `Ya existía una sección con ese nombre para la misma máquina.<br>
+           Se registró con el consecutivo <b>${String(d.consecutivo).padStart(2, "0")}</b>:<br>
+           <b>${d.idEquipo}</b>`
+        : d.idEquipo
+          ? `ID Equipo: <b>${d.idEquipo}</b>`
+          : "",
       confirmButtonColor: "#1a56db",
     });
     await abrirConfig(cfgTipo);
@@ -1971,3 +2116,441 @@ async function guardarConfig() {
     mostrarError(e.message);
   }
 }
+
+/* ============================================================
+   FEEDBACK DEL RARR (Tab 4)
+   ============================================================ */
+let feedbackActual = null;
+
+async function cargarFeedbackRARR(idEquipo) {
+  const btn = document.getElementById("t4BtnFeedback");
+  const badge = document.getElementById("t4BadgeFeedback");
+  try {
+    const res = await llamarGET(API.getFeedbackRARR, { idEquipo });
+    feedbackActual = { idEquipo, ...res.data };
+    const nuevos = res.data.nuevos ?? 0;
+    badge.textContent = nuevos;
+    badge.className =
+      "badge ms-1 " + (nuevos > 0 ? "bg-danger" : "bg-secondary");
+    btn.disabled = (res.data.asignaciones || []).length === 0;
+  } catch (e) {
+    btn.disabled = true;
+    badge.textContent = "0";
+  }
+}
+
+async function abrirFeedbackRARR() {
+  const idEquipo = document.getElementById("t4IdEquipo")?.value;
+  if (!idEquipo) return;
+  await cargarFeedbackRARR(idEquipo); // datos frescos al abrir
+  if (!feedbackActual) return;
+  document.getElementById("fbrEquipo").textContent = feedbackActual.idEquipo;
+
+  // function abrirFeedbackRARR() {
+  //   if (!feedbackActual) return;
+  //   document.getElementById("fbrEquipo").textContent = feedbackActual.idEquipo;
+
+  const cuerpo = document.getElementById("fbrCuerpo");
+  const asigs = feedbackActual.asignaciones || [];
+
+  if (asigs.length === 0) {
+    cuerpo.innerHTML = `<div class="text-center text-muted py-4">Este RARR no tiene asignaciones registradas</div>`;
+  } else {
+    cuerpo.innerHTML = asigs
+      .map((a) => {
+        const completada = Number(a.IdEstatus) === 3;
+        const hilo = (a.hilo || [])
+          .map((h) => {
+            const esResp = h.Tipo === "respuesta";
+            return `
+            <div class="p-2 mb-2 ${esResp ? "bg-light border-start border-3 border-secondary" : "border-start border-3 border-primary"}"
+                 style="margin-left:${esResp ? "2rem" : "0"}">
+              <div class="d-flex justify-content-between">
+                <b>${esResp ? "Respuesta" : "Reporte"} · IBM ${h.Ibm}</b>
+                
+                <small class="text-muted">${h.FechaRegistro}</small>
+              </div>
+              <div class="small">${h.Comentario}</div>
+              ${
+                h.NombreArchivo
+                  ? `<a class="small" target="_blank" href="../../../../../Mes/KCMes/CapaSeg/php/accCorrectivas.php?evidenciaFeedbackRARR&idFeedback=${h.IdFeedback}">
+                       <i class="fa-solid fa-paperclip me-1"></i>${h.NombreArchivo}</a>`
+                  : ""
+              }
+            </div>`;
+          })
+          .join("");
+
+        return `
+        <div class="card-seccion mb-3" style="border:1px solid #d9dce1;border-radius:10px">
+          <div class="encabezado d-flex justify-content-between">
+            <span><i class="fa-solid fa-user-shield me-1"></i>${a.EscenarioRiesgo}</span>
+            <span class="badge ${completada ? "bg-success" : "bg-warning text-dark"}">${a.Estatus}</span>
+          </div>
+          <div class="cuerpo">
+            <div class="subtexto mb-2">
+              <b>Acción:</b> ${a.Accion ?? "-"}<br>
+              <b>Responsable:</b> ${a.Responsable} (IBM ${a.Ibm}) · <b>Fecha objetivo:</b> ${a.FechaImplementacion}
+            </div>
+            ${hilo || `<div class="text-muted small mb-2">Sin reportes del responsable todavía.</div>`}
+            <div class="row g-2 mt-2 align-items-end">
+              <div class="col-lg-8">
+                <label class="form-label">Respuesta / observación</label>
+                <textarea class="form-control form-control-sm fbrTexto" data-i="${a.IdSeguimiento}" rows="2"></textarea>
+              </div>
+              <div class="col-lg-4 text-end">
+                <button class="btn btn-gris btn-sm me-1 fbrResponder" data-i="${a.IdSeguimiento}">
+                  <i class="fa-solid fa-reply me-1"></i>Responder</button>
+                <button class="btn btn-azul btn-sm fbrValidar" data-i="${a.IdSeguimiento}" ${completada ? "disabled" : ""}>
+                  <i class="fa-solid fa-circle-check me-1"></i>${completada ? "Completada" : "Marcar completada"}</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      })
+      .join("");
+
+    cuerpo
+      .querySelectorAll(".fbrResponder")
+      .forEach((b) =>
+        b.addEventListener("click", () => enviarRespuesta(b.dataset.i, 0)),
+      );
+    cuerpo
+      .querySelectorAll(".fbrValidar")
+      .forEach((b) =>
+        b.addEventListener("click", () => enviarRespuesta(b.dataset.i, 1)),
+      );
+  }
+
+  new bootstrap.Modal(document.getElementById("modalFeedbackRARR")).show();
+}
+
+async function enviarRespuesta(idSeguimiento, validar) {
+  const ta = document.querySelector(`.fbrTexto[data-i="${idSeguimiento}"]`);
+  const comentario = ta ? ta.value.trim() : "";
+
+  if (validar === 1) {
+    const c = await Swal.fire({
+      icon: "question",
+      title: "¿Marcar como completada?",
+      text: "La asignación quedará concluida y contará para poder concluir el RARR.",
+      showCancelButton: true,
+      confirmButtonText: "Sí, completar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#1a56db",
+    });
+    if (!c.isConfirmed) return;
+  }
+
+  try {
+    const res = await llamarPOST(API.responderFeedbackRARR, {
+      idSeguimiento,
+      comentario,
+      validar,
+    });
+    await Swal.fire({
+      icon: "success",
+      title: res.msg,
+      confirmButtonColor: "#1a56db",
+    });
+    bootstrap.Modal.getInstance(
+      document.getElementById("modalFeedbackRARR"),
+    ).hide();
+    await cargarRARRTab4(); // refresca gauges, botón Concluir y badge
+  } catch (e) {
+    mostrarError(e.message);
+  }
+}
+
+/* -------------------- Refresco del badge de feedback -------------------- */
+/* Badge ligero: se puede consultar seguido sin costo */
+async function refrescarBadgeFeedback() {
+  const idEquipo = document.getElementById("t4IdEquipo")?.value;
+  if (!idEquipo) return;
+  const btn = document.getElementById("t4BtnFeedback");
+  const badge = document.getElementById("t4BadgeFeedback");
+  try {
+    const res = await llamarGET(API.getContadorFeedbackRARR, {
+      idEquipo,
+      _: Date.now(), // rompe la caché del navegador
+    });
+    const nuevos = res.data.nuevos ?? 0;
+    badge.textContent = nuevos;
+    badge.className =
+      "badge ms-1 " + (nuevos > 0 ? "bg-danger" : "bg-secondary");
+    btn.disabled = (res.data.asignaciones ?? 0) === 0;
+  } catch (e) {
+    /* silencioso: es un refresco de fondo */
+  }
+}
+
+/* Cada 15 s. El badge no estorba aunque haya un modal abierto */
+setInterval(refrescarBadgeFeedback, 15000);
+
+/* Al volver a la pestaña, refresca de inmediato */
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) refrescarBadgeFeedback();
+});
+window.addEventListener("focus", refrescarBadgeFeedback);
+
+/* ============================================================
+   BORRADORES
+   ============================================================ */
+let idBorradorActual = null;
+
+function hayAlgoQueGuardar() {
+  return escenarios.length > 0;
+}
+
+async function guardarBorrador(avisar = false) {
+  if (!hayAlgoQueGuardar()) {
+    if (avisar)
+      mostrarAviso("Agrega al menos un escenario antes de guardar el borrador");
+    return;
+  }
+  /* Foto en lista: se manda solo lo que sea File; lo demás ya está en el borrador */
+  const snapshot = {
+    paso1: {
+      idMaquina: valor("t1Maquina"),
+      maquina: textoSeleccionado("t1Maquina") || "",
+      idSeccion: escenarios[0].idSeccion,
+      seccion: escenarios[0].seccion,
+      idEquipo: escenarios[0].idEquipo,
+      escenarios: escenarios.map((f) => {
+        const { imgP1, imgP3, ...resto } = f;
+        return resto;
+      }),
+      genericos: [...genericos],
+    },
+  };
+
+  const datos = {
+    idBorrador: idBorradorActual ?? "",
+    pasoActual: document
+      .querySelector(".nav-tabs-rarr .nav-link.active")
+      ?.textContent.includes("Paso 2")
+      ? 2
+      : document
+            .querySelector(".nav-tabs-rarr .nav-link.active")
+            ?.textContent.includes("Paso 3")
+        ? 3
+        : 1,
+    payload: JSON.stringify(snapshot),
+  };
+  escenarios.forEach((f, i) => {
+    if (f.imgP1 instanceof File) datos[`imgP1_${i}`] = f.imgP1;
+    if (f.imgP3 instanceof File) datos[`imgP3_${i}`] = f.imgP3;
+  });
+
+  // try {
+  //   const res = await llamarPOST(API.guardarBorrador, datos);
+  //   idBorradorActual = res.data.idBorrador;
+  //   if (avisar) {
+  //     Swal.fire({
+  //       icon: "success",
+  //       title: "Borrador guardado",
+  //       timer: 1200,
+  //       showConfirmButton: false,
+  //     });
+  //   }
+  // } catch (e) {
+  //   if (avisar) mostrarError(e.message);
+  // }
+
+  try {
+    pintarEstadoBorrador("guardando");
+    const inicio = Date.now();
+
+    const res = await llamarPOST(API.guardarBorrador, datos);
+    idBorradorActual = res.data.idBorrador;
+    horaUltimoBorrador = Date.now();
+
+    /* Deja ver el "Guardando…" al menos 600 ms */
+    const espera = Math.max(0, 600 - (Date.now() - inicio));
+    setTimeout(() => pintarEstadoBorrador("guardado"), espera);
+
+    if (avisar) {
+      Swal.fire({
+        icon: "success",
+        title: "Borrador guardado",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+    }
+  } catch (e) {
+    pintarEstadoBorrador("error");
+    if (avisar) mostrarError(e.message);
+  }
+}
+
+/* Autoguardado cada 60 s */
+setInterval(() => guardarBorrador(false), 60000);
+
+async function abrirBorradores() {
+  const cuerpo = document.getElementById("brrCuerpo");
+  cuerpo.innerHTML = `<div class="text-center text-muted py-3">Cargando…</div>`;
+  try {
+    const res = await llamarGET(API.getBorradores);
+    const lista = res.data || [];
+    cuerpo.innerHTML =
+      lista.length === 0
+        ? `<div class="text-center text-muted py-4">No tienes borradores guardados</div>`
+        : `<table class="table table-sm align-middle">
+           <thead><tr><th>ID Equipo</th><th>Máquina / Sección</th><th>Paso</th><th>Guardado</th><th></th></tr></thead>
+           <tbody>${lista
+             .map(
+               (b) => `
+             <tr>
+               <td><b>${b.IdEquipo}</b></td>
+               <td><small>${b.Maquina} — ${b.Seccion}</small></td>
+               <td class="text-center">${b.PasoActual}</td>
+               <td><small>${b.FechaGuardado}</small></td>
+               <td class="text-end">
+                 <button class="btn btn-azul btn-sm brrCargar" data-i="${b.IdBorrador}">
+                   <i class="fa-solid fa-folder-open me-1"></i>Cargar</button>
+                 <button class="btn btn-sm ms-1 brrBorrar" data-i="${b.IdBorrador}"
+                         style="background:#dc3545;color:#fff"><i class="fa-regular fa-trash-can"></i></button>
+               </td>
+             </tr>`,
+             )
+             .join("")}</tbody>
+         </table>`;
+
+    cuerpo
+      .querySelectorAll(".brrCargar")
+      .forEach((b) =>
+        b.addEventListener("click", () => cargarBorrador(b.dataset.i)),
+      );
+    cuerpo
+      .querySelectorAll(".brrBorrar")
+      .forEach((b) =>
+        b.addEventListener("click", () => borrarBorrador(b.dataset.i)),
+      );
+  } catch (e) {
+    mostrarError(e.message);
+  }
+}
+
+async function cargarBorrador(idBorrador) {
+  try {
+    const res = await llamarGET(API.getBorradores, { idBorrador });
+    const d = res.data;
+    const p1 = d.payload.paso1 || {};
+
+    idBorradorActual = d.idBorrador;
+
+    /* Máquina y sección */
+    document.getElementById("t1Maquina").value = p1.idMaquina || "";
+    await cargarSeccionesRARR(p1.idMaquina || "");
+    document.getElementById("t1Seccion").value = p1.idSeccion || "";
+    pintarIdEquipo();
+
+    const tieneImg = (i, paso) =>
+      (d.imagenes || []).some(
+        (x) => Number(x.Indice) === i && Number(x.Paso) === paso,
+      )
+        ? `${API.getImagenBorrador}?idBorrador=${d.idBorrador}&indice=${i}&paso=${paso}`
+        : null;
+
+    escenarios = (p1.escenarios || []).map((e, i) => ({
+      ...e,
+      imgP1: tieneImg(i, 1),
+      imgP3: tieneImg(i, 3),
+    }));
+    if (p1.genericos) genericos = p1.genericos;
+
+    pintarEscenarios();
+    pintarGenericosT1();
+    pintarCardsT2();
+    pintarGenericosT2();
+    pintarCardsT3();
+    pintarGenericosT3();
+
+    bootstrap.Modal.getInstance(
+      document.getElementById("modalBorradores"),
+    ).hide();
+    Swal.fire({
+      icon: "success",
+      title: "Borrador cargado",
+      html: "Revisa los 3 pasos y continúa donde te quedaste.",
+      confirmButtonColor: "#1a56db",
+    });
+  } catch (e) {
+    mostrarError(e.message);
+  }
+}
+
+async function borrarBorrador(idBorrador) {
+  const c = await Swal.fire({
+    icon: "warning",
+    title: "¿Eliminar este borrador?",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#dc3545",
+  });
+  if (!c.isConfirmed) return;
+  try {
+    await llamarPOST(API.eliminarBorrador, { idBorrador });
+    if (Number(idBorrador) === Number(idBorradorActual))
+      idBorradorActual = null;
+    abrirBorradores();
+  } catch (e) {
+    mostrarError(e.message);
+  }
+}
+
+/* Indicador visual del autoguardado */
+/* Indicador visual del autoguardado */
+let horaUltimoBorrador = null;
+let timerEstadoBorrador = null;
+
+function pintarEstadoBorrador(estado) {
+  const caja = document.getElementById("brrEstado");
+  const txt = document.getElementById("brrEstadoTxt");
+  if (!caja || !txt) return;
+
+  clearTimeout(timerEstadoBorrador);
+  caja.style.transition = "opacity .4s";
+  caja.style.opacity = "1";
+  caja.style.display = "block";
+
+  if (estado === "guardando") {
+    caja.style.background = "#fff4e0";
+    caja.style.color = "#8a5a00";
+    txt.innerHTML = `<i class="fa-solid fa-rotate fa-spin me-1"></i>Guardando borrador…`;
+    return; // se queda hasta que llegue el resultado
+  }
+
+  if (estado === "error") {
+    caja.style.background = "#fdecea";
+    caja.style.color = "#b3261e";
+    txt.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i>No se pudo guardar el borrador`;
+    timerEstadoBorrador = setTimeout(() => ocultarEstadoBorrador(), 6000);
+    return;
+  }
+
+  /* guardado */
+  caja.style.background = "#e6f4ea";
+  caja.style.color = "#1d7044";
+  const hora = horaUltimoBorrador
+    ? new Date(horaUltimoBorrador).toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+  txt.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i>Borrador guardado ${hora}`;
+  timerEstadoBorrador = setTimeout(() => ocultarEstadoBorrador(), 4000);
+}
+
+function ocultarEstadoBorrador() {
+  const caja = document.getElementById("brrEstado");
+  if (!caja) return;
+  caja.style.opacity = "0";
+  setTimeout(() => (caja.style.display = "none"), 400);
+}
+
+/* Refresca el "hace X min" sin volver a consultar */
+setInterval(() => {
+  if (horaUltimoBorrador) pintarEstadoBorrador("guardado");
+}, 30000);

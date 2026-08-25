@@ -54,7 +54,7 @@ $escenarios = ejecutarQuery(
          ISNULL(f.Descripcion,'-')   AS Frecuencia,
          ISNULL(e.PersonalExpuesto,'-') AS PersonalExpuesto,
          e.Calificacion, e.NivelRiesgo,
-         e.CalificacionP2, e.CalificacionP3
+         e.CalificacionP2, e.NivelRiesgoP2, e.CalificacionP3
      FROM TLX002MXDB.dbo.Seg_EscenarioRiesgo e
      LEFT JOIN TLX002MXDB.dbo.Seg_CatCategoriaPeligro cp ON cp.IdCategoria   = e.IdCategoriaPeligro
      LEFT JOIN TLX002MXDB.dbo.Seg_CatSeveridad        s  ON s.IdSeveridad    = e.IdSeveridad
@@ -66,12 +66,24 @@ $escenarios = ejecutarQuery(
 );
 
 /* Conteo por nivel (escenarios + genéricos) */
+// $conteo = ['Aceptable' => 0, 'Bajo' => 0, 'Alto' => 0, 'Inaceptable' => 0];
+// foreach ($escenarios as $e) {
+//     if (isset($conteo[$e['NivelRiesgo']])) {
+//         $conteo[$e['NivelRiesgo']]++;
+//     }
+// }
+
 $conteo = ['Aceptable' => 0, 'Bajo' => 0, 'Alto' => 0, 'Inaceptable' => 0];
+$conteoP2 = ['Aceptable' => 0, 'Bajo' => 0, 'Alto' => 0, 'Inaceptable' => 0];
 foreach ($escenarios as $e) {
     if (isset($conteo[$e['NivelRiesgo']])) {
         $conteo[$e['NivelRiesgo']]++;
     }
+    if (isset($conteoP2[$e['NivelRiesgoP2']])) {
+        $conteoP2[$e['NivelRiesgoP2']]++;
+    }
 }
+
 
 $evaluaciones = ejecutarQuery(
     $conn,
@@ -154,7 +166,8 @@ responderOK([
     "paso2" => [
         "evaluaciones" => $evaluaciones,
         "avance" => $avance,
-        "marcadorGuardas" => $rarr[0]['MarcadorGuardas'] !== null ? (float) $rarr[0]['MarcadorGuardas'] : null
+        "marcadorGuardas" => $rarr[0]['MarcadorGuardas'] !== null ? (float) $rarr[0]['MarcadorGuardas'] : null,
+        "conteo" => $conteoP2,
     ],
     "paso3" => [
         "soluciones" => $soluciones,

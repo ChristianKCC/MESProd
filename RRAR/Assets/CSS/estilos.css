@@ -480,3 +480,18 @@ body {
 .marcador-card.nivel-nulo .valor { color: #adb5bd; }
 .rarr-avance .etiqueta, .rarr-inversion .etiqueta { font-size:.8rem; color:#555; margin-bottom:.2rem; }
 
+.img-evidencia {
+    width: 180px;
+    height: 130px;
+    object-fit: contain;
+    border: 1px solid #d9dce1;
+    border-radius: 8px;
+    background: #fafafa;
+}
+.img-evidencia-mini {
+    width: 54px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 4px;
+    background: #fafafa;
+}
