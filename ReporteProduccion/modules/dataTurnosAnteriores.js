@@ -35,29 +35,51 @@ export class ReporteProduccionTurnos {
       formData.append("maquina", String(maquina));
       formData.append("turno", String(turno));
 
-      const response = await axios.post(
-        "../Reporteproduccion/php/producciones.php?infoTurnosAnteriores",
-        formData,
-      );
+      const endpoint =
+        maquina == 67
+          ? "../Reporteproduccion/php/producciones.php?infoTurnoHook"
+          : "../Reporteproduccion/php/producciones.php?infoTurnosAnteriores";
 
-      infoMaquinas = response.data.map((item) => ({
-        id: item.id,
-        fecha: item.Fecha,
-        turno: item.Turno,
-        maquina: item.Maquina,
-        NombreMaquina: item.NombreMaquina,
-        cortes: item.Cortes,
-        rechazos: item.Rechazos,
-        tiempoAbajo: item.TiempoAbajo,
-        minutosEnhebrando: item.MinutosEnhebrando,
-        tiempoArriba: item.TiempoArriba,
-        mermaMaquina: item.MermaMaquina,
-        tiempoPerdido: item.TiempoPerdido,
-        parosMaquina: item.ParosMaquina,
-        IBM: item.IBM,
-      }));
+      const response = await axios.post(endpoint, formData);
 
-      mostrarTabla();
+      console.log(response);
+
+      if (maquina == 67) {
+        mostrarTablaPor(67);
+        infoMaquinas = response.data.map((item) => ({
+          id: item.id,
+          fecha: item.Fecha,
+          turno: item.Turno,
+          maquina: item.NoMaquina,
+          NombreMaquina: item.NombreMaquina,
+          metrosLineales: item.Metros,
+          metros: item.Metros,
+          tiempoAbajo: item.TiempoAbajo,
+          tiempoArriba: item.TiempoArriba,
+          parosMaquina: item.ParosMaquina,
+          IBM: item.IBM,
+        }));
+        mostrarTablaHook();
+      } else {
+        mostrarTablaPor(null);
+        infoMaquinas = response.data.map((item) => ({
+          id: item.id,
+          fecha: item.Fecha,
+          turno: item.Turno,
+          maquina: item.Maquina,
+          NombreMaquina: item.NombreMaquina,
+          cortes: item.Cortes,
+          rechazos: item.Rechazos,
+          tiempoAbajo: item.TiempoAbajo,
+          minutosEnhebrando: item.MinutosEnhebrando,
+          tiempoArriba: item.TiempoArriba,
+          mermaMaquina: item.MermaMaquina,
+          tiempoPerdido: item.TiempoPerdido,
+          parosMaquina: item.ParosMaquina,
+          IBM: item.IBM,
+        }));
+        mostrarTabla();
+      }
     } catch (err) {
       console.error("Error en generarTabla:", err?.message || err);
       throw err;
@@ -120,6 +142,17 @@ export class ReporteProduccionTurnos {
     }
   }
 
+  async generarPDFHook(folio) {
+    console.log(folio);
+    try{
+      const params = new URLSearchParams({ folio });
+      const url = `php/reporteTurnosHook.php?${params.toString()}#zoom=150`;
+      window.open(url, "_blank");
+    }catch(error){
+      console.error("Error:", error);
+    }
+  }
+
   async dataForActualizarRegistro(folio) {
     try {
       const { data } = await axios.get(
@@ -131,7 +164,7 @@ export class ReporteProduccionTurnos {
           },
           timeout: 15000,
         },
-      );      
+      );
       console.log(data);
       return data;
     } catch (error) {
@@ -160,11 +193,39 @@ export class ReporteProduccionTurnos {
             folio: folio,
           },
           timeout: 15000,
-        }
+        },
       );
       return data;
     } catch (error) {
-      if(error.response){
+      if (error.response) {
+        console.error(
+          "Error de servidor:",
+          error.response.status,
+          error.response.data,
+        );
+      } else if (error.request) {
+        console.error("Sin respuesta del servidor:", error.message);
+      } else {
+        console.error("Error al configurar la solicitud:", error.message);
+      }
+      throw error;
+    }
+  }
+
+  async dataForActualizarRegistroHook(folio){
+    console.log(folio);
+    try {
+      const { data } = await axios.get("../Reporteproduccion/php/producciones.php", {
+        params: {
+          getDataRegistroTurnoHook: "",
+          folio: folio,
+        },
+        timeout: 15000,
+      },
+    );
+    return data;
+    } catch (error) {
+      if (error.response) {
         console.error(
           "Error de servidor:",
           error.response.status,
@@ -340,6 +401,19 @@ export class ReporteProduccionTurnos {
   }
 }
 
+function mostrarTablaPor(maquina) {
+  const tablaNormal = document.getElementById("tablaNormal");
+  const tablaHook = document.getElementById("tablaHook");
+
+  if (maquina == 67) {
+    tablaNormal.classList.add("d-none");
+    tablaHook.classList.remove("d-none");
+  } else {
+    tablaHook.classList.add("d-none");
+    tablaNormal.classList.remove("d-none");
+  }
+}
+
 function mostrarTabla() {
   const tbody = document.getElementById("tableBody");
   tbody.innerHTML = "";
@@ -413,7 +487,7 @@ function mostrarTabla() {
         : "0.00";
 
     const editableIBMs = [
-      58998, 31773, 33802, 31578, 57723, 33279, 57118, 34374, 46473
+      58998, 31773, 33802, 31578, 57723, 33279, 57118, 34374, 46473,
     ];
     const isLocked = !editableIBMs.includes(Number(element.IBM));
     const editButtonAttrs = isLocked
@@ -429,8 +503,8 @@ function mostrarTabla() {
             <td>${element.NombreMaquina}</td>
             <td>${element.cortes}</td>
             <td>${element.rechazos}</td>
-            <td>${(Number(element.tiempoAbajo).toFixed(2))}</td>
-            <td>${(Number(element.tiempoArriba).toFixed(2))}</td>
+            <td>${Number(element.tiempoAbajo).toFixed(2)}</td>
+            <td>${Number(element.tiempoArriba).toFixed(2)}</td>
             <td>${mermaMaquina} %</td>
             <td>${element.parosMaquina}</td>
             <td>
@@ -514,6 +588,42 @@ function mostrarTablaMaquinasSinRed() {
   document.getElementById("pageInfo").innerText =
     `Página ${currentPage} de ${totalPaginas}`;
 }
+
+function mostrarTablaHook() {
+  const tbody = document.getElementById("tableBodyHook");
+  tbody.innerHTML = "";
+  const editableIBMs = [
+      58998, 31773, 33802, 31578, 57723, 33279, 57118, 34374, 46473,
+    ];
+  infoMaquinas.forEach((item) => {
+    console.log(item.IBM);
+
+    const isLocked = !editableIBMs.includes(Number(item.IBM));
+    const editButtonAttrs = isLocked
+      ? 'disabled aria-disabled="true" title="Bloqueado"'
+      : `data-bs-toggle="modal" data-bs-target="#modadalEditRegistroTurnoHook" data-bs-whatever="${item.id}"`;
+    const editBtnClass = isLocked
+      ? "btn btn-sm btn-warning disabled"
+      : "btn btn-sm btn-warning";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.fecha}</td>
+      <td>${item.turno}</td>
+      <td>${item.NombreMaquina}</td>
+      <td>${item.metrosLineales.toFixed(2) ?? "-"}</td>
+      <td>${item.tiempoAbajo.toFixed(2) ?? "-"}</td>
+      <td>${item.tiempoArriba.toFixed(2) ?? "-"}</td>
+      <td>${item.parosMaquina ?? "-"}</td>
+      <td>
+        <center>
+            <button class="${editBtnClass}" ${editButtonAttrs}><i class="fas fa-pen"></i> Editar Registro</button>
+            <button class="btn btn-sm btn-danger" onclick="reporteAnteriorHook(${item.id})"><i class="fas fa-file-pdf"></i> Generar reporte</button>
+        </center>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+} 
 
 // === Buscador ===
 // document.getElementById("searchInput").addEventListener("input", (e) => {

@@ -947,6 +947,78 @@ class InfoMaquinas
         echo json_encode($array);
     }
 
+    public function infoTurnoHook()
+    {
+        $conexion = new ClassConexion();
+        $conn = $conexion->conexion('TLX004MXDB');
+        $ibm = $_SESSION['ibm'];
+
+        if ($conn === false) {
+            die(json_encode(["error" => "Error en la conexión a la base de datos"]));
+        }
+
+        $fecha = $_POST['fecha'] ?? null;
+        $turno = $_POST['turno'] ?? null;
+
+        $query = "SELECT [Id]
+            ,[FechaTurno]
+            ,tblRTH.[NoMaquina]
+            ,tblMaquinas.NombreMaquina
+            ,[IdEncabezadoBitacora]
+            ,[Turno]
+            ,[MilesMetrosHora]
+            ,[Metros]
+            ,[TiempoParoMin] AS TiempoAbajo
+            ,[TiempoCorriendoMin] AS TiempoArriba
+            ,[TiempoPerdido]
+            ,[ParosMaquina]
+        FROM [TLX004MXDB].[dbo].[tblMXPRResumenTurnoHook] tblRTH
+        INNER JOIN  TLX009MXDB.dbo.tblMaquinas ON tblMaquinas.NoMaquina = tblRTH.NoMaquina
+        WHERE 1=1";
+
+        $params = [];
+        $types = "";
+
+        if (!empty($fecha)) {
+            $query .= " AND FechaTurno = ?";
+            $params[] = $fecha;
+            $types .= "s";
+        }
+
+        if (!empty($turno)) {
+            $query .= " AND Turno = ?";
+            $params[] = $turno;
+            $types .= "s";
+        }
+
+        $result = sqlsrv_query($conn, $query, $params);
+
+        if ($result === false) {
+            $errors = sqlsrv_errors();
+            die(json_encode(["error" => "Error en la consulta SQL", "detalle" => $errors]));
+        }
+
+        $array = [];
+
+        while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            $array[] = [
+                "id" => $row["Id"],
+                "Fecha" => $row["FechaTurno"]->format('Y-m-d'),
+                "NoMaquina" => $row["NoMaquina"],
+                "NombreMaquina" => $row["NombreMaquina"],
+                "Turno" => $row["Turno"],
+                "MilesMetros" => $row["MilesMetrosHora"],
+                "Metros" => $row["Metros"],
+                "TiempoAbajo" => $row["TiempoAbajo"],
+                "TiempoArriba" => $row["TiempoArriba"],
+                "ParosMaquina" => $row["ParosMaquina"],
+                "IBM" => $ibm
+            ];
+        }
+
+        echo json_encode($array);
+
+    }
 
     public function infoMaquinasSinRed()
     {
@@ -1308,6 +1380,58 @@ class InfoMaquinas
         }
 
     }
+
+    function getDataRegistroTurnoHook(){
+        $id = $_GET['folio'];
+        $conexion = new ClassConexion();
+        $conn = $conexion->conexion('TLX004MXDB');
+
+        $query = "SELECT [Id]
+                    ,[FechaTurno]
+                    ,tblRTH.[NoMaquina]
+                    ,tblMaquinas.NombreMaquina
+                    ,tblRTH.[IdEncabezadoBitacora]
+                    ,tblEB.[Turno]
+                    ,[MilesMetrosHora]
+                    ,[Metros]
+                    ,[TiempoParoMin] AS TiempoAbajo
+                    ,[TiempoCorriendoMin] AS TiempoArriba
+                    ,[TiempoPerdido]
+                    ,[ParosMaquina]
+                    ,tblEB.HorasTrabajadas
+                FROM [TLX004MXDB].[dbo].[tblMXPRResumenTurnoHook] tblRTH
+                INNER JOIN TLX009MXDB.dbo.tblMaquinas ON tblMaquinas.NoMaquina = tblRTH.NoMaquina
+                INNER JOIN TLX004MXDB.dbo.tblEncabezadoBitacora tblEB ON tblEB.IdEncabezadoBItacora = tblRTH.IdEncabezadoBitacora
+                WHERE Id = ?";
+        
+        $params = [$id];
+        $result = sqlsrv_query($conn, $query, $params);
+
+        if ($result === false) {
+            die(json_encode(["error" => "Error en consulta", "detalle" => sqlsrv_errors()]));
+        }
+
+        $data = [];
+        while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
+            $fechaFormateada = isset($row['FechaTurno']) && $row['FechaTurno'] instanceof DateTime
+                ? $row['FechaTurno']->format('Y-m-d')
+                : (is_string($row['FechaTurno']) ? $row['FechaTurno'] : null);
+            $data[] = [
+                'Fecha' => $fechaFormateada,
+                'Turno' => $row['Turno'],
+                'IdEncabezadoBitacora' => $row['IdEncabezadoBitacora'],
+                'Maquina' => $row['NombreMaquina'],
+                'MetrosLineales' => $row['Metros'],
+                'TiempoAbajo' => $row['TiempoAbajo'],
+                'TiempoArriba' => $row['TiempoArriba'],
+                'ParosMaquina' => $row['ParosMaquina'],
+                'Horas' => $row['HorasTrabajadas']
+            ];
+        }
+
+        echo json_encode($data);
+
+    }
     function getDataMaquinas()
     {
         $conexion = new ClassConexion();
@@ -1449,4 +1573,10 @@ if (isset($_GET['infoTurnosAnteriores'])) {
 } else if (isset($_GET['actualizarRegistroTurnoMaquinaSinRed'])) {
     $infoMaquinas = new InfoMaquinas();
     $infoMaquinas->actualizarRegistroTurnoMaquinaSinRed();
-}
+} else if (isset($_GET['infoTurnoHook'])) {
+    $infoMaquinas = new InfoMaquinas();
+    $infoMaquinas->infoTurnoHook();
+} else if (isset($_GET['getDataRegistroTurnoHook'])) {
+    $infoMaquinas = new InfoMaquinas();
+    $infoMaquinas->getDataRegistroTurnoHook();
+} 

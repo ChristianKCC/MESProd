@@ -1373,7 +1373,8 @@ function pintarTiempoAbajoMaquinas(
         $num = (float) ($acumNum['porMaquina'][$nombreMaquina] ?? '');
         $den = (float) ($acumDen['porMaquina'][$nombreMaquina] ?? '');
         $tpp = ($den > 0) ? (($num / ($den * 60)) * 100) : 0.0;
-        $valorDisplay = ((float) $v === 0.0) ? '' : number_format($v) . ' / ' . number_format($tpp, 2) . '%';
+        // $valorDisplay = ((float) $v === 0.0) ? '' : number_format($v) . ' / ' . number_format($tpp, 2) . '%';
+        $valorDisplay = $den;
         $pdf->Cell(
             $colW[$idx + 1],
             $rowHeight,

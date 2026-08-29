@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración de máquinas — MES</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#F0F2F5;--sur:#fff;--sur2:#F8F9FB;--bdr:#E2E5EA;--bdrs:#C8CDD6;--tx:#1A1D23;--tx2:#5A6070;--tx3:#9AA0AD;--ac:#2563EB;--acl:#EEF3FD;--act:#1D54D4;--ok:#16A34A;--okl:#ECFDF5;--wn:#D97706;--wnl:#FFFBEB;--dg:#DC2626;--dgl:#FEF2F2;--r:8px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);font-size:13px;line-height:1.5;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#1E2435;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.slogo{padding:16px 16px 14px;font-size:13px;font-weight:600;color:#fff;border-bottom:1px solid #2E3448;display:flex;align-items:center;gap:8px}
+.licon{width:26px;height:26px;background:var(--ac);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+.ssec{padding:14px 12px 3px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#4A5168}
+.si{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:6px;margin:1px 7px;cursor:pointer;font-size:13px;color:#8B92A8;transition:background .12s,color .12s}
+.si:hover{background:#2A3048;color:#D4D8E8}
+.si.active{background:#2563EB22;color:#7AABFF}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bdr);padding:0 22px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ttl{font-size:14px;font-weight:600}
+.tbc{font-size:11px;color:var(--tx3);margin-top:1px}
+.trr{display:flex;align-items:center;gap:10px}
+.mchip{display:flex;align-items:center;gap:7px;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 11px;font-size:12px;cursor:pointer}
+.mdot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.av{width:30px;height:30px;border-radius:50%;background:var(--ac);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.content{flex:1;padding:20px;overflow-y:auto}
+.tabs-bar{display:flex;gap:1px;border-bottom:1px solid var(--bdr);margin-bottom:18px}
+.tb{padding:8px 15px;font-size:13px;font-weight:500;color:var(--tx2);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s,border-color .12s;white-space:nowrap}
+.tb:hover{color:var(--tx)}
+.tb.active{color:var(--ac);border-bottom-color:var(--ac)}
+.tsec{display:none}
+.tsec.active{display:block}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.ctitle{font-size:13px;font-weight:600;margin-bottom:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ci{color:var(--ac)}
+.cnt{margin-left:auto;font-size:11px;font-weight:500;background:var(--acl);color:var(--act);padding:2px 9px;border-radius:99px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fl{font-size:12px;font-weight:500;color:var(--tx2)}
+input[type=text],textarea{width:100%;padding:7px 10px;font-size:13px;border:1px solid var(--bdrs);border-radius:var(--r);background:var(--sur);color:var(--tx);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px #2563EB18}
+textarea{resize:vertical;min-height:62px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border-radius:var(--r);cursor:pointer;border:1px solid transparent;transition:background .12s,transform .08s}
+.btn:active{transform:scale(.98)}
+.bp{background:var(--ac);color:#fff;border-color:var(--ac)}.bp:hover{background:var(--act)}.bp:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.bg{background:none;border-color:var(--bdrs);color:var(--tx2)}.bg:hover{background:var(--sur2);color:var(--tx)}
+.brow{display:flex;gap:8px;margin-top:4px}
+.bi{background:none;border:none;cursor:pointer;padding:4px 7px;font-size:14px;color:var(--tx3);border-radius:5px;transition:color .12s,background .12s}
+.bi:hover{color:var(--dg);background:var(--dgl)}
+.bi.ed:hover{color:var(--ac);background:var(--acl)}
+.eh{background:var(--acl);color:var(--act);border-radius:var(--r);padding:8px 11px;font-size:12px;margin-bottom:11px;display:none;align-items:center;gap:6px}
+.eh.show{display:flex}
+.srow{display:flex;gap:8px;margin-bottom:12px}
+.srow input{max-width:240px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--tx3);padding:8px 11px;border-bottom:1px solid var(--bdr);background:var(--sur2)}
+tbody td{padding:9px 11px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--sur2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.ba{background:var(--dgl);color:var(--dg)}.bm{background:var(--wnl);color:var(--wn)}.bb{background:var(--okl);color:var(--ok)}.bi2{background:var(--acl);color:var(--act)}.bg2{background:#F1EFF0;color:#5A6070}
+.norows{padding:20px;text-align:center;color:var(--tx3);font-size:13px}
+/* Searchable Select */
+.ssw{position:relative;user-select:none}
+.sst{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;font-size:13px;border:1px solid var(--bdrs);border-radius:var(--r);background:var(--sur);color:var(--tx);cursor:pointer;transition:border-color .15s,box-shadow .15s;min-height:34px}
+.sst:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px #2563EB18}
+.sst.open{border-color:var(--ac);box-shadow:0 0 0 3px #2563EB18;border-radius:var(--r) var(--r) 0 0}
+.sst.disabled{background:var(--sur2);color:var(--tx3);cursor:not-allowed;pointer-events:none}
+.ssp{color:var(--tx3)}
+.ssa{font-size:11px;color:var(--tx3);transition:transform .15s;flex-shrink:0;margin-left:6px}
+.sst.open .ssa{transform:rotate(180deg)}
+.ssd{position:absolute;top:100%;left:0;right:0;background:var(--sur);border:1px solid var(--ac);border-top:none;border-radius:0 0 var(--r) var(--r);box-shadow:0 6px 18px rgba(0,0,0,.10);z-index:300;display:none}
+.ssd.open{display:block}
+.sssw{padding:8px;border-bottom:1px solid var(--bdr)}
+.sssi{width:100%;padding:6px 9px;font-size:13px;border:1px solid var(--bdrs);border-radius:var(--r);outline:none;background:var(--sur2);color:var(--tx)}
+.sssi:focus{border-color:var(--ac)}
+.ssl{max-height:180px;overflow-y:auto}
+.ssitem{padding:8px 11px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bdr);transition:background .1s}
+.ssitem:last-child{border-bottom:none}
+.ssitem:hover{background:var(--acl);color:var(--act)}
+.ssitem.sel{background:var(--acl);color:var(--act);font-weight:500}
+.ssitem .sub{font-size:11px;color:var(--tx3);margin-left:auto}
+.ssitem:hover .sub,.ssitem.sel .sub{color:var(--ac)}
+.ssck{font-size:12px;width:14px;flex-shrink:0}
+.ssempty{padding:12px;font-size:13px;color:var(--tx3);text-align:center}
+/* Combo grid — 4 selects + botón */
+.cgrid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:11px;align-items:end}
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:#1E2435;color:#fff;padding:10px 15px;border-radius:var(--r);font-size:13px;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(7px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:999}
+#toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="slogo"><div class="licon">⚙</div>MES Config</div>
+    <div class="ssec">Catálogos</div>
+    <div class="si" onclick="showTab('secciones')"><span>▦</span> Secciones</div>
+    <div class="si" onclick="showTab('modulos')"><span>⬡</span> Módulos</div>
+    <div class="si" onclick="showTab('fallas')"><span>⚡</span> Fallas</div>
+    <div class="ssec">Asignación</div>
+    <div class="si active" onclick="showTab('combinaciones')"><span>🔗</span> Combinaciones</div>
+    <div class="si"><span>🖥</span> Máquinas</div>
+    <div style="flex:1"></div>
+    <div style="padding:13px 12px;font-size:11px;color:#3A4058">PROSEDE v2 · Planta Tlaxcala</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="ttl" id="tt">Asignación de combinaciones</div>
+        <div class="tbc" id="tbc">Configuración › Combinaciones</div>
+      </div>
+      <div class="trr">
+        <div class="mchip"><div class="mdot" id="mdot"></div><span id="mlabel">MÁQ-001 — Línea Sellado A</span></div>
+        <div class="av">AC</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="tabs-bar">
+        <button class="tb" data-tab="secciones">▦ Secciones</button>
+        <button class="tb" data-tab="modulos">⬡ Módulos</button>
+        <button class="tb" data-tab="fallas">⚡ Fallas</button>
+        <button class="tb active" data-tab="combinaciones">🔗 Combinaciones</button>
+      </div>
+
+      <!-- ══ SECCIONES — catálogo plano ══ -->
+      <div class="tsec" id="tab-secciones">
+        <div class="two-col">
+          <div class="card">
+            <div class="ctitle"><span class="ci">▦</span> Secciones registradas <span class="cnt" id="cnt-sec">4 registros</span></div>
+            <div class="srow"><input type="text" placeholder="Buscar sección..." oninput="fTbl('tb-sec',this.value)"></div>
+            <table>
+              <thead><tr><th>#</th><th>Nombre</th><th>Clave</th><th></th></tr></thead>
+              <tbody id="tb-sec">
+                <tr><td style="color:var(--tx3);font-size:12px">1</td><td><strong>Sellado</strong></td><td><span class="badge bi2">SEC-01</span></td><td><button class="bi ed" onclick="eSec(1,'Sellado','Área de sellado principal','SEC-01')">✏️</button><button class="bi" onclick="dRow(this,'tb-sec','cnt-sec')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">2</td><td><strong>Corte</strong></td><td><span class="badge bi2">SEC-02</span></td><td><button class="bi ed" onclick="eSec(2,'Corte','Zona de corte','SEC-02')">✏️</button><button class="bi" onclick="dRow(this,'tb-sec','cnt-sec')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">3</td><td><strong>Empaque</strong></td><td><span class="badge bi2">SEC-03</span></td><td><button class="bi ed" onclick="eSec(3,'Empaque','Línea de empaque','SEC-03')">✏️</button><button class="bi" onclick="dRow(this,'tb-sec','cnt-sec')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">4</td><td><strong>Revisión</strong></td><td><span class="badge bi2">SEC-04</span></td><td><button class="bi ed" onclick="eSec(4,'Revisión','Inspección final','SEC-04')">✏️</button><button class="bi" onclick="dRow(this,'tb-sec','cnt-sec')">🗑</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="ctitle"><span class="ci">✚</span><span id="sec-ftitle">Nueva sección</span></div>
+            <div class="eh" id="sec-hint">✏️ Editando — <a href="#" onclick="cSec();return false" style="color:var(--ac)">cancelar</a></div>
+            <input type="hidden" id="sec-id">
+            <div class="fg"><label class="fl">Nombre</label><input type="text" id="sec-nom" placeholder="Ej. Sellado"></div>
+            <div class="fg"><label class="fl">Descripción</label><textarea id="sec-desc" placeholder="Descripción breve..."></textarea></div>
+            <div class="fg"><label class="fl">Clave</label><input type="text" id="sec-clave" placeholder="Ej. SEC-05"></div>
+            <div class="brow">
+              <button class="btn bp" onclick="savSec()">💾 Guardar</button>
+              <button class="btn bg" onclick="cSec()">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MÓDULOS — catálogo plano, sin sección padre ══ -->
+      <div class="tsec" id="tab-modulos">
+        <div class="two-col">
+          <div class="card">
+            <div class="ctitle"><span class="ci">⬡</span> Módulos registrados <span class="cnt" id="cnt-mod">5 registros</span></div>
+            <div class="srow"><input type="text" placeholder="Buscar módulo..." oninput="fTbl('tb-mod',this.value)"></div>
+            <table>
+              <thead><tr><th>#</th><th>Nombre</th><th>Descripción</th><th></th></tr></thead>
+              <tbody id="tb-mod">
+                <tr><td style="color:var(--tx3);font-size:12px">1</td><td><strong>Módulo A1</strong></td><td style="color:var(--tx2)">Sellado principal</td><td><button class="bi ed" onclick="eMod(11,'Módulo A1','Sellado principal')">✏️</button><button class="bi" onclick="dRow(this,'tb-mod','cnt-mod')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">2</td><td><strong>Módulo A2</strong></td><td style="color:var(--tx2)">Sellado lateral</td><td><button class="bi ed" onclick="eMod(12,'Módulo A2','Sellado lateral')">✏️</button><button class="bi" onclick="dRow(this,'tb-mod','cnt-mod')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">3</td><td><strong>Módulo B1</strong></td><td style="color:var(--tx2)">Corte recto</td><td><button class="bi ed" onclick="eMod(21,'Módulo B1','Corte recto')">✏️</button><button class="bi" onclick="dRow(this,'tb-mod','cnt-mod')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">4</td><td><strong>Módulo C1</strong></td><td style="color:var(--tx2)">Caja manual</td><td><button class="bi ed" onclick="eMod(31,'Módulo C1','Caja manual')">✏️</button><button class="bi" onclick="dRow(this,'tb-mod','cnt-mod')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">5</td><td><strong>Módulo D1</strong></td><td style="color:var(--tx2)">Inspección visual</td><td><button class="bi ed" onclick="eMod(41,'Módulo D1','Inspección visual')">✏️</button><button class="bi" onclick="dRow(this,'tb-mod','cnt-mod')">🗑</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="ctitle"><span class="ci">✚</span><span id="mod-ftitle">Nuevo módulo</span></div>
+            <div class="eh" id="mod-hint">✏️ Editando — <a href="#" onclick="cMod();return false" style="color:var(--ac)">cancelar</a></div>
+            <input type="hidden" id="mod-id">
+            <div class="fg"><label class="fl">Nombre del módulo</label><input type="text" id="mod-nom" placeholder="Ej. Módulo A3"></div>
+            <div class="fg"><label class="fl">Descripción</label><textarea id="mod-desc" placeholder="Descripción breve..."></textarea></div>
+            <div class="brow">
+              <button class="btn bp" onclick="savMod()">💾 Guardar</button>
+              <button class="btn bg" onclick="cMod()">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FALLAS — catálogo plano, sin módulo ni sección ══ -->
+      <div class="tsec" id="tab-fallas">
+        <div class="two-col">
+          <div class="card">
+            <div class="ctitle"><span class="ci">⚡</span> Fallas registradas <span class="cnt" id="cnt-fal">8 registros</span></div>
+            <div class="srow"><input type="text" placeholder="Buscar falla..." oninput="fTbl('tb-fal',this.value)"></div>
+            <table>
+              <thead><tr><th>#</th><th>Nombre</th><th>Severidad</th><th>Código</th><th></th></tr></thead>
+              <tbody id="tb-fal">
+                <tr><td style="color:var(--tx3);font-size:12px">1</td><td><strong>Falla eléctrica</strong></td><td><span class="badge ba">Alta</span></td><td style="font-family:monospace;font-size:12px">FAL-001</td><td><button class="bi ed" onclick="eFal(101,'Falla eléctrica','Alta','FAL-001','Fallo en circuito')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">2</td><td><strong>Sobrecalentamiento</strong></td><td><span class="badge ba">Alta</span></td><td style="font-family:monospace;font-size:12px">FAL-002</td><td><button class="bi ed" onclick="eFal(102,'Sobrecalentamiento','Alta','FAL-002','Temp. fuera de rango')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">3</td><td><strong>Sensor dañado</strong></td><td><span class="badge bm">Media</span></td><td style="font-family:monospace;font-size:12px">FAL-003</td><td><button class="bi ed" onclick="eFal(103,'Sensor dañado','Media','FAL-003','Sensor fuera de rango')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">4</td><td><strong>Presión insuficiente</strong></td><td><span class="badge bm">Media</span></td><td style="font-family:monospace;font-size:12px">FAL-004</td><td><button class="bi ed" onclick="eFal(104,'Presión insuficiente','Media','FAL-004','Pérdida de presión')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">5</td><td><strong>Atasco mecánico</strong></td><td><span class="badge ba">Alta</span></td><td style="font-family:monospace;font-size:12px">FAL-005</td><td><button class="bi ed" onclick="eFal(105,'Atasco mecánico','Alta','FAL-005','Obstrucción en banda')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">6</td><td><strong>Fuga de aire</strong></td><td><span class="badge bb">Baja</span></td><td style="font-family:monospace;font-size:12px">FAL-006</td><td><button class="bi ed" onclick="eFal(106,'Fuga de aire','Baja','FAL-006','Pérdida neumática')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">7</td><td><strong>Ruido anormal</strong></td><td><span class="badge bb">Baja</span></td><td style="font-family:monospace;font-size:12px">FAL-007</td><td><button class="bi ed" onclick="eFal(107,'Ruido anormal','Baja','FAL-007','Vibración mecánica')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+                <tr><td style="color:var(--tx3);font-size:12px">8</td><td><strong>Error posicionamiento</strong></td><td><span class="badge ba">Alta</span></td><td style="font-family:monospace;font-size:12px">FAL-008</td><td><button class="bi ed" onclick="eFal(108,'Error posicionamiento','Alta','FAL-008','Desplazamiento en eje')">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="ctitle"><span class="ci">✚</span><span id="fal-ftitle">Nueva falla</span></div>
+            <div class="eh" id="fal-hint">✏️ Editando — <a href="#" onclick="cFal();return false" style="color:var(--ac)">cancelar</a></div>
+            <input type="hidden" id="fal-id">
+            <div class="fg"><label class="fl">Nombre de la falla</label><input type="text" id="fal-nom" placeholder="Ej. Falla eléctrica"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="fg"><label class="fl">Severidad</label><div id="ss-fal-sev"></div></div>
+              <div class="fg"><label class="fl">Código</label><input type="text" id="fal-cod" placeholder="FAL-009"></div>
+            </div>
+            <div class="fg"><label class="fl">Descripción</label><textarea id="fal-desc" placeholder="Descripción breve..."></textarea></div>
+            <div class="brow">
+              <button class="btn bp" onclick="savFal()">💾 Guardar</button>
+              <button class="btn bg" onclick="cFal()">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ COMBINACIONES — aquí se forma la jerarquía ══ -->
+      <div class="tsec active" id="tab-combinaciones">
+
+        <!-- Selector de máquina -->
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="font-size:20px">🖥</span>
+              <div>
+                <div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Máquina objetivo</div>
+                <div style="font-weight:600;font-size:14px" id="maq-lbl">MÁQ-001 — Línea Sellado A</div>
+              </div>
+            </div>
+            <div style="width:260px" id="ss-comb-maq"></div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+              <div id="maq-dot2" style="width:8px;height:8px;border-radius:50%;background:var(--ok)"></div>
+              <span style="font-size:12px;color:var(--tx2)" id="maq-st">Activa</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nota explicativa -->
+        <div style="background:var(--acl);border:1px solid #BFCFEE;border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--act);display:flex;align-items:flex-start;gap:8px">
+          <span style="font-size:16px;flex-shrink:0">💡</span>
+          <span>Selecciona la máquina y elige libremente la <strong>sección</strong>, <strong>módulo</strong> y <strong>falla</strong> del catálogo — sin restricciones entre sí. La relación Máquina → Sección → Módulo → Falla se forma al guardar la combinación.</span>
+        </div>
+
+        <!-- Form agregar -->
+        <div class="card">
+          <div class="ctitle"><span class="ci">✚</span> Agregar combinación</div>
+          <div class="cgrid">
+            <div class="fg" style="margin-bottom:0">
+              <label class="fl">Sección</label>
+              <div id="ss-comb-sec"></div>
+            </div>
+            <div class="fg" style="margin-bottom:0">
+              <label class="fl">Módulo</label>
+              <div id="ss-comb-mod"></div>
+            </div>
+            <div class="fg" style="margin-bottom:0">
+              <label class="fl">Falla</label>
+              <div id="ss-comb-fal"></div>
+            </div>
+            <button class="btn bp" id="btn-add" disabled style="align-self:end;white-space:nowrap">＋ Agregar</button>
+          </div>
+        </div>
+
+        <!-- Tabla combinaciones -->
+        <div class="card">
+          <div class="ctitle"><span class="ci">☰</span> Combinaciones asignadas <span class="cnt" id="cnt-comb">2 registros</span></div>
+          <div class="srow">
+            <input type="text" placeholder="Filtrar combinaciones..." oninput="fComb(this.value)">
+            <button class="btn bg" onclick="fComb('',true)">✕ Limpiar</button>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Máquina</th><th>Sección</th><th>Módulo</th><th>Falla</th><th>Sev.</th><th>Código</th><th></th></tr></thead>
+            <tbody id="tb-comb">
+              <tr data-s="máq-001 sellado módulo a1 falla eléctrica alta fal-001"><td style="color:var(--tx3);font-size:12px">1</td><td><span class="badge bg2">M01</span></td><td><strong>Sellado</strong></td><td>Módulo A1</td><td>Falla eléctrica</td><td><span class="badge ba">Alta</span></td><td style="font-family:monospace;font-size:12px;color:var(--tx2)">FAL-001</td><td><button class="bi" onclick="this.closest('tr').remove();renum('tb-comb','cnt-comb');toast('Combinación eliminada','del')">🗑</button></td></tr>
+              <tr data-s="máq-001 corte módulo b1 atasco mecánico alta fal-005"><td style="color:var(--tx3);font-size:12px">2</td><td><span class="badge bg2">M01</span></td><td><strong>Corte</strong></td><td>Módulo B1</td><td>Atasco mecánico</td><td><span class="badge ba">Alta</span></td><td style="font-family:monospace;font-size:12px;color:var(--tx2)">FAL-005</td><td><button class="bi" onclick="this.closest('tr').remove();renum('tb-comb','cnt-comb');toast('Combinación eliminada','del')">🗑</button></td></tr>
+            </tbody>
+          </table>
+          <div id="comb-empty" style="display:none" class="norows">Sin combinaciones que coincidan.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span id="t-icon" style="color:#4ADE80">✓</span> <span id="t-msg"></span></div>
+
+<script>
+/* ══ DATOS ══════════════════════════════════════════════════════ */
+const DB = {
+  secciones: [
+    {id:1,label:'Sellado',cod:'SEC-01'},
+    {id:2,label:'Corte',cod:'SEC-02'},
+    {id:3,label:'Empaque',cod:'SEC-03'},
+    {id:4,label:'Revisión',cod:'SEC-04'},
+    {id:5,label:'Ensamble',cod:'SEC-05'},
+  ],
+  modulos: [
+    {id:11,label:'Módulo A1',desc:'Sellado principal'},
+    {id:12,label:'Módulo A2',desc:'Sellado lateral'},
+    {id:21,label:'Módulo B1',desc:'Corte recto'},
+    {id:22,label:'Módulo B2',desc:'Corte diagonal'},
+    {id:31,label:'Módulo C1',desc:'Caja manual'},
+  ],
+  fallas: [
+    {id:101,label:'Falla eléctrica',sev:'Alta',cod:'FAL-001'},
+    {id:102,label:'Sobrecalentamiento',sev:'Alta',cod:'FAL-002'},
+    {id:103,label:'Sensor dañado',sev:'Media',cod:'FAL-003'},
+    {id:104,label:'Presión insuficiente',sev:'Media',cod:'FAL-004'},
+    {id:105,label:'Atasco mecánico',sev:'Alta',cod:'FAL-005'},
+    {id:106,label:'Fuga de aire',sev:'Baja',cod:'FAL-006'},
+    {id:107,label:'Ruido anormal',sev:'Baja',cod:'FAL-007'},
+    {id:108,label:'Error posicionamiento',sev:'Alta',cod:'FAL-008'},
+  ],
+  maquinas: [
+    {id:'M01',label:'MÁQ-001 — Línea Sellado A',estado:'Activa'},
+    {id:'M02',label:'MÁQ-002 — Línea Corte B',estado:'Activa'},
+    {id:'M03',label:'MÁQ-003 — Empacadora 1',estado:'Mantenimiento'},
+    {id:'M04',label:'MÁQ-004 — Empacadora 2',estado:'Activa'},
+    {id:'M05',label:'MÁQ-005 — Revisión Final',estado:'Inactiva'},
+  ]
+};
+
+/* ══ TABS ═══════════════════════════════════════════════════════ */
+const titles = {
+  secciones: ['Catálogo de secciones','Configuración › Secciones'],
+  modulos:   ['Catálogo de módulos','Configuración › Módulos'],
+  fallas:    ['Catálogo de fallas','Configuración › Fallas'],
+  combinaciones: ['Asignación de combinaciones','Configuración › Combinaciones'],
+};
+function showTab(name) {
+  document.querySelectorAll('.tsec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.si').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelector(`.tb[data-tab="${name}"]`).classList.add('active');
+  document.querySelector(`.si[onclick*="${name}"]`).classList.add('active');
+  document.getElementById('tt').textContent  = titles[name][0];
+  document.getElementById('tbc').textContent = titles[name][1];
+}
+document.querySelectorAll('.tb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+
+/* ══ UTILIDADES ═════════════════════════════════════════════════ */
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  document.getElementById('t-icon').textContent = type==='del' ? '✕' : '✓';
+  document.getElementById('t-icon').style.color  = type==='del' ? '#FCA5A5' : '#4ADE80';
+  document.getElementById('t-msg').textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2500);
+}
+function renum(tbId, cntId) {
+  let n=0;
+  document.querySelectorAll('#'+tbId+' tr').forEach(tr=>{
+    if(tr.style.display==='none') return;
+    n++; tr.querySelector('td:first-child').textContent = n;
+  });
+  const total = document.querySelectorAll('#'+tbId+' tr').length;
+  document.getElementById(cntId).textContent = total+' registro'+(total!==1?'s':'');
+}
+function dRow(btn, tbId, cntId) { btn.closest('tr').remove(); renum(tbId,cntId); toast('Registro eliminado','del'); }
+function fTbl(tbId, q) {
+  const lq = q.toLowerCase();
+  document.querySelectorAll('#'+tbId+' tr').forEach(tr=>{
+    tr.style.display = !lq || tr.textContent.toLowerCase().includes(lq) ? '' : 'none';
+  });
+}
+function fComb(q, clr) {
+  if(clr) { document.querySelector('#tab-combinaciones .srow input').value=''; q=''; }
+  const lq=q.toLowerCase(); let v=0;
+  document.querySelectorAll('#tb-comb tr').forEach(tr=>{
+    const ok = !lq||(tr.dataset.s||'').includes(lq);
+    tr.style.display=ok?'':'none'; if(ok) v++;
+  });
+  document.getElementById('comb-empty').style.display = v===0 ? 'block' : 'none';
+}
+
+/* ══ SEARCHABLE SELECT ══════════════════════════════════════════ */
+function createSS(containerId, placeholder, items, onChange) {
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = ''; wrap.className = 'ssw';
+  let selected=null, isOpen=false;
+
+  const trigger = document.createElement('div');
+  trigger.className = 'sst'; trigger.tabIndex = 0;
+  trigger.innerHTML = `<span class="ssp ssv">${placeholder}</span><span class="ssa">▼</span>`;
+
+  const dropdown = document.createElement('div'); dropdown.className = 'ssd';
+  const sw = document.createElement('div'); sw.className = 'sssw';
+  const si = document.createElement('input'); si.type='text'; si.className='sssi'; si.placeholder='Buscar...';
+  sw.appendChild(si);
+  const list = document.createElement('div'); list.className = 'ssl';
+  dropdown.appendChild(sw); dropdown.appendChild(list);
+  wrap.appendChild(trigger); wrap.appendChild(dropdown);
+
+  function render(q) {
+    const lq = q.toLowerCase();
+    const filt = items.filter(x=>x.label.toLowerCase().includes(lq)||(x.sub&&x.sub.toLowerCase().includes(lq)));
+    list.innerHTML = '';
+    if(!filt.length) { list.innerHTML='<div class="ssempty">Sin resultados</div>'; return; }
+    filt.forEach(item=>{
+      const el = document.createElement('div');
+      el.className = 'ssitem'+(selected&&selected.id===item.id?' sel':'');
+      el.innerHTML = `<span class="ssck">${selected&&selected.id===item.id?'✓':''}</span>
+        <span>${item.label}</span>
+        ${item.sub ? `<span class="sub">${item.sub}</span>` : ''}`;
+      el.addEventListener('mousedown', e=>{ e.preventDefault(); setValue(item); close(); });
+      list.appendChild(el);
+    });
+  }
+  function open()  { isOpen=true;  trigger.classList.add('open');    dropdown.classList.add('open');    si.value=''; render(''); setTimeout(()=>si.focus(),50); }
+  function close() { isOpen=false; trigger.classList.remove('open'); dropdown.classList.remove('open'); }
+  function setValue(item) {
+    selected=item;
+    trigger.querySelector('.ssv').textContent=item.label;
+    trigger.querySelector('.ssv').classList.remove('ssp');
+    trigger.classList.add('has-val');
+    onChange && onChange(item);
+  }
+
+  wrap._ss = {
+    setValue,
+    clear: ()=>{ selected=null; trigger.querySelector('.ssv').textContent=placeholder; trigger.querySelector('.ssv').classList.add('ssp'); trigger.classList.remove('has-val'); onChange&&onChange(null); },
+    setItems: (ni)=>{ items=ni; },
+    setDisabled: (v)=>{ trigger.classList.toggle('disabled',v); },
+    getValue: ()=>selected,
+  };
+
+  trigger.addEventListener('click', ()=>isOpen?close():open());
+  trigger.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); isOpen?close():open(); }});
+  si.addEventListener('input', ()=>render(si.value));
+  document.addEventListener('mousedown', e=>{ if(!wrap.contains(e.target)) close(); });
+  return wrap._ss;
+}
+
+/* ══ SECCIONES FORM ═════════════════════════════════════════════ */
+function eSec(id,n,d,c){ document.getElementById('sec-id').value=id; document.getElementById('sec-nom').value=n; document.getElementById('sec-desc').value=d; document.getElementById('sec-clave').value=c; document.getElementById('sec-ftitle').textContent='Editar sección'; document.getElementById('sec-hint').classList.add('show'); }
+function cSec(){ ['sec-id','sec-nom','sec-desc','sec-clave'].forEach(i=>document.getElementById(i).value=''); document.getElementById('sec-ftitle').textContent='Nueva sección'; document.getElementById('sec-hint').classList.remove('show'); }
+function savSec(){
+  const n=document.getElementById('sec-nom').value.trim(), c=document.getElementById('sec-clave').value.trim();
+  if(!n){ alert('El nombre es requerido'); return; }
+  const isEdit = document.getElementById('sec-id').value;
+  if(!isEdit){
+    const tb=document.getElementById('tb-sec'), num=tb.querySelectorAll('tr').length+1;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--tx3);font-size:12px">${num}</td><td><strong>${n}</strong></td><td><span class="badge bi2">${c||'—'}</span></td><td><button class="bi ed">✏️</button><button class="bi" onclick="dRow(this,'tb-sec','cnt-sec')">🗑</button></td>`;
+    tb.appendChild(tr);
+    DB.secciones.push({id:Date.now(),label:n,cod:c});
+    rebuildCombSS();
+  }
+  renum('tb-sec','cnt-sec'); cSec(); toast(isEdit?'Sección actualizada':'Sección guardada');
+}
+
+/* ══ MÓDULOS FORM ═══════════════════════════════════════════════ */
+function eMod(id,n,d){ document.getElementById('mod-id').value=id; document.getElementById('mod-nom').value=n; document.getElementById('mod-desc').value=d; document.getElementById('mod-ftitle').textContent='Editar módulo'; document.getElementById('mod-hint').classList.add('show'); }
+function cMod(){ ['mod-id','mod-nom','mod-desc'].forEach(i=>document.getElementById(i).value=''); document.getElementById('mod-ftitle').textContent='Nuevo módulo'; document.getElementById('mod-hint').classList.remove('show'); }
+function savMod(){
+  const n=document.getElementById('mod-nom').value.trim(), d=document.getElementById('mod-desc').value.trim();
+  if(!n){ alert('El nombre es requerido'); return; }
+  const isEdit = document.getElementById('mod-id').value;
+  if(!isEdit){
+    const tb=document.getElementById('tb-mod'), num=tb.querySelectorAll('tr').length+1;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--tx3);font-size:12px">${num}</td><td><strong>${n}</strong></td><td style="color:var(--tx2)">${d||'—'}</td><td><button class="bi ed">✏️</button><button class="bi" onclick="dRow(this,'tb-mod','cnt-mod')">🗑</button></td>`;
+    tb.appendChild(tr);
+    DB.modulos.push({id:Date.now(),label:n,desc:d});
+    rebuildCombSS();
+  }
+  renum('tb-mod','cnt-mod'); cMod(); toast(isEdit?'Módulo actualizado':'Módulo guardado');
+}
+
+/* ══ FALLAS FORM ════════════════════════════════════════════════ */
+let ssFalSev;
+function initFalForm(){
+  ssFalSev = createSS('ss-fal-sev','Severidad',[{id:'Alta',label:'Alta'},{id:'Media',label:'Media'},{id:'Baja',label:'Baja'}],null);
+}
+function eFal(id,n,sev,cod,desc){
+  document.getElementById('fal-id').value=id; document.getElementById('fal-nom').value=n;
+  document.getElementById('fal-cod').value=cod; document.getElementById('fal-desc').value=desc||'';
+  ssFalSev.setValue({id:sev,label:sev});
+  document.getElementById('fal-ftitle').textContent='Editar falla'; document.getElementById('fal-hint').classList.add('show');
+}
+function cFal(){
+  ['fal-id','fal-nom','fal-cod','fal-desc'].forEach(i=>document.getElementById(i).value='');
+  ssFalSev.clear();
+  document.getElementById('fal-ftitle').textContent='Nueva falla'; document.getElementById('fal-hint').classList.remove('show');
+}
+function savFal(){
+  const n=document.getElementById('fal-nom').value.trim(), sev=ssFalSev.getValue(), cod=document.getElementById('fal-cod').value.trim();
+  if(!n){ alert('El nombre es requerido'); return; }
+  if(!sev){ alert('Selecciona la severidad'); return; }
+  const isEdit = document.getElementById('fal-id').value;
+  if(!isEdit){
+    const tb=document.getElementById('tb-fal'), num=tb.querySelectorAll('tr').length+1;
+    const bc=sev.id==='Alta'?'ba':sev.id==='Media'?'bm':'bb';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--tx3);font-size:12px">${num}</td><td><strong>${n}</strong></td><td><span class="badge ${bc}">${sev.label}</span></td><td style="font-family:monospace;font-size:12px">${cod||'—'}</td><td><button class="bi ed">✏️</button><button class="bi" onclick="dRow(this,'tb-fal','cnt-fal')">🗑</button></td>`;
+    tb.appendChild(tr);
+    DB.fallas.push({id:Date.now(),label:n,sev:sev.id,cod});
+    rebuildCombSS();
+  }
+  renum('tb-fal','cnt-fal'); cFal(); toast(isEdit?'Falla actualizada':'Falla guardada');
+}
+
+/* ══ COMBINACIONES — 4 SS independientes ═══════════════════════ */
+let csel = {maq:null, sec:null, mod:null, fal:null};
+let ssCombMaq, ssCombSec, ssCombMod, ssCombFal;
+
+function checkAdd(){ document.getElementById('btn-add').disabled = !(csel.maq&&csel.sec&&csel.mod&&csel.fal); }
+
+function initCombForm(){
+  ssCombMaq = createSS('ss-comb-maq','Selecciona máquina...',
+    DB.maquinas.map(m=>({id:m.id,label:m.label,sub:m.estado})),
+    (item)=>{
+      csel.maq=item;
+      document.getElementById('maq-lbl').textContent=item.label;
+      const mq=DB.maquinas.find(m=>m.id===item.id);
+      const dot=document.getElementById('maq-dot2'), st=document.getElementById('maq-st');
+      const topDot=document.getElementById('mdot'), topLbl=document.getElementById('mlabel');
+      topLbl.textContent=item.label;
+      if(mq.estado==='Activa')        { dot.style.background='var(--ok)'; topDot.style.background='var(--ok)'; st.textContent='Activa'; }
+      else if(mq.estado==='Mantenimiento') { dot.style.background='var(--wn)'; topDot.style.background='var(--wn)'; st.textContent='Mantenimiento'; }
+      else                            { dot.style.background='var(--dg)'; topDot.style.background='var(--dg)'; st.textContent='Inactiva'; }
+      checkAdd();
+    });
+
+  // Los 3 catálogos — completamente independientes entre sí
+  ssCombSec = createSS('ss-comb-sec','Selecciona sección...',
+    DB.secciones.map(s=>({id:s.id,label:s.label,sub:s.cod})),
+    (item)=>{ csel.sec=item; checkAdd(); });
+
+  ssCombMod = createSS('ss-comb-mod','Selecciona módulo...',
+    DB.modulos.map(m=>({id:m.id,label:m.label,sub:m.desc})),
+    (item)=>{ csel.mod=item; checkAdd(); });
+
+  ssCombFal = createSS('ss-comb-fal','Selecciona falla...',
+    DB.fallas.map(f=>({id:f.id,label:f.label,sub:f.cod+' · '+f.sev})),
+    (item)=>{ csel.fal=item; checkAdd(); });
+
+  // Máquina por defecto
+  ssCombMaq.setValue({id:'M01',label:'MÁQ-001 — Línea Sellado A',sub:'Activa'});
+  csel.maq={id:'M01',label:'MÁQ-001 — Línea Sellado A'};
+}
+
+function rebuildCombSS(){
+  ['ss-comb-sec','ss-comb-mod','ss-comb-fal'].forEach(id=>document.getElementById(id).innerHTML='');
+  csel.sec=null; csel.mod=null; csel.fal=null;
+  const prevMaq=csel.maq;
+  initCombForm();
+  if(prevMaq) { ssCombMaq.setValue(prevMaq); csel.maq=prevMaq; }
+  checkAdd();
+}
+
+document.getElementById('btn-add').addEventListener('click',()=>{
+  if(!csel.maq||!csel.sec||!csel.mod||!csel.fal) return;
+  const fal=DB.fallas.find(f=>f.id===csel.fal.id)||{sev:'Media',cod:'—'};
+  const sev=fal.sev, bc=sev==='Alta'?'ba':sev==='Media'?'bm':'bb';
+  const s=[csel.maq.id,csel.sec.label,csel.mod.label,csel.fal.label,sev,fal.cod].join(' ').toLowerCase();
+  const tb=document.getElementById('tb-comb');
+  const n=tb.querySelectorAll('tr').length+1;
+  const tr=document.createElement('tr'); tr.dataset.s=s;
+  tr.innerHTML=`<td style="color:var(--tx3);font-size:12px">${n}</td>
+    <td><span class="badge bg2">${csel.maq.id}</span></td>
+    <td><strong>${csel.sec.label}</strong></td>
+    <td>${csel.mod.label}</td>
+    <td>${csel.fal.label}</td>
+    <td><span class="badge ${bc}">${sev}</span></td>
+    <td style="font-family:monospace;font-size:12px;color:var(--tx2)">${fal.cod}</td>
+    <td><button class="bi" onclick="this.closest('tr').remove();renum('tb-comb','cnt-comb');toast('Combinación eliminada','del')">🗑</button></td>`;
+  tb.appendChild(tr);
+  renum('tb-comb','cnt-comb');
+  toast('Combinación agregada a '+csel.maq.id);
+  // Limpiar sección, módulo y falla — mantener máquina
+  ssCombSec.clear(); csel.sec=null;
+  ssCombMod.clear(); csel.mod=null;
+  ssCombFal.clear(); csel.fal=null;
+  checkAdd();
+});
+
+/* ══ INIT ═══════════════════════════════════════════════════════ */
+initFalForm();
+initCombForm();
+</script>
+</body>
+</html>

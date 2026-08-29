@@ -436,7 +436,8 @@ function calcularTPDia(array $turnos): string
 
     if ($totalHrs <= 0) return '0.00%'; // hubo turno/producción, pero sin horas registradas
 
-    return number_format(($totalTP / ($totalHrs * 60)) * 100, 2) . '%';
+    // return number_format(($totalTP / ($totalHrs * 60)) * 100, 2) . '%';
+    return number_format($totalTP, 2);
     
 }
 
@@ -457,7 +458,8 @@ function calcularTPAcum(array $turnos): string
 
     $diasTrabajados = $totalHrs / 24;
 
-    return number_format((($totalTP / 60) / ($diasTrabajados * 24)) * 100, 2) . '%';
+    // return number_format((($totalTP / 60) / ($diasTrabajados * 24)) * 100, 2) . '%';
+    return number_format($totalTP, 2);
 }
 
 

@@ -99,6 +99,7 @@ function transformarHook(array $datos, string $fecha): array
                 'TiempoAbajo'     => (int)($row['TiempoAbajo'] ?? 0),
                 'HorasTrabajadas' => (float)($row['HorasTrabajadas'] ?? 0),
                 'MetrosLineales'  => (float)($row['MetrosLineales'] ?? 0),
+                'MermaMML'        => (float)($row['MermaMML'] ?? 0),
                 'KGSRechazados'   => (float)($row['KGSRechazados'] ?? 0),
             ];
         } else {
@@ -107,6 +108,7 @@ function transformarHook(array $datos, string $fecha): array
             $turnosPorMaquina[$noMaq][$keyTurno]['TiempoAbajo']     += (int)($row['TiempoAbajo'] ?? 0);
             $turnosPorMaquina[$noMaq][$keyTurno]['HorasTrabajadas'] += (float)($row['HorasTrabajadas'] ?? 0);
             $turnosPorMaquina[$noMaq][$keyTurno]['MetrosLineales']  += (float)($row['MetrosLineales'] ?? 0);
+            $turnosPorMaquina[$noMaq][$keyTurno]['MermaMML']        += (float)($row['MermaMML'] ?? 0);
             $turnosPorMaquina[$noMaq][$keyTurno]['KGSRechazados']   += (float)($row['KGSRechazados'] ?? 0);
         }
     }
@@ -166,43 +168,33 @@ function transformarHook(array $datos, string $fecha): array
 
             $totalMaq = inicializarTotalHook($fechas);
 
-            // ── v2: colapsar las claves de cada producto en un solo total ──
             foreach ($data['productos'] as &$producto) {
-                $prodDias = array_fill_keys($fechas, null);
-                $prodAcum = 0;
+                foreach ($producto['claves'] as &$info) {
+                    $info['prom'] = $diasTrabajados > 0
+                        ? round($info['acum'] / $diasTrabajados, 3)
+                        : 0;
 
-                foreach ($producto['claves'] as $info) {
                     foreach ($fechas as $f) {
-                        $v = $info['dias'][$f] ?? null;
-                        if ($v !== null) {
-                            $prodDias[$f] = round(($prodDias[$f] ?? 0) + $v, 3);
-                        }
+                        $totalMaq['dias'][$f] = round(
+                            ($totalMaq['dias'][$f] ?? 0) + ($info['dias'][$f] ?? 0),
+                            3
+                        );
                     }
-                    $prodAcum += $info['acum'] ?? 0;
+                    $totalMaq['acum'] += $info['acum'] ?? 0;
                 }
+                unset($info);
 
-                $producto['dias'] = $prodDias;
-                $producto['acum'] = round($prodAcum, 3);
-                $producto['prom'] = $diasTrabajados > 0
-                    ? round($prodAcum / $diasTrabajados, 3)
-                    : 0;
-                unset($producto['claves']);
-
-                foreach ($fechas as $f) {
-                    $totalMaq['dias'][$f] = round(
-                        ($totalMaq['dias'][$f] ?? 0) + ($prodDias[$f] ?? 0),
-                        3
-                    );
-                }
-                $totalMaq['acum'] += $prodAcum;
+                // Filtrar claves sin ningún dato en los 7 días
+                $producto['claves'] = array_filter(
+                    $producto['claves'],
+                    fn($info) => array_sum(array_map(fn($v) => (float)($v ?? 0), $info['dias'])) > 0
+                );
             }
             unset($producto);
 
-            // ── Eliminar productos sin ningún dato en los 7 días ──
             $data['productos'] = array_filter(
                 $data['productos'],
-                fn($p) => array_sum(array_map(fn($v) => (float)($v ?? 0), $p['dias'])) > 0
-                    || ($p['acum'] ?? 0) > 0
+                fn($p) => !empty($p['claves'])
             );
 
             $totalMaq['prom'] = $diasTrabajados > 0
@@ -323,28 +315,35 @@ function calcularTPAcumHook(array $turnos): string
 
 /**
  * %Merma de Hook
- * 
- * Fórmula: %Merma = ((KGSRechazados - MetrosLineales) / MetrosLineales) * 100
- * 
+ *
+ * Fórmula: %Merma = (KGSRechazados - (TotalMML × 1000) + MermaMML) / KGSRechazados × 100
+ *
+ * Donde:
+ *   - KGSRechazados  = gramos totales procesados (base del cálculo)
+ *   - TotalMML × 1000 = metros lineales convertidos a gramos (factor de conversión)
+ *   - MermaMML       = merma en metros lineales (se suma porque representa pérdida adicional)
+ *
  * Lógica:
  * - Sin turnos registrados → '-' (no hubo producción)
- * - Con turnos pero MetrosLineales <= 0 → '-' (no hay base para calcular)
- * - Con datos válidos → porcentaje
+ * - KGSRechazados <= 0    → '-' (no hay base para calcular)
+ * - En otros casos        → aplicar fórmula
  */
 function calcularMermaHook(array $turnos): string
 {
     if (empty($turnos)) return '-';
 
-    $totalMetrosLineales = 0;
-    $totalKGSRechazados  = 0;
+    $totalMML           = 0;
+    $totalMermaMML      = 0;
+    $totalKGSRechazados = 0;
 
     foreach ($turnos as $t) {
-        $totalMetrosLineales += (float)($t['MetrosLineales'] ?? 0);
-        $totalKGSRechazados  += (float)($t['KGSRechazados'] ?? 0);
+        $totalMML           += (float)($t['MetrosLineales'] ?? 0);
+        $totalMermaMML      += (float)($t['MermaMML']       ?? 0);
+        $totalKGSRechazados += (float)($t['KGSRechazados']  ?? 0);
     }
 
-    if ($totalMetrosLineales <= 0) return '-';
+    if ($totalKGSRechazados <= 0) return '-';
 
-    $merma = (($totalKGSRechazados - $totalMetrosLineales) / $totalMetrosLineales) * 100;
-    return number_format($merma, 2) . '%';
+    $merma = ($totalKGSRechazados - ($totalMML * 1000) + $totalMermaMML) / $totalKGSRechazados;
+    return number_format($merma * 100, 2) . '%';
 }

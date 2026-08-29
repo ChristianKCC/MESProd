@@ -99,6 +99,7 @@ function transformarHook(array $datos, string $fecha): array
                 'TiempoAbajo'     => (int)($row['TiempoAbajo'] ?? 0),
                 'HorasTrabajadas' => (float)($row['HorasTrabajadas'] ?? 0),
                 'MetrosLineales'  => (float)($row['MetrosLineales'] ?? 0),
+                'MermaMML'        => (float)($row['MermaMML'] ?? 0),
                 'KGSRechazados'   => (float)($row['KGSRechazados'] ?? 0),
             ];
         } else {
@@ -107,6 +108,7 @@ function transformarHook(array $datos, string $fecha): array
             $turnosPorMaquina[$noMaq][$keyTurno]['TiempoAbajo']     += (int)($row['TiempoAbajo'] ?? 0);
             $turnosPorMaquina[$noMaq][$keyTurno]['HorasTrabajadas'] += (float)($row['HorasTrabajadas'] ?? 0);
             $turnosPorMaquina[$noMaq][$keyTurno]['MetrosLineales']  += (float)($row['MetrosLineales'] ?? 0);
+            $turnosPorMaquina[$noMaq][$keyTurno]['MermaMML']        += (float)($row['MermaMML'] ?? 0);
             $turnosPorMaquina[$noMaq][$keyTurno]['KGSRechazados']   += (float)($row['KGSRechazados'] ?? 0);
         }
     }
@@ -313,28 +315,35 @@ function calcularTPAcumHook(array $turnos): string
 
 /**
  * %Merma de Hook
- * 
- * Fórmula: %Merma = ((KGSRechazados - MetrosLineales) / MetrosLineales) * 100
- * 
+ *
+ * Fórmula: %Merma = (KGSRechazados - (TotalMML × 1000) + MermaMML) / KGSRechazados × 100
+ *
+ * Donde:
+ *   - KGSRechazados  = gramos totales procesados (base del cálculo)
+ *   - TotalMML × 1000 = metros lineales convertidos a gramos (factor de conversión)
+ *   - MermaMML       = merma en metros lineales (se suma porque representa pérdida adicional)
+ *
  * Lógica:
  * - Sin turnos registrados → '-' (no hubo producción)
- * - Con turnos pero MetrosLineales <= 0 → '-' (no hay base para calcular)
- * - En otros casos → aplicar fórmula
+ * - KGSRechazados <= 0    → '-' (no hay base para calcular)
+ * - En otros casos        → aplicar fórmula
  */
 function calcularMermaHook(array $turnos): string
 {
     if (empty($turnos)) return '-';
 
-    $totalMetrosLineales = 0;
-    $totalKGSRechazados  = 0;
+    $totalMML           = 0;
+    $totalMermaMML      = 0;
+    $totalKGSRechazados = 0;
 
     foreach ($turnos as $t) {
-        $totalMetrosLineales += (float)($t['MetrosLineales'] ?? 0);
-        $totalKGSRechazados  += (float)($t['KGSRechazados'] ?? 0);
+        $totalMML           += (float)($t['MetrosLineales'] ?? 0);
+        $totalMermaMML      += (float)($t['MermaMML']       ?? 0);
+        $totalKGSRechazados += (float)($t['KGSRechazados']  ?? 0);
     }
 
-    if ($totalMetrosLineales <= 0) return '-';
+    if ($totalKGSRechazados <= 0) return '-';
 
-    $merma = (($totalKGSRechazados - $totalMetrosLineales) / $totalMetrosLineales) * 100;
-    return number_format($merma, 2) . '%';
+    $merma = ($totalKGSRechazados - ($totalMML * 1000) + $totalMermaMML) / $totalKGSRechazados;
+    return number_format($merma * 100, 2) . '%';
 }

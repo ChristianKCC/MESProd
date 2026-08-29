@@ -641,31 +641,31 @@ class TurnosSinConexion
         // Agrupa TODAS las claves del turno con SUM para los campos numéricos.
         // Para campos de contexto (conductor, std, etc.) toma el del último IdEncabezadoBItacora.
         $query = "
-        SELECT
-            MAX(IdEncabezadoBItacora)   AS IdEncabezadoBItacora,
-            MAX(presentacion)           AS presentacion,
-            MAX(Descripcion_Articulo)   AS Descripcion_Articulo,
-            MAX(Fecha)                  AS Fecha,
-            Turno,
-            MAX(HorasTrabajadas)        AS HorasTrabajadas,
-            MAX(NoMaquina)              AS NoMaquina,
-            MAX(NombreMaquina)          AS NombreMaquina,
-            SUM(golpes)                 AS golpes,
-            SUM(merma)                  AS merma,
-            SUM(real)                   AS CajasReales,
-            SUM(cajasxp)                AS CajasxPanal,
-            SUM(acumulado)              AS acumulado,
-            MAX(std)                    AS std,
-            SUM(Rechazos)               AS Rechazos,
-            MAX(MinutosTurno)           AS MinutosTurno,
-            SUM(TotalTiempoPerdido)     AS TiempoPerdido,
-            SUM(TiempoArriba)           AS TiempoArriba,
-            SUM(ParosMaquina)           AS ParosMaquina,
-            MAX(NombreEmpleado)         AS NombreEmpleado
-        FROM ProduccionesMaquinasSinRed
-        WHERE Fecha    = ?
-          AND NoMaquina = ?
-    ";
+                SELECT
+                MAX(IdEncabezadoBItacora)   AS IdEncabezadoBItacora,
+                MAX(presentacion)           AS presentacion,
+                MAX(Descripcion_Articulo)   AS Descripcion_Articulo,
+                MAX(Fecha)                  AS Fecha,
+                Turno,
+                MAX(HorasTrabajadas)        AS HorasTrabajadas,
+                MAX(NoMaquina)              AS NoMaquina,
+                MAX(NombreMaquina)          AS NombreMaquina,
+                MAX(golpes)                 AS golpes,          -- SUM → MAX
+                MAX(merma)                  AS merma,           -- SUM → MAX
+                SUM(real)                   AS CajasReales,
+                SUM(cajasxp)                AS CajasxPanal,
+                SUM(acumulado)              AS acumulado,
+                MAX(std)                    AS std,
+                SUM(Rechazos)               AS Rechazos,
+                MAX(MinutosTurno)           AS MinutosTurno,
+                MAX(TotalTiempoPerdido)     AS TiempoPerdido,   -- SUM → MAX
+                MAX(TiempoArriba)           AS TiempoArriba,    -- SUM → MAX
+                MAX(ParosMaquina)           AS ParosMaquina,    -- SUM → MAX
+                MAX(NombreEmpleado)         AS NombreEmpleado
+            FROM ProduccionesMaquinasSinRed
+            WHERE Fecha     = ?
+            AND NoMaquina = ?
+        ";
 
         $params = [$fecha, $maquina];
 
@@ -982,3 +982,174 @@ class TurnosSinConexion
     }
 }
 
+class TurnosHook
+{
+    public function generarDatosAnterioresHook($id)
+    {
+        $conexion = new ClassConexion();
+        $conn = $conexion->conexion('TLX004MXDB');
+
+        // Paso 1 - Obtener contexto del registro
+        $queryBase = "
+        SELECT NoMaquina, Turno AS TurnoMax, FechaTurno
+        FROM [TLX004MXDB].[dbo].[tblMXPRResumenTurnoHook]
+        WHERE id = ?
+    ";
+        $resultBase = sqlsrv_query($conn, $queryBase, [$id]);
+
+        if ($resultBase === false || !sqlsrv_has_rows($resultBase)) {
+            die(json_encode([
+                "error" => "No se encontró el registro.",
+                "detalle" => sqlsrv_errors()
+            ]));
+        }
+
+        $rowBase = sqlsrv_fetch_array($resultBase, SQLSRV_FETCH_ASSOC);
+        $maquina = $rowBase['NoMaquina'];
+        $turnoMax = $rowBase['TurnoMax'];
+        $fecha = $rowBase['FechaTurno']->format('Y-m-d');
+
+        $datos = [];
+
+        // Paso 2 - Loop de turno 1 hasta turnoMax
+        for ($t = 1; $t <= $turnoMax; $t++) {
+
+            $query = "
+            SELECT
+                tblRTH.[Id]
+                ,tblRTH.[FechaTurno]
+                ,tblRTH.[NoMaquina]
+                ,tblMaquinas.NombreMaquina
+                ,tblRTH.[IdEncabezadoBitacora]
+                ,tblRTH.[Turno]
+                ,tblRTH.[Metros]
+                ,ISNULL(merma.TotalMetrosLineales, 0)                                        AS MetrosRechazados
+                ,ISNULL(etiquetas.AccML, 0) * 1000                                           AS MetrosLineales
+                ,(ISNULL(etiquetas.AccML, 0) * 1000) - ISNULL(merma.TotalMetrosLineales, 0) AS MetrosEntregados
+                ,tblRTH.[TiempoParoMin]      AS TiempoAbajo
+                ,tblRTH.[TiempoCorriendoMin] AS TiempoArriba
+                ,tblRTH.[ParosMaquina]
+                ,enc.HorasTrabajadas
+                ,asis.noemp          AS NoEmpleado
+                ,asis.nombre         AS NombreEmpleado
+                ,asis.PuestoNombre
+            FROM [TLX004MXDB].[dbo].[tblMXPRResumenTurnoHook] tblRTH
+            INNER JOIN TLX009MXDB.dbo.tblMaquinas
+                ON tblMaquinas.NoMaquina = tblRTH.NoMaquina
+            LEFT JOIN [TLX004MXDB].[dbo].[tblEncabezadoBitacora] enc
+                ON enc.IdEncabezadoBItacora = tblRTH.IdEncabezadoBitacora
+            LEFT JOIN (
+                SELECT
+                    [folio]
+                    ,SUM([MetrosLineales]) AS TotalMetrosLineales
+                FROM [TLX004MXDB].[dbo].[tblMXPR_Hook_Merma]
+                WHERE [esMerma] = 1
+                GROUP BY [folio]
+            ) AS merma
+                ON merma.folio = tblRTH.IdEncabezadoBitacora
+            LEFT JOIN (
+                SELECT
+                    [folio]
+                    ,SUM([AccML]) AS AccML
+                    ,SUM([AccMC]) AS AccMC
+                FROM (
+                    SELECT
+                        [folio]
+                        ,[idEncabezadoHook]
+                        ,[AccML]
+                        ,[AccMC]
+                        ,ROW_NUMBER() OVER (
+                            PARTITION BY [folio], [idEncabezadoHook]
+                            ORDER BY [NumeroEtiqueta] DESC
+                        ) AS rn
+                    FROM [TLX004MXDB].[dbo].[tblMXPR_Produccion_Hook_Etiquetas]
+                ) ranked
+                WHERE rn = 1
+                GROUP BY [folio]
+            ) AS etiquetas
+                ON etiquetas.folio = tblRTH.IdEncabezadoBitacora
+            LEFT JOIN (
+                SELECT
+                    ba.folio
+                    ,ba.noemp
+                    ,emp.nombre
+                    ,puestos.nombre AS PuestoNombre
+                    ,ROW_NUMBER() OVER (
+                        PARTITION BY ba.folio
+                        ORDER BY ba.fecha ASC
+                    ) AS rn
+                FROM TLX002MXDB.dbo.tblBitAsistencias ba
+                INNER JOIN TLX032MXDB.dbo.tblempleados emp
+                    ON emp.noemp = ba.noemp
+                INNER JOIN TLX009MXDB.dbo.tblPuestos puestos
+                    ON puestos.id = emp.puesto
+                WHERE puestos.id IN (8, 69, 70, 74)
+            ) AS asis
+                ON asis.folio = tblRTH.IdEncabezadoBitacora
+                AND asis.rn = 1
+            WHERE tblRTH.NoMaquina = ?
+              AND tblRTH.FechaTurno = ?
+              AND tblRTH.Turno = ?
+        ";
+
+            $params = [$maquina, $fecha, $t];
+            $result = sqlsrv_query($conn, $query, $params);
+
+            if ($result === false) {
+                die(json_encode([
+                    "error" => "Error en consulta turno $t",
+                    "detalle" => sqlsrv_errors()
+                ]));
+            }
+
+            $row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC);
+
+            if ($row) {
+                $datos[] = [
+                    'Id' => $row['Id'],
+                    'FechaTurno' => $row['FechaTurno']?->format('Y-m-d'),
+                    'NoMaquina' => $row['NoMaquina'],
+                    'NombreMaquina' => $row['NombreMaquina'],
+                    'IdEncabezadoBitacora' => $row['IdEncabezadoBitacora'],
+                    'Turno' => $row['Turno'],
+                    'Metros' => $row['Metros'],
+                    'MetrosRechazados' => $row['MetrosRechazados'],
+                    'MetrosLineales' => $row['MetrosLineales'],
+                    'MetrosEntregados' => $row['MetrosEntregados'],
+                    'TiempoAbajo' => $row['TiempoAbajo'],
+                    'TiempoArriba' => $row['TiempoArriba'],
+                    'ParosMaquina' => $row['ParosMaquina'],
+                    'HorasTrabajadas' => $row['HorasTrabajadas'],
+                    'NoEmpleado' => $row['NoEmpleado'],
+                    'NombreEmpleado' => $row['NombreEmpleado'],
+                    'PuestoNombre' => $row['PuestoNombre'],
+                ];
+            } else {
+                // Turno sin datos — fila vacía
+                $datos[] = [
+                    'Id' => null,
+                    'FechaTurno' => $fecha,
+                    'NoMaquina' => $maquina,
+                    'NombreMaquina' => '',
+                    'IdEncabezadoBitacora' => null,
+                    'Turno' => $t,
+                    'Metros' => 0,
+                    'MetrosRechazados' => 0,
+                    'MetrosLineales' => 0,
+                    'MetrosEntregados' => 0,
+                    'TiempoAbajo' => 0,
+                    'TiempoArriba' => 0,
+                    'ParosMaquina' => 0,
+                    'HorasTrabajadas' => 0,
+                    'NoEmpleado' => null,
+                    'NombreEmpleado' => null,
+                    'PuestoNombre' => null,
+                ];
+            }
+        }
+
+        // echo json_encode($datos, JSON_PRETTY_PRINT);
+
+        return $datos;
+    }
+}

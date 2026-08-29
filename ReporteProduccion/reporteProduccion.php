@@ -20,6 +20,68 @@ require_once("../index/header.php");
         align-items: center;
         z-index: 9999;
     }
+     .tabla-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .table {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table-header-kc {
+        background-color: #002B75 !important;
+        color: white !important;
+        font-weight: 600;
+        text-align: center;
+        border: none;
+        padding: 12px 8px;
+    }
+
+    .table thead tr:first-child th:first-child {
+        border-top-left-radius: 8px;
+    }
+
+    .table thead tr:first-child th:last-child {
+        border-top-right-radius: 8px;
+    }
+
+    .table-striped>tbody>tr:nth-of-type(odd) {
+        background-color: #f9f9f9;
+    }
+
+    .table-striped>tbody>tr:hover {
+        background-color: #e8f0ff;
+    }
+
+    tbody tr td {
+        vertical-align: middle;
+        padding: 12px 8px;
+        text-align: center;
+        border-color: #e0e0e0;
+    }
+
+    .row-total {
+        background-color: #e8e8e8 !important;
+        color: #333;
+        font-weight: 700;
+    }
+
+    .row-total td {
+        color: #333;
+        border-color: #e8e8e8;
+    }
+
+    .table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 8px;
+    }
+
+    .table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 8px;
+    }
 </style>
 
 <!-- Contenido -->
@@ -104,8 +166,9 @@ require_once("../index/header.php");
             </div>
         </div>
         <br>
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
+        <!-- Tabla normal -->
+        <table id="tablaNormal" class="table table-striped table-hover border">
+            <thead class="table-header-kc">
                 <tr>
                     <th>Fecha</th>
                     <th>Turno</th>
@@ -113,15 +176,30 @@ require_once("../index/header.php");
                     <th>Cortes</th>
                     <th>Rechazos</th>
                     <th>Tiempo abajo</th>
-                    <!-- <th>Minutos enhebrando</th> -->
                     <th>Tiempo arriba</th>
                     <th>Merma máquina</th>
-                    <!-- <th>Tiempo perdido</th> -->
                     <th>Paros máquina</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
+        </table>
+
+        <!-- Tabla Hook (máquina 67) -->
+        <table id="tablaHook" class="table table-striped table-hover border d-none">
+            <thead class="table-header-kc">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Turno</th>
+                    <th>Máquina</th>
+                    <th>Metros Lineales </th>
+                    <th>Tiempo abajo</th>
+                    <th>Tiempo arriba</th>
+                    <th>Paros máquina</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tableBodyHook"></tbody>
         </table>
         <br>
         <!-- Controles para pasar a la siguiente pagina -->
@@ -198,6 +276,57 @@ require_once("../index/header.php");
                                 id="actualizarRegistroTurnoMaquina"><i class="fa-solid fa-floppy-disk"></i>
                                 Actualizar</button></div>
                         <div class="col-2"> <button class="btn btn-sm btn-secondary" id="limpiarFormulario"><i
+                                    class="fa-solid fa-rotate-left"></i> Limpiar</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modadalEditRegistroTurnoHook" tabindex="-1"
+        aria-labelledby="modadalEditRegistroTurnoHookModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modadalEditRegistroTurnoHookModalLabel">New message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Solo para efectos de programacion, siempre oculto -->
+                        <div class="col-1" hidden>
+                            <small>FolioBitacora</small>
+                            <input type="number" class="form-control form-control-sm" id="folioBitacora" readonly>
+                        </div>
+                        <!-- Solo para efectos de programacion, siempre oculto -->
+                        <!-- Elementos editables del registro de turno -->
+                        <div class="col-2">
+                            <small class="fw-bold">Metros Lineales</small>
+                            <input type="number" class="form-control form-control-sm" id="metrosLineales" min="0" name="">
+                        </div>
+                        <div class="col-2">
+                            <small class="fw-bold">Tiempo abajo</small>
+                            <input type="number" class="form-control form-control-sm" id="tiempoAbajoHook" min="0" name="">
+                        </div>
+                        <div class="col-2">
+                            <small class="fw-bold">Tiempo arriba</small>
+                            <input type="number" class="form-control form-control-sm" id="tiempoArribaHook" min="0" name="">
+                        </div>
+                        <div class="col-2">
+                            <small class="fw-bold">No. paros</small>
+                            <input type="number" class="form-control form-control-sm" id="parosHook" min="0" name="">
+                        </div>
+                        <div class="col-2">
+                            <small class="fw-bold">Horas trabajadas</small>
+                            <input type="number" class="form-control form-control-sm" id="HorasHook" min="0"
+                                step="0.5" value="0" name="">
+                        </div>
+                    </div>
+                    <div class="row justify-content-end m-2">
+                        <div class="col-2"> <button class="btn btn-sm btn-warning"
+                                id="actualizarTurnoHook"><i class="fa-solid fa-floppy-disk"></i>
+                                Actualizar</button></div>
+                        <div class="col-2"> <button class="btn btn-sm btn-secondary" id="limpiarFormularioHook"><i
                                     class="fa-solid fa-rotate-left"></i> Limpiar</button></div>
                     </div>
                 </div>

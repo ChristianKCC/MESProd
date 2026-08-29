@@ -23,7 +23,7 @@ btn.addEventListener("click", async (e) => {
 
   let html = "";
   if (
-    ["67", "68", "69", "70", "71", "72", "75", "85", "86", "101", "138", "139"].includes(
+    ["68", "69", "70", "71", "72", "75", "85", "86", "101", "138", "139"].includes(
       maquinaValue,
     )
   ) {
@@ -49,6 +49,9 @@ window.reporteMaquinaAnterior = (id) => {
 window.reporteMaquinasSinRed = (fecha, maquina, turno) => {
   ReporteTurnosObj.generarPDF(fecha, maquina, turno);
 };
+window.reporteAnteriorHook = (id) => {
+  ReporteTurnosObj.generarPDFHook(id);
+}
 
 let folioenc = "";
 const modalTurnos = document.getElementById("modadalEditRegistroTurno");
@@ -63,9 +66,9 @@ modalTurnos.addEventListener("shown.bs.modal", function (event) {
     document.getElementById("folioBitacora").value = data.IdEncabezadoBItacora;
     document.getElementById("cortes").value = data.CortesA;
     document.getElementById("rechazos").value = data.RechazosA;
-    document.getElementById("tiempoabajo").value = data.TAbajoA;
-    document.getElementById("minutosenhebrando").value = data.fMinEnhebrandoA;
-    document.getElementById("tiempoarriba").value = data.TArribaA;
+    document.getElementById("tiempoabajo").value = data.TAbajoA.toFixed(2);
+    document.getElementById("minutosenhebrando").value = data.fMinEnhebrandoA.toFixed(2);
+    document.getElementById("tiempoarriba").value = data.TArribaA.toFixed(2);
     document.getElementById("tiempoperdido").value = data.fTiempoPerdidoA;
     document.getElementById("paros").value = data.fParoMaqinaA;
     document.getElementById("horastrabajadas").value = data.HorasTrabajadas;
@@ -94,6 +97,23 @@ modalMaquinasSinRed.addEventListener("shown.bs.modal", function (event) {
      // manejar null/undefined/valor vacío
      const motivo = String(data[0].MotivoCambio ?? "").trim();
      document.getElementById("motivoCambioSinRed").value = motivo;
+  });
+});
+
+const modalTurnoHook = document.getElementById("modadalEditRegistroTurnoHook");
+modalTurnoHook.addEventListener("shown.bs.modal", function (event) {
+  const button = event.relatedTarget;
+  const recipient = button.getAttribute("data-bs-whatever");
+  const modalTitle = modalTurnoHook.querySelector(".modal-title");
+  folioenc = recipient;
+  ReporteTurnosObj.dataForActualizarRegistroHook(recipient).then((data) => {
+    console.log(data);
+    modalTitle.textContent = `Estas editando la máquina ${data[0].Maquina} del turno ${data[0].Turno} de la fecha ${data[0].Fecha} y el folio #${data[0].IdEncabezadoBitacora}`;
+    document.getElementById("metrosLineales").value = data[0].MetrosLineales.toFixed(3);
+    document.getElementById("tiempoAbajoHook").value = data[0].TiempoAbajo.toFixed(2);
+    document.getElementById("tiempoArribaHook").value = data[0].TiempoArriba.toFixed(2);
+    document.getElementById("parosHook").value = data[0].ParosMaquina;
+    document.getElementById("HorasHook").value = data[0].Horas;
   });
 });
 

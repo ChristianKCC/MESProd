@@ -417,11 +417,12 @@ class ReporteDiario
             'Clave' => $row['Clave'],
             'Descripcion' => $row['Descripcion'],
             // MetrosCuadrados = TotalMC del SP, ya es el total de MM² de ese turno
-            'MetrosLineales' => $row['TotalMML'] !== null ? (float) $row['TotalMML'] : null,
-            'MetrosCuadrados' => $row['TotalMC'] !== null ? (float) $row['TotalMC'] : null,
-            'KGSRechazados' => $row['KGSRechazados'] ?? null, // pendiente, no se usa aún
-            'TiempoAbajo' => (int) ($row['TiempoAbajo'] ?? 0),
-            'HorasTrabajadas' => (float) ($row['HorasTrabajadas'] ?? 0),
+            'MetrosLineales'  => $row['TotalMML']      !== null ? (float)$row['TotalMML']      : null,
+            'MetrosCuadrados' => $row['TotalMC']       !== null ? (float)$row['TotalMC']       : null,
+            'MermaMML'        => $row['MermaMML']      !== null ? (float)$row['MermaMML']      : 0.0,
+            'KGSRechazados'   => $row['KGSRechazados'] !== null ? (float)$row['KGSRechazados'] : null,
+            'TiempoAbajo'     => (int)($row['TiempoAbajo']    ?? 0),
+            'HorasTrabajadas' => (float)($row['HorasTrabajadas'] ?? 0),
         ];
     }
 }

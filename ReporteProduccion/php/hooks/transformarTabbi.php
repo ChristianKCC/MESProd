@@ -394,6 +394,6 @@ function calcularMermaTabbi(array $turnos): string
     $kgsRechazados = array_sum(array_column($turnos, 'KGSRechazados'));
     $pesoTotal     = array_sum(array_column($turnos, 'PesoTotal'));
     if ($pesoTotal <= 0) return ''; // hubo producción, pero sin peso registrado
-    // return number_format(($kgsRechazados / $pesoTotal) * 100, 2) . '%';
-    return number_format($kgsRechazados, 2) . ' KG';
+    return number_format(($kgsRechazados / $pesoTotal) * 100, 2) . '%';
+    // return number_format($kgsRechazados, 2) . ' KG';
 }

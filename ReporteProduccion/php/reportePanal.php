@@ -309,13 +309,14 @@ function sumarTiempoAbajoDiaPorMaquina(array $dataCRD): array
         $suma = 0;
         foreach ($turnos as $t) {
             // Aseguramos la llave y tipo
-            $suma += isset($t['TiempoAbajo']) ? (int) $t['TiempoAbajo'] : 0;
+            $suma += isset($t['TiempoAbajo']) ? (float) $t['TiempoAbajo'] : 0;
         }
 
         $resultado['porMaquina'][$nombre] = ($resultado['porMaquina'][$nombre] ?? 0) + $suma;
         $resultado['totalGeneral'] += $suma;
     }
 
+    // echo json_encode($resultado, JSON_PRETTY_PRINT);
     return $resultado;
 }
 
