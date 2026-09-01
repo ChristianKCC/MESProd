@@ -23,7 +23,7 @@ require_once("../index/header.php");
             </div>
 
             <!-- Secciones -->
-            <div class="tsec active" id="tab-secciones">
+            <div class="tsec" id="tab-secciones">
                 <div class="two-col">
                     <div class="card">
                         <div class="ctitle"><span class="ci"><i class="fa-solid fa-table-columns"></i></span> Secciones
@@ -35,7 +35,7 @@ require_once("../index/header.php");
                                 <tr>
                                     <th>#</th>
                                     <th>Nombre</th>
-                                    <th>Clave</th>
+                                    <th>Descripción</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -43,6 +43,113 @@ require_once("../index/header.php");
 
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card">
+                        <div class="ctitle"><span class="ci">✚</span><span id="sec-ftitle">Nueva sección</span></div>
+                        <div class="eh" id="sec-hint">✏️ Editando — <a href="#" onclick="cSec();return false"
+                                style="color:var(--ac)">cancelar</a></div>
+                        <input type="hidden" id="sec-id">
+                        <div class="fg"><label class="fl">Nombre</label><input type="text" id="sec-nom"
+                                placeholder="Ej. Sellado"></div>
+                        <div class="fg"><label class="fl">Descripción</label><textarea id="sec-desc"
+                                placeholder="Descripción breve..."></textarea></div>
+                        <div class="brow">
+                            <button class="btn bp" onclick="savSec()">💾 Guardar</button>
+                            <button class="btn bg" onclick="cSec()">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modulos -->
+            <div class="tsec" id="tab-modulos">
+                <div class="two-col">
+                    <div class="card">
+                        <div class="ctitle"><span class="ci"><i class="fa-solid fa-puzzle-piece"></i></span> Módulos
+                            registrados</div>
+                        <div class="srow"><input type="text" placeholder="Buscar módulo..."
+                                oninput="fTbl('tb-mod',this.value)"></div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tb-mod">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card">
+                        <div class="ctitle"><span class="ci">✚</span><span id="mod-ftitle">Nuevo módulo</span></div>
+                        <div class="eh" id="mod-hint">✏️ Editando — <a href="#" onclick="cMod();return false"
+                                style="color:var(--ac)">cancelar</a></div>
+                        <input type="hidden" id="mod-id">
+                        <div class="fg"><label class="fl">Nombre del módulo</label><input type="text" id="mod-nom"
+                                placeholder="Ej. Módulo A3"></div>
+                        <div class="fg"><label class="fl">Descripción</label><textarea id="mod-desc"
+                                placeholder="Descripción breve..."></textarea></div>
+                        <div class="brow">
+                            <button class="btn bp" onclick="savMod()">💾 Guardar</button>
+                            <button class="btn bg" onclick="cMod()">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fallas -->
+            <div class="tsec" id="tab-fallas">
+                <div class="two-col">
+                    <div class="card">
+                        <div class="ctitle">
+                            <span class="ci"><i class="fa-solid fa-exclamation-triangle"></i></span>
+                            Fallas registradas
+                        </div>
+                        <div class="srow"><input type="text" placeholder="Buscar falla..."
+                                oninput="fTbl('tb-fal',this.value)"></div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tb-fal">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card">
+                        <div class="ctitle"><span class="ci">✚</span><span id="fal-ftitle">Nueva falla</span></div>
+                        <div class="eh" id="fal-hint">✏️ Editando — <a href="#" onclick="cFal();return false"
+                                style="color:var(--ac)">cancelar</a></div>
+                        <input type="hidden" id="fal-id">
+                        <div class="fg"><label class="fl">Nombre de la falla</label><input type="text" id="fal-nom"
+                                placeholder="Ej. Falla eléctrica"></div>
+                        <div class="fg"><label class="fl">Descripción</label><textarea id="fal-desc"
+                                placeholder="Descripción breve..."></textarea></div>
+                        <div class="brow">
+                            <button class="btn bp" onclick="savFal()">💾 Guardar</button>
+                            <button class="btn bg" onclick="cFal()">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Combinaciones -->
+            <div class="tsec active" id="tab-combinaciones"></div>
+            <div class="card" style="margin: bottom 12px;">
+                <div style="display: flex;align-items: center; gap: 16px; flex-wrap:wrap;">
+                    <div style="display: flex; align-items: center; gap: 9px">
+                        <span style="font-size:  20px"><i class="fa-solid fa-robot"></i></span>
+                        <div>
+                            <div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Máquina objetivo</div>
+                            <div style="font-weight:600;font-size:14px" id="maq-lbl"></div>
+                            <div></div>
+                        </div>
                     </div>
                 </div>
             </div>

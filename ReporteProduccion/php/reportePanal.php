@@ -1610,7 +1610,8 @@ function pintarTiempoAbajoMaquinas(
 
     $pdf->SetXY($x + 82, $totalY + 6);
     $minG = (float) (number_format($acumArriba['totalGeneral'], 2) ?? 0);
-    $pdf->Cell($colW[7], $rowHeight, number_format($minG, 2) . ' / ' . number_format(($totalGeneral / ($minG * 60)) * 100, 2) . '%', 1, 0, 'C', true);
+    $porcentajeG = ($minG > 0) ? number_format(($totalGeneral / ($minG * 60)) * 100, 2) . '%' : '';
+    $pdf->Cell($colW[7], $rowHeight, number_format($minG, 2) . ' / ' . $porcentajeG, 1, 0, 'C', true);
 
     // ---------------- Tiempo perdido acumulado ----------------
     if ($agregarAcumulado && $campoAcumulado !== '' && !empty($dataPeriodo)) {
@@ -2382,7 +2383,7 @@ function pintarOEEMaquinas(
     $pdf->SetXY($x + 82, $totalY);
     $minG = (float) (number_format($acumArriba['totalGeneral'], 2) ?? 0);
     $pctG = ($sumDenGeneral > 0) ? ((1 - ($sumNumGeneral / $sumDenGeneral)) * 100) : 0.0;
-    $tptD = ($totalGeneral / ($minG * 60)) * 100;
+    $tptD = ($minG * 60 > 0) ? (($totalGeneral / ($minG * 60)) * 100) : 0.0;
     $oeeTD = ((100 - $pctG) * (100 - $tptD)) / 100;
     $pdf->SetFont('Arial', 'B', 4.5);
     $pdf->Cell($colW[7], $rowHeight, number_format($oeeTD, 2) . '%', 1, 0, 'C', true);

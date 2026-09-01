@@ -1130,7 +1130,7 @@ if ($hayFilas && ($totalParosSecciones > 0 || $totalSatoSecciones > 0)) {
     $divisor = $tiempoArribaTotal * 60 - $tiempoAbajoTotal;
     $totalSatoDia = ($tiempoArribaTotal > 0 && $divisor > 0) ? number_format($totalParosSecciones * $tiempoArribaTotal * 60 / $divisor, 2) : '0.00';
 
-    $pdf->Cell(10, 5, number_format($totalSatoDia, 2), 0, 1, 'C');
+    $pdf->Cell(10, 5, $totalSatoDia, 0, 1, 'C');
 }
 
 
