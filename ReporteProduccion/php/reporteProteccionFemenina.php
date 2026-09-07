@@ -1388,7 +1388,8 @@ function pintarTiempoAbajoMaquinas(
 
     $pdf->SetXY($x + 119, $totalY);
     $minG = (float) (number_format($acumArriba['totalGeneral'], 2) ?? 0);
-    $pdf->Cell($colW[12], $rowHeight, number_format($minG, 2) . ' / ' . number_format(($totalGeneral / ($minG * 60)) * 100, 2) . '%', 1, 0, 'C', true);
+    $porcentajeGeneral = ($minG > 0) ? (($totalGeneral / ($minG * 60)) * 100) : 0.0;
+    $pdf->Cell($colW[12], $rowHeight, number_format($minG, 2) . ' / ' . number_format($porcentajeGeneral, 2) . '%', 1, 0, 'C', true);
 
     // ---------------- Tiempo perdido acumulado ----------------
     if ($agregarAcumulado && $campoAcumulado !== '' && !empty($dataPeriodo)) {

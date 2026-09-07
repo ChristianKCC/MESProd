@@ -2367,7 +2367,7 @@ function pintarOEEMaquinas(
         if ($den > 0) {
             // % MD =  
             $md = (1 - ($num / $den)) * 100;
-            $ptpd = ($tpd / ($dena * 60)) * 100;
+            $ptpd = ($dena > 0) ? (($tpd / ($dena * 60)) * 100) : 0.0;
 
             $oeeD = ((100 - $md) * (100 - $ptpd)) / 100;
 

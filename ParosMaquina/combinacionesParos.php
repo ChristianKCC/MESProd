@@ -140,19 +140,47 @@ require_once("../index/header.php");
             </div>
 
             <!-- Combinaciones -->
-            <div class="tsec active" id="tab-combinaciones"></div>
-            <div class="card" style="margin: bottom 12px;">
-                <div style="display: flex;align-items: center; gap: 16px; flex-wrap:wrap;">
-                    <div style="display: flex; align-items: center; gap: 9px">
-                        <span style="font-size:  20px"><i class="fa-solid fa-robot"></i></span>
-                        <div>
-                            <div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Máquina objetivo</div>
-                            <div style="font-weight:600;font-size:14px" id="maq-lbl"></div>
-                            <div></div>
+            <div class="tsec active" id="tab-combinaciones">
+                <div class="card" style="margin: bottom 12px;">
+                    <div style="display: flex;align-items: center; gap: 16px; flex-wrap:wrap;">
+                        <div style="display: flex; align-items: center; gap: 9px">
+                            <span style="font-size:  20px"><i class="fa-solid fa-robot"></i></span>
+                            <div>
+                                <div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Máquina objetivo</div>
+                                <div style="font-weight:600;font-size:14px" id="maq-lbl"></div>
+                            </div>
                         </div>
+                        <div style="width:260px" class="ss-comb-maq"></div>
                     </div>
                 </div>
+                <!-- Nota explicativa -->
+                <div
+                    style="background:var(--acl);border:1px solid #BFCFEE;border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--act);display:flex;align-items:flex-start;gap:8px">
+                    <span style="font-size:16px;flex-shrink:0">💡</span>
+                    <span>Selecciona la máquina y elige libremente la <strong>sección</strong>, <strong>módulo</strong>
+                        y
+                        <strong>falla</strong> del catálogo — sin restricciones entre sí. La relación Máquina → Sección
+                        →
+                        Módulo → Falla se forma al guardar la combinación.</span>
+                </div>
+
+                <!-- Form para agragar combinaciones -->
+                 <div class="card">
+                    <div class="ctitle"><span class="ci">✚</span> Agregar Combinación</div>
+                    <div class="cgrid">
+                        <div class="fg" style="margin-bottom: 0;">
+                            <label class="fl">Sección</label>
+                            <div class="ss-comb-sec"></div>
+                        </div>
+                        <div class="fg" style="margin-bottom: 0;">
+                            <label class="fl">Módulo</label>
+                            <div class="ss-comb-mod"></div>
+                        </div>
+                    </div>
+                 </div>
             </div>
+
+
         </div>
     </div>
 </div>

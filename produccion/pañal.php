@@ -65,6 +65,18 @@ require_once("../index/header.php"); ?>
     background: #1e293b;
     color: #f9f9f9;
   }
+  .card-header .row > div {
+    font-size: 0.78rem;
+}
+
+.card-header h5 {
+    font-size: 0.85rem;
+}
+
+/* Quitar el fs-5 que agranda la merma */
+.card-header .fs-5 {
+    font-size: 1rem !important;
+}
 </style>
 <!-- Contenido -->
 <div class="container-maquinas">

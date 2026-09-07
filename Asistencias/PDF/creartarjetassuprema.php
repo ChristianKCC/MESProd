@@ -43,7 +43,7 @@ while ($fila = sqlsrv_fetch_array($result)) {
 	$pdf->Cell(20, 10, utf8_decode($fila[1]));
 	$pdf->Ln(5);
 	$pdf->SetXY($x + 180, $y + 5);
-	$pdf->Cell(20, 10, "NOMINA NO." . ($fila[4] + 1));
+	$pdf->Cell(20, 10, "NOMINA NO." . ($fila[4]));
 	$pdf->Ln(15);
 	$pdf->SetX($x);
 	$pdf->Cell(20, 10, "DEL   $fechai   AL   $fechaf");

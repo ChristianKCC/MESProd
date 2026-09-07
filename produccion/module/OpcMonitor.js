@@ -65,7 +65,6 @@ class OpcGrafica {
   }
 
   baseOptions(data) {
-    console.log(data);
     return {
       chart: {
         type: "area",
